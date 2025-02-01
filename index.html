@@ -1,0 +1,794 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Pelkie Clicker</title>
+    <script type="text/javascript" src="vue.js"></script>
+    <script type="text/javascript" src="pako.js"></script>
+    <script type="text/javascript" src="break_infinity.js"></script>
+    <style>
+        body {
+            font-family: MonospaceTypewriter, monospace;
+        }
+
+        button {
+            text-align: center;
+            font-family: MonospaceTypewriter, monospace;
+        }
+
+        .container {
+            max-width: 540px;
+            margin: auto;
+
+        }
+
+        .tabs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4列 */
+            grid-auto-rows: minmax(40px, auto); /* 行高 */
+            gap: 5px; /* 间距 */
+            margin: 10px 0;
+        }
+
+        .tab {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 600px) {
+            .tabs {
+                grid-template-columns: repeat(4, minmax(80px, 1fr));
+            }
+
+            .tab {
+                font-size: 12px;
+                padding: 6px;
+            }
+        }
+        .active-tab {
+            background-color: #f0f0f0;
+        }
+
+        .clickable {
+            cursor: pointer;
+        }
+
+        .golden-pei {
+            width: 50px;
+            height: 50px;
+            background-color: gold;
+        }
+
+        .golden-pei-hide {
+            width: 50px;
+            height: 50px;
+            background-color: #cccccc;
+        }
+
+        .effect-toast {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-left: 5px solid #ff9800;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .disabled {
+            background-color: #ccc;
+        }
+
+        .building {
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            padding: 8px;
+            align-items: center;
+            background: #f8f8f8;
+        }
+
+        .bulk-selector {
+            margin: 10px 0;
+            padding: 5px;
+            background: #f0f0f0;
+        }
+
+        .achievement-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .achievement {
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            background: #f8f8f8;
+        }
+
+            .achievement.unlocked {
+                border-color: #4CAF50;
+                background: #e8f5e9;
+            }
+
+        .achievement-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+
+        .achievement-info h4 {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+
+        .achievement-info p {
+            margin: 0;
+            color: #666;
+        }
+
+        .achievement-info small {
+            color: #999;
+            font-size: 0.8em;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .achievement-toast {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            animation: slideIn 0.3s ease-out;
+            border-left: 5px solid #4CAF50;
+        }
+
+        .shop {
+            margin-top: 20px;
+            border-top: 2px solid #666;
+            padding-top: 15px;
+        }
+
+        .upgrade-item {
+            border: 1px solid #aaa;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: #f8f8f8;
+        }
+
+            .upgrade-item button {
+                margin: 5px 0;
+            }
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <h1>You have {{ formatNumber(peiCount) }} Pelkies</h1>
+
+        <h3>{{ formatNumber(peiPerSecond) }} Pelkies per second</h3>
+        <h3>{{ formatNumber(peiPerClick) }} Pelkies per click</h3>
+
+        <div class="clickable" @click="clickPei" style="width: 100px; height: 100px; background-image: url('pelkie.bmp')"></div>
+
+        <div :class="goldenPeiVisible?'golden-pei clickable':'golden-pei-hide'" @click="clickGoldenPei" style="font-size:36px; text-align:center">♅</div>
+
+        <div class="bonus-status">
+            <div>milk bonus: {{ milk }}  (+{{ (milk*4).toFixed(2) }}%pps)</div>
+            <div>sugar lump bonus: {{ sugar }}  (+{{ (sugar*1).toFixed(2) }}%pps)</div>
+        </div>
+
+        <div>Golden pelle effect: {{effect}}</div>
+
+        <div class="tabs">
+            <div v-for="(tab, index) in tabs" :key="index"
+                 class="tab clickable"
+                 :class="{ 'active-tab': currentTab === index }"
+                 @click="currentTab = index">
+                {{ tab }}
+            </div>
+        </div>
+
+        <!-- 建筑选项卡 -->
+        <div v-if="currentTab === 0">
+            <div class="bulk-selector">
+                bulk-selector:
+                <select v-model="bulkAmount">
+                    <option value="1">×1</option>
+                    <option value="10">×10</option>
+                    <option value="100">×100</option>
+                    <option value="1000">×1000</option>
+                </select>
+            </div>
+
+            <div v-for="(building, index) in buildings" :key="index" class="building">
+                <button @click="buyBuilding(index)"
+                        :disabled="peiCount < calcBulkCost(index)">
+                    Buy {{ building.name }} ×{{ bulkAmount }} cost {{ formatNumber(calcBulkCost(index)) }} pelkies
+                </button>
+                <br />
+                Number: {{ building.quantity }}
+                Per second: {{formatNumber(building.quantity*building.production)}}
+            </div>
+        </div>
+
+        <!-- 升级选项卡 -->
+        <div v-if="currentTab === 1">
+            <div v-for="(building, index) in buildings" :key="'b'+index">
+                <h4>{{ building.name }} upgrades (x2 production per upgrade bought)</h4>
+                <div v-for="(upgrade, uIndex) in building.upgrades" :key="'u'+uIndex">
+                    <button @click="buyUpgrade(index, uIndex)"
+                            :disabled="!canBuyUpgrade(index, uIndex)">
+                        level {{ uIndex+1 }} upgrade
+                        <span v-if="!upgrade.unlocked">
+                            require {{ upgrade.required }} {{ building.name }} cost: {{ formatNumber(upgrade.cost) }})
+                        </span>
+                        <span v-else>bought</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 成就选项卡 -->
+        <div v-if="currentTab === 2">
+            <h3>achievements ({{ unlockedAchievementsCount }}/{{ achievements.length }})</h3>
+            <div class="achievement-grid">
+                <div v-for="achievement in achievements"
+                     :key="achievement.id"
+                     class="achievement"
+                     :class="{ 'unlocked': achievement.unlocked }">
+                    <div class="achievement-info">
+                        <div>{{ achievement.unlocked ? '√' : '×' }} {{ achievement.name }} {{ achievement.description }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 飞升选项卡 -->
+        <div v-if="currentTab === 3">
+            <div v-if="canAscend">
+                <p>Ascend to get {{ formatNumber(nextFragments) }} reality shards (next at {{formatNumber(Math.pow(this.totalFragments+1,3)*1e12)}})</p>
+                <button @click="ascend">Ascend!</button>
+            </div>
+            <div v-else>
+                <p>require 1e12 total pelkies ({{ formatNumber(totalLifetimePei) }}/1e12)</p>
+            </div>
+
+            <div class="shop">
+                <h4>ascension upgrades (you have {{ formatNumber(realityFragments) }} reality shards)</h4>
+                <div v-for="(upgrade, index) in shopUpgrades" :key="'s'+index" class="upgrade-item">
+                    <button @click="buyAscendU(index)"
+                            :disabled="realityFragments < upgrade.cost">
+                        cost {{ upgrade.cost }} RS {{ upgrade.bought?"bought":""}}
+                    </button>
+                    <div>{{ upgrade.name }} ({{ upgrade.description }})</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 超越选项卡 -->
+        <div v-if="currentTab === 4">
+
+            <div>
+                <p>require 1e48 total pelkies</p>
+                <p>transcend to get imaginary shards</p>
+            </div>
+
+        </div>
+        <!-- 高产选项卡 -->
+        <div v-if="currentTab === 5">
+
+            <div>
+                <p>require 1e192 total pelkies</p>
+                <p>hyperscend to increase Galaxy level.</p>
+            </div>
+
+        </div>
+        <!-- 统计选项卡 -->
+        <div v-if="currentTab === 6">
+            <h3>Statistics:</h3>
+            <div>total pelkies: {{formatNumber(totalLifetimePei)}}</div>
+            <div>time played: {{ totalPlayTime }}</div>
+            <div>milk: {{ milk }}</div>
+            <div>sugar lumps: {{ sugar }}</div>
+            <!-- 原有统计信息... -->
+        </div>
+        <!-- 存档选项卡 -->
+        <div v-if="currentTab === 7">
+            <button @click="saveGame()">export</button>
+            <button @click="loadGame()">import</button>
+            save load no effect in test version
+            <div>
+                pelle:<br />
+                disable cookie upgrade(expect ascension)<br />
+                disable research center<br />
+                disable Grandmapocalypse<br />
+                disable seasons<br />
+                disable minigames<br />
+                weaken synergism upgrades effect<br />
+                sugar lump can't upgrade buildings<br />
+                delete some ascension upgrades<br />
+                delete some achivements<br />
+                "7" in golden pelkie effects are "6"<br />
+                delete some words in upgrades and effects<br />
+                softcapped ascension after 1e48 pelkies: x^(1/3)/1e12→x^1/4<br />
+                boost:<br />
+                60x game speed<br />
+                passive sugar lump bonus but /10<br />
+                12 additional buildings<br />
+                start from 5h 80% offline production<br />
+                new prestige layer: transcension, require 1e48 pelkies<br />
+                new prestige layer: hypercension, require 1e192 pelkies<br />
+            </div>
+        </div>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                currentTab: 0,
+                tabs: ['Buildings', 'Upgrades', 'Achievements', 'Ascension', 'Transcension', 'Hypercension', 'Statistics', 'Save/Load'],
+                peiCount: 0,
+                peiPerSecond: 0,
+                peiPerClick: 1,
+                bulkAmount: 1,
+                goldenPeiVisible: false,
+                goldenPeiEffects: {
+                    clickMultiplier: 1,
+                    buildingMultiplier: 1,
+                    buildingCostReduction: 1,
+                    randomBuildingBoost: null
+                },
+                effect:"none",
+                activeEffects: [],
+                effectTimers: {},
+                buildings: Array.from({ length: 32 }, (_, i) => ({
+                    name: `Building${i + 1}`,
+                    quantity: 0,
+                    baseCost: Math.pow(10, i * (i - 1) / 30 + i + 1),
+                    cost: Math.pow(10, i * (i - 1) / 30 + i + 1),
+                    production: 0.0125 * Math.pow(8, i + 1),
+                    upgrades: [10, 50, 200, 1000, 1e6,1e9,1e12,1e15,1e18,1e21,1e24,1e27,1e30,1e33,1e36,1e39].map((multiplier, uIndex) => ({
+                        required: uIndex < 3 ? Math.pow(5, uIndex) : uIndex*50-100,
+                        cost: Math.pow(10, i * (i - 1) / 30 + i + 1) * multiplier,
+                        unlocked: false,
+                        multiplier: 2,
+                    })),
+                })),
+                achievements: Array.from({ length: 512 }, (_, i) => ({
+                    id: i+1,
+                    buildingIndex: Math.floor(i/16),
+                    required: i % 16 == 0 ? 1 : (i % 16) * 50,
+                    name: `${i+1}`,
+                    description: `have ${i % 16 == 0 ? 1 : (i % 16) * 50} building ${Math.floor(i / 16) +1}`,
+                    unlocked: false
+                })),
+                ascensionCount: 0,
+                realityFragments: 0,
+                totalLifetimePei: 0,
+                shopUpgrades: [
+                    {
+                        name: "god ah",
+                        description: "unlock ascend system. +1%pps per total RS.",
+                        cost: 1,
+                        bought: false,
+                    },
+                    {
+                        name: "a reality pelkie",
+                        description: "+10%pps",
+                        cost: 10,
+                        bought: false,
+                    },
+                    {
+                        name: "offline time lv.1",
+                        description: "2x offline time cap (10 hours total)",
+                        cost: 7,
+                        bought: false,
+                    },
+                    {
+                        name: "pelle's gift lv.1",
+                        description: "+2%pps for 8 times(+17.16%total)",
+                        cost: 25,
+                        bought: false,
+                    },
+                ],
+                milk: 0,
+                sugar: 0,
+                playTime: 0,
+                totalPlayTime: 0,
+                // 其他数据...
+                multiplierActive: false,
+                multiplierTimer: 0
+            },
+            methods: {
+                formatNumber(num) {
+                    if (num > 1000) return num.toExponential(3);
+                    else return num.toFixed(3);
+                },
+                clickPei() {
+                    this.peiCount += this.peiPerClick;
+                    this.totalLifetimePei += this.peiPerClick;
+                    // 更新统计...
+                },
+                clickGoldenPei() {
+                    if (!this.goldenPeiVisible) return;
+                    const effects = [
+                        {
+                            name: '+255s building pelkies',
+                            chance: 0.2,
+                            apply: () => this.gainProduction(255)
+                        },
+                        {
+                            name: '+65535x click pelkies',
+                            chance: 0.2,
+                            apply: () => this.gainClicks(65535)
+                        },
+                        {
+                            name: 'building x6 for 66 seconds',
+                            chance: 0.12,
+                            apply: () => this.applyBuildingMultiplier(6, 66)
+                        },
+                        {
+                            name: 'click x666 for 13 seconds',
+                            chance: 0.12,
+                            apply: () => this.applyClickMultiplier(666, 13)
+                        },
+                        {
+                            name: 'building x15 for 30 seconds',
+                            chance: 0.08,
+                            apply: () => this.applyBuildingMultiplier(15, 30)
+                        },
+                        {
+                            name: 'click x1111 for 8 seconds',
+                            chance: 0.08,
+                            apply: () => this.applyClickMultiplier(1111, 8)
+                        },
+                        {
+                            name: 'random building x10 for 30 seconds',
+                            chance: 0.16,
+                            apply: () => this.boostRandomBuilding(10, 60)
+                        },
+                        {
+                            name: 'building cost -50% for 5 seconds',
+                            chance: 0.03,
+                            apply: () => this.applyBuildingCostReduction(0.5, 5)
+                        },
+                        {
+                            name: 'sugar lump +1',
+                            chance: 0.01,
+                            apply: () => this.gainCandy()
+                        },
+                    ];
+                    const allEffects = [...effects];
+                    const selectedEffect = this.selectRandomEffect(allEffects);
+                    selectedEffect.apply();
+                    this.goldenPeiVisible = false;
+                    this.showEffectNotification(selectedEffect.name);
+                },
+                applyClickMultiplier(multiplier, duration) {
+                    this.goldenPeiEffects.clickMultiplier *= multiplier;
+                    this.startEffectTimer('clickMultiplier', () => {
+                        this.goldenPeiEffects.clickMultiplier /= multiplier;
+                    }, duration * 1000);
+                },
+                applyBuildingMultiplier(multiplier, duration) {
+                    this.goldenPeiEffects.buildingMultiplier *= multiplier;
+                    this.startEffectTimer('buildingMultiplier', () => {
+                        this.goldenPeiEffects.buildingMultiplier /= multiplier;
+                    }, duration * 1000);
+                },
+                applyBuildingCostReduction(factor, duration) {
+                    this.goldenPeiEffects.buildingCostReduction *= factor;
+                    this.startEffectTimer('buildingCostReduction', () => {
+                        this.goldenPeiEffects.buildingCostReduction /= factor;
+                    }, duration * 1000);
+                },
+                boostRandomBuilding(multiplier, duration) {
+                    const buildingsWithQuantity = this.buildings.filter(b => b.quantity > 0);
+                    if (buildingsWithQuantity.length === 0) return;
+
+                    const randomBuilding = buildingsWithQuantity[
+                        Math.floor(Math.random() * buildingsWithQuantity.length)
+                    ];
+                    const originalProduction = randomBuilding.production;
+
+                    randomBuilding.production *= multiplier;
+                    this.goldenPeiEffects.randomBuildingBoost = randomBuilding.id;
+
+                    this.startEffectTimer('randomBuildingBoost', () => {
+                        randomBuilding.production = originalProduction;
+                        this.goldenPeiEffects.randomBuildingBoost = null;
+                    }, duration * 1000);
+                },
+                gainProduction(seconds) {
+                    const production = this.peiPerSecond * seconds * 60;
+                    this.peiCount = this.peiCount + production;
+                },
+                gainClicks(count) {
+                    const total = this.peiPerClick * count;
+                    this.peiCount = this.peiCount + total;
+                },
+                gainCandy() {
+                    this.sugar++;
+                },
+                selectRandomEffect(effects) {
+                    const totalWeight = effects.reduce((sum, e) => sum + e.chance, 0);
+                    let random = Math.random() * totalWeight;
+
+                    for (const effect of effects) {
+                        if (random < effect.chance) return effect;
+                        random -= effect.chance;
+                    }
+                    return effects[0];
+                },
+                startEffectTimer(name, callback, duration) {
+                    if (this.effectTimers[name]) {
+                        clearTimeout(this.effectTimers[name]);
+                    }
+                    this.effectTimers[name] = setTimeout(() => {
+                        callback();
+                        delete this.effectTimers[name];
+                    }, duration);
+                },
+                showEffectNotification(effectName) {
+                    this.effect = effectName;
+                    const toast = document.createElement('div');
+                    toast.className = 'effect-toast';
+                    toast.innerHTML = `
+                        <span>golden pelle effect:${effectName}</span>
+            `       ;
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 4000);
+                },
+
+                buyBuilding(index) {
+                    const building = this.buildings[index];
+                    const amount = parseInt(this.bulkAmount);
+                    const totalCost = this.calcBulkCost(index);
+
+                    if (this.peiCount < totalCost) return;
+
+                    // 执行购买
+                    this.peiCount -= totalCost;
+                    building.quantity += amount;
+
+                    // 更新下次购买价格（使用公式代替循环）
+                    building.cost = building.baseCost *
+                        Math.pow(1.148698354997035, building.quantity);
+
+                    // 检查成就
+                    this.checkAchievements(index);
+                },
+                calcBulkCost(index) {
+                    const building = this.buildings[index];
+                    const r = 1.148698354997035; // 价格增长系数
+                    const n = parseInt(this.bulkAmount);
+
+                    // 使用等比数列求和公式：S = a1*(r^n - 1)/(r - 1)
+                    const a1 = building.cost;
+                    return a1 * (Math.pow(r, n) - 1) / (r - 1)*this.goldenPeiEffects.buildingCostReduction;
+                },
+                canBulkBuy(index) {
+                    return this.peiCount >= this.calcBulkCost(index);
+                },
+
+                buyUpgrade(buildingIndex, upgradeIndex) {
+                    const building = this.buildings[buildingIndex];
+                    const upgrade = building.upgrades[upgradeIndex];
+
+                    if (this.canBuyUpgrade(buildingIndex, upgradeIndex)) {
+                        this.peiCount -= upgrade.cost;
+                        upgrade.unlocked = true;
+
+                        // 更新建筑生产效率
+                        building.production *= upgrade.multiplier;
+                    }
+                },
+                // 判断是否可以购买升级
+                canBuyUpgrade(buildingIndex, upgradeIndex) {
+                    const building = this.buildings[buildingIndex];
+                    const upgrade = building.upgrades[upgradeIndex];
+
+                    return (
+                        building.quantity >= upgrade.required &&
+                        this.peiCount >= upgrade.cost &&
+                        !upgrade.unlocked
+                    );
+                },
+                checkAchievements(buildingIndex) {
+                    const building = this.buildings[buildingIndex];
+                    const relatedAchievements = this.achievements.filter(
+                        a => a.buildingIndex === buildingIndex
+                    );
+
+                    relatedAchievements.forEach(achievement => {
+                        if (!achievement.unlocked && building.quantity >= achievement.required) {
+                            achievement.unlocked = true;
+                            this.showAchievementToast(achievement);
+                        }
+                    });
+                },
+                showAchievementToast(achievement) {
+                    this.milk++;
+                    const toast = document.createElement('div');
+                    toast.className = 'achievement-toast';
+                    toast.innerHTML = `
+                <span>achivement </span>
+                <strong>${achievement.name}</strong>
+                <span> unlocked!</span>
+                <p>${achievement.description}</p>
+            `;
+                    document.body.appendChild(toast);
+
+                    setTimeout(() => {
+                        toast.remove();
+                    }, 4000);
+                },
+                ascend() {
+                    if (!this.canAscend) return;
+
+                    // 计算获得的碎片
+                    const gained = this.nextFragments;
+                    this.realityFragments += gained;
+                    this.ascensionCount++;
+
+                    // 重置游戏状态
+                    this.peiCount = 0;
+                    this.buildings.forEach(b => {
+                        b.quantity = 0;
+                        b.cost = b.baseCost;
+                    });
+
+                    // 保留总累计佩干
+                    this.totalLifetimePei += this.peiCount;
+                },
+                buyAscendU(index) {
+                    const upgrade = this.shopUpgrades[index];
+                    if (upgrade.bought == true) return;
+                    if (this.realityFragments >= upgrade.cost) {
+                        this.realityFragments -= upgrade.cost;
+                        this.shopUpgrades[index].bought = true;
+                    }
+                },
+                saveGame() {
+                    // 1. 获取原始数据
+                    const saveData = {
+                        data: this.data,
+                        // ...其他需要保存的数据...
+                        version: "11.45.14"
+                    };
+
+                    // 2. 转换为JSON字符串
+                    const jsonString = JSON.stringify(saveData);
+
+                    // 3. 压缩数据
+                    const compressed = pako.deflate(jsonString, {
+                        level: 9,         // 最高压缩级别
+                        to: 'string'      // 输出字符串格式
+                    });
+
+                    // 4. Base64编码
+                    const base64String = btoa(
+                        String.fromCharCode.apply(null, new Uint16Array(compressed))
+                    );
+
+                    // 5. 显示给用户（示例）
+                    prompt("请复制存档代码", base64String);
+                },
+                loadGame() {
+                    let encodedString = prompt("请输入存档代码");
+                    try {
+                        // 1. Base64解码
+                        const binaryString = atob(encodedString);
+
+                        // 2. 转换为字节数组
+                        const charData = binaryString.split('').map(c => c.charCodeAt(0));
+                        const compressed = new Uint8Array(charData);
+
+                        // 3. 解压缩
+                        const jsonString = pako.inflate(compressed, {
+                            to: 'string'
+                        });
+
+                        // 4. 解析JSON
+                        const saveData = JSON.parse(jsonString);
+
+                        // 5. 版本校验
+                        if (saveData.version !== "11.45.14") {
+                            throw new Error("存档版本不兼容");
+                        }
+
+                        // 6. 应用存档数据
+                        this.data = saveData;
+
+                        alert("存档加载成功！");
+                    } catch (error) {
+                        console.error("存档加载失败:", error);
+                        alert("存档损坏或版本不兼容");
+                    }
+                }
+                // 其他方法...
+            },
+            computed: {
+                // 带升级加成的总生产量
+                totalClick() {
+                    const base = this.goldenPeiEffects.clickMultiplier;
+                    return base;
+                },
+                totalProduction() {
+                    let base = this.buildings.reduce((sum, building) => {
+                        const upgradesMultiplier = building.upgrades
+                            .filter(u => u.unlocked)
+                            .reduce((m, u) => m * u.multiplier, 1);
+                        return sum + building.quantity * building.production * upgradesMultiplier;
+                    }, 0);
+                    if(this.shopUpgrades[0].bought) base = base*(1+this.realityFragments*0.01)
+                    return base *
+                        (1 + this.milk * 0.04) *
+                        (1 + this.sugar * 0.001) *
+                        this.goldenPeiEffects.buildingMultiplier;
+                },
+                unlockedAchievementsCount() {
+                    return this.achievements.filter(a => a.unlocked).length;
+                },
+                canAscend() {
+                    return this.totalLifetimePei >= 1e12;
+                },
+                totalFragments() {
+                    return Math.floor(Math.pow(this.totalLifetimePei / 1e12, 1 / 3));
+                },
+                nextFragments() {
+                    return Math.max(0, this.totalFragments - this.realityFragments);
+                },
+
+            },
+            mounted() {
+                // 游戏循环
+                setInterval(() => {
+                    // 使用computed属性计算生产量
+                    this.peiPerClick = this.totalClick;
+                    this.peiPerSecond = this.totalProduction;
+                    this.peiCount += this.totalProduction;
+                    this.totalLifetimePei += this.totalProduction;
+                }, 16);
+                setInterval(() => {
+                    this.playTime++;
+                    this.totalPlayTime++;
+                if (this.playTime >= 3600) {
+                    this.sugar += 1;
+                    this.playTime = 0;
+                    }
+                }, 1000);
+                // 金佩乐生成
+                setInterval(() => {
+                    this.goldenPeiVisible = true;
+                    setTimeout(() => {
+                        this.goldenPeiVisible = false;
+                    }, 10000);
+                }, 300000);
+            }
+        });
+    </script>
+</body>
+</html>
