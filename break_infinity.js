@@ -654,10 +654,10 @@
         this.e = Number.NaN;
       } else {
         this.fromNumber(parseFloat(value));
-
+/*
         if (isNaN(this.m)) {
           throw Error("[DecimalError] Invalid argument: " + value);
-        }
+        }*/
       }
 
       return this;
