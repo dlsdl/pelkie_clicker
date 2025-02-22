@@ -343,7 +343,7 @@
                         <span v-show="upgrade.buildingId==1 & upgrade.id>4">升级1-4的效果×20&nbsp;&nbsp;</span>
                         <span v-show="upgrade.buildingId<100 & upgrade.buildingId>1">建筑 {{upgrade.buildingId}} 的产量×2&nbsp;&nbsp;</span>
                         <span v-show="upgrade.buildingId==101">点击获得的佩干 +1% <del>每秒生产的佩干</del></span>
-                        <span v-show="upgrade.buildingId==102">释放牛奶力量(叠乘)，佩干每秒×(1+牛奶*{{format(upgrade.id < 8 ? upgrade.id < 4 ? N(0.004).add(0.001 * upgrade.id) : N(0.008) : upgrade.id < 12 ? N(0.016).sub(0.001 * upgrade.id) : N(0.004))}})&nbsp;&nbsp;</span>
+                        <span v-show="upgrade.buildingId==102">释放牛奶力量(叠乘)，佩干每秒×(1+牛奶*{{format(upgrade.id <= 8 ? upgrade.id <= 4 ? N(0.003).add(0.001 * upgrade.id) : N(0.008) : upgrade.id <= 12 ? N(0.017).sub(0.001 * upgrade.id) : N(0.004))}})&nbsp;&nbsp;</span>
                         <span v-show="upgrade.buildingId==103">建筑 2 的产量×2, 建筑 {{upgrade.id+2}} 的产量 +1% 每拥有 {{upgrade.id}} 个建筑2 </span>
                         <span v-show="upgrade.buildingId==104 & upgrade.id<6">每个累计的现实碎片使佩干产量 +{{Math.max(5,upgrade.id*25-25)}}%</span>
                         <span v-show="upgrade.buildingId==104 & upgrade.id==6">佩干产量乘数 +1%</span>
@@ -407,7 +407,7 @@
         <div v-if="currentTab === 4">
 
             <div>
-                <p>超越(transcend)获取超越碎片(需要1e48)</p>
+                <p>超越(transcend)获取超越碎片(需要1e48累计佩干)</p>
             </div>
 
         </div>
@@ -446,7 +446,7 @@
             <button @click="loadGame()">导入</button>
             <button @click="hardReset()" style="color:red">硬重置</button>
             <div>
-                Pelle把你的饼干变成了佩勒饼干，你无法逃离被毁灭的饼干宇宙，你几乎在整个游戏中都会受到重大削弱。
+                Pelle把你的饼干变成了佩勒饼干，你无法逃离被毁灭的饼干宇宙，你几乎在整个游戏中都会受到重大削弱。<br />
                 削弱:<br />
                 风味饼干升级被删除（天堂升级和建筑数量相关的除外）<br />
                 删除研究中心<br />
