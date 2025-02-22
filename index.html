@@ -1,8 +1,8 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=2.0">
-    <title>Pelkie Clicker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>佩乐点点勒</title>
     <script type="text/javascript" src="vue.js"></script>
     <script type="text/javascript" src="pako.js"></script>
     <script type="text/javascript" src="break_infinity.js"></script>
@@ -15,6 +15,7 @@
         button {
             text-align: center;
             font-family: MonospaceTypewriter, monospace;
+            font-size: 16px;
         }
 
         .container {
@@ -27,7 +28,7 @@
 
         .tabs {
             display: grid;
-            grid-template-columns: repeat(4, 1fr); /* 4列 */
+            grid-template-columns: repeat(4, minmax(130px,1fr)); /* 4列 */
             grid-auto-rows: minmax(40px, auto); /* 行高 */
             gap: 5px; /* 间距 */
             margin: 10px 0;
@@ -41,18 +42,18 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             text-align: center;
-            font-size: 14px;
+            font-size: 16px;
         }
 
         /* 响应式适配 */
         @media (max-width: 540px) {
             .tabs {
-                grid-template-columns: repeat(4, minmax(80px, 1fr));
+                grid-template-columns: repeat(4, minmax(60px,1fr));
             }
 
             .tab {
-                font-size: 12px;
-                padding: 6px;
+                font-size: 16px;
+                padding: 5px;
             }
         }
 
@@ -67,7 +68,7 @@
         .click-effects-container {
             position: relative;
             bottom: -50%;
-            left: 0;
+            left: 30%;
             right: 0;
             pointer-events: none;
         }
@@ -132,12 +133,18 @@
             background-color: #ccc;
         }
 
+        .building-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, 1fr);
+        }
+
         .building {
             border: 2px solid #ccc;
             border-radius: 8px;
             padding: 8px;
             display: flex;
             align-items: center;
+            justify-content: space-between; /* 添加这行 */
             background: #f8f8f8;
         }
 
@@ -149,7 +156,7 @@
 
         .upgrade-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(540px, 1fr));
+            grid-template-columns: repeat(auto-fit, 1fr);
         }
 
         .upgrade {
@@ -158,12 +165,13 @@
             padding: 4px;
             display: flex;
             align-items: center;
+            justify-content: space-between; /* 添加这行 */
             background: #f8f8f8;
         }
 
         .achievement-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(540px, 1fr));
+            grid-template-columns: repeat(auto-fit, 1fr);
         }
 
         .achievement {
@@ -172,6 +180,7 @@
             padding: 4px;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             background: #f8f8f8;
         }
 
@@ -231,7 +240,7 @@
         .upgrade-item {
             border: 1px solid #aaa;
             padding: 10px;
-            margin: 10px 0;
+            margin: 5px 0;
             border-radius: 5px;
             background: #f8f8f8;
         }
@@ -255,11 +264,11 @@
 </head>
 <body>
     <div id="app" class="container">
-        <h1>You have {{ format(peiCount) }} Pelkies</h1>
+        <h1>你有 {{ format(peiCount) }} 佩干</h1>
 
-        <h3>{{ format(peiPerSecond) }}/s {{ format(peiPerClick) }}/click</h3>
+        <h3>{{ format(peiPerSecond) }}/秒 {{ format(peiPerClick) }}/点击</h3>
 
-        <div class="clickable" @click="clickPei" style="width: 100px; height: 100px; background-image: url('pelkie.bmp')">
+        <div class="clickable" @click="clickPei" style="width: 200px; height: 200px; background-image: url('pelkie.bmp')">
             <div class="click-effects-container">
                 <div v-for="(effect, index) in clickEffects"
                      :key="index"
@@ -273,11 +282,11 @@
         <div :class="goldenPeiVisible?'golden-pei clickable':'golden-pei-hide'" @click="clickGoldenPei" style="font-size:36px; text-align:center">♅</div>
 
         <div class="bonus-status">
-            <div>milk: {{ format(milk) }}</div>
-            <div>sugar lump: {{ format(sugar) }}</div>
+            <div>牛奶: {{ format(milk) }}</div>
+            <div>糖块: {{ format(sugar) }}</div>
         </div>
 
-        <div>Golden pelle effect: {{effect}}</div>
+        <div>金佩勒效果: {{effect}}</div>
 
         <div class="tabs">
             <div v-for="(tab, index) in tabs" :key="index"
@@ -291,7 +300,7 @@
         <!-- 建筑选项卡 -->
         <div v-if="currentTab === 0">
             <div class="bulk-selector">
-                bulk-selector:
+                购买数量:
                 <select v-model="bulkAmount">
                     <option value="1">×1</option>
                     <option value="10">×10</option>
@@ -302,46 +311,51 @@
                     <option value="1000000">×1000000</option>
                 </select>
             </div>
-
-            <div v-for="(building, index) in buildings" :key="index" class="building">
-                Building {{ building.id + 1 }}<br />
-                number:{{ formatInt(building.quantity) }}&nbsp;
-                base pps:{{ format(building.baseProd) }}&nbsp;
-                pps:{{ format(building.production) }}
-                <button @click="buyBuilding(index)"
-                        :disabled="peiCount.lt(calcBulkCost(index))">
-                    buy ×{{ bulkAmount }} cost {{ format(calcBulkCost(index)) }} pelkies
-                </button>
+            <div class="building-grid">
+                <div style="line-height:0px; color:white">------------------------------------------------------------</div>
+                <div v-for="(building, index) in buildings" :key="index" class="building">
+                    &nbsp;&nbsp;建筑{{ building.id + 1 }}&nbsp;&nbsp;<br />
+                    &nbsp;&nbsp;数量:{{ formatInt(building.quantity) }}&nbsp;&nbsp;<br />
+                    &nbsp;&nbsp;基础佩干/秒:{{ format(building.baseProd) }}&nbsp;&nbsp;<br />
+                    &nbsp;&nbsp;佩干/秒:{{ format(building.production) }}&nbsp;&nbsp;
+                    <button @click="buyBuilding(index)"
+                            :disabled="peiCount.lt(calcBulkCost(index))">
+                        购买 ×{{ bulkAmount }}<br />
+                        花费 {{ format(calcBulkCost(index)) }} 佩干
+                    </button>
+                </div>
             </div>
         </div>
 
         <!-- 升级选项卡 -->
         <div v-if="currentTab === 1">
+            <div style="font-size:24px">升级 ({{ unlockedUpgradesCount }}/{{ upgrades.length }})</div>
             <div class="upgrade-grid">
+                <div>--------------------------------------------------------</div>
                 <div v-for="upgrade in upgrades"
                      :key="upgrade.buildingId*100+upgrade.id"
                      v-if="!upgrade.unlocked && ((upgrade.buildingId<100 && buildings[upgrade.buildingId-1].quantity.gte(upgrade.required)) || (upgrade.buildingId==101 && totalClickPei.gte(upgrade.required)) || (upgrade.buildingId==102 && N(unlockedAchievementsCount).gte(upgrade.required)) || (upgrade.buildingId==103 && buildings[upgrade.id+1].quantity.gte(upgrade.required)) || (upgrade.buildingId==104 && totalRealityShards.gte(1)) || (upgrade.buildingId==105 && ascendU[2].level.gte(upgrade.required)) || (upgrade.buildingId==777 && goldenPeiClick>=upgrade.required) )"
                      class="upgrade">
                     <div>
-                        {{ upgrade.buildingId }}-{{ upgrade.id }}
-                        <span v-show="upgrade.buildingId==1 & upgrade.id<4">click and building 1 production x2 </span>
-                        <span v-show="upgrade.buildingId==1 & upgrade.id==4">click and building 1 production +0.2 per other buildings </span>
-                        <span v-show="upgrade.buildingId==1 & upgrade.id>4">upgrade 1-4 effect x20 </span>
-                        <span v-show="upgrade.buildingId<100 & upgrade.buildingId>1">building {{upgrade.buildingId}} production x2 </span>
-                        <span v-show="upgrade.buildingId==101">pelkies gained from clicking gains +1% <del>of your pps</del></span>
-                        <span v-show="upgrade.buildingId==102">release milk boost(multiplicative),pps x(1+milk*{{(0.001*upgrade.id+0.003).toFixed(3)}}) </span>
-                        <span v-show="upgrade.buildingId==103">building 2 production x2, building {{upgrade.id+2}} production +1% per {{upgrade.id}} building 2 </span>
-                        <span v-show="upgrade.buildingId==104 & upgrade.id<6">each total reality shard +{{Math.max(5,upgrade.id*25-25)}}% pps</span>
-                        <span v-show="upgrade.buildingId==104 & upgrade.id==6">pelkie production multiplier +1%</span>
-                        <span v-show="upgrade.buildingId==104 & upgrade.id==7">pelkie production multiplier +10%</span>
-                        <span v-show="upgrade.buildingId==105">pelkie production multiplier +{{Math.floor((upgrade.id-1)/10)+1}}%</span>
-                        <span v-show="upgrade.buildingId==777 & upgrade.id==1">golden pelkies appear twice as often and last twice as long on screen</span>
-                        <span v-show="upgrade.buildingId==777 & upgrade.id==2"><del>golden pelkies appear twice as often and last twice as long on screen</del>(deleted by pelle)</span>
-                        <span v-show="upgrade.buildingId==777 & upgrade.id==3"><del>golden pelkie effects last twice as long</del>(deleted by pelle)</span>
+                        升级{{ upgrade.buildingId }}-{{ upgrade.id }}
+                        <span v-show="upgrade.buildingId==1 & upgrade.id<4">点击和建筑 1 生产的佩干×2&nbsp;&nbsp;</span>
+                        <span v-show="upgrade.buildingId==1 & upgrade.id==4">每个建筑 2~42 使点击和建筑 1 生产的佩干+0.2&nbsp;&nbsp;</span>
+                        <span v-show="upgrade.buildingId==1 & upgrade.id>4">升级1-4的效果×20&nbsp;&nbsp;</span>
+                        <span v-show="upgrade.buildingId<100 & upgrade.buildingId>1">建筑 {{upgrade.buildingId}} 的产量×2&nbsp;&nbsp;</span>
+                        <span v-show="upgrade.buildingId==101">点击获得的佩干 +1% <del>每秒生产的佩干</del></span>
+                        <span v-show="upgrade.buildingId==102">释放牛奶力量(叠乘)，佩干每秒×(1+牛奶*{{format(upgrade.id < 8 ? upgrade.id < 4 ? N(0.004).add(0.001 * upgrade.id) : N(0.008) : upgrade.id < 12 ? N(0.016).sub(0.001 * upgrade.id) : N(0.004))}})&nbsp;&nbsp;</span>
+                        <span v-show="upgrade.buildingId==103">建筑 2 的产量×2, 建筑 {{upgrade.id+2}} 的产量 +1% 每拥有 {{upgrade.id}} 个建筑2 </span>
+                        <span v-show="upgrade.buildingId==104 & upgrade.id<6">每个累计的现实碎片使佩干产量 +{{Math.max(5,upgrade.id*25-25)}}%</span>
+                        <span v-show="upgrade.buildingId==104 & upgrade.id==6">佩干产量乘数 +1%</span>
+                        <span v-show="upgrade.buildingId==104 & upgrade.id==7">佩干产量乘数 +10%</span>
+                        <span v-show="upgrade.buildingId==105">佩干产量乘数 +{{Math.floor((upgrade.id-1)/10)+1}}%</span>
+                        <span v-show="upgrade.buildingId==777 & upgrade.id==1">金佩勒出现频率翻倍，在屏幕上的持续时间翻倍</span>
+                        <span v-show="upgrade.buildingId==777 & upgrade.id==2"><del>金佩勒出现频率翻倍，在屏幕上的持续时间翻倍</del>(被佩勒删除)</span>
+                        <span v-show="upgrade.buildingId==777 & upgrade.id==3"><del>金佩勒效果的持续时间翻倍</del>(被佩勒删除)</span>
                     </div>
                     <button @click="buyUpgrade(upgrade.id, upgrade.buildingId)"
                             :disabled="!canBuyUpgrade(upgrade.id, upgrade.buildingId)">
-                        buy cost: {{ format(upgrade.cost.mul(goldenPeiEffects.upgradeCostReduction)) }}
+                        {{ format(upgrade.cost.mul(goldenPeiEffects.upgradeCostReduction)) }} 佩干
                     </button>
                 </div>
             </div>
@@ -349,16 +363,17 @@
 
         <!-- 成就选项卡 -->
         <div v-if="currentTab === 2">
-            <h3>achievements ({{ unlockedAchievementsCount }}/{{ achievements.length }})</h3>
+            <div style="font-size:24px">成就 ({{ unlockedAchievementsCount }}/{{ achievements.length }})</div>
             <div class="achievement-grid">
+                <div>--------------------------------------------------------</div>
                 <div v-for="achievement in achievements" :key="achievement.buildingId*100+achievement.id" class="achievement" :class="{ 'unlocked': achievement.unlocked }">
                     <div class="achievement-info">
-                        {{ achievement.unlocked ? '√' : '×' }} {{ achievement.buildingId }}-{{ achievement.id }}
-                        <span v-show="achievement.buildingId<100">have {{formatInt(achievement.required)}} building {{achievement.buildingId}}</span>
-                        <span v-show="achievement.buildingId==101">have {{format(achievement.required)}} total pelkies</span>
-                        <span v-show="achievement.buildingId==102">produce {{format(achievement.required)}} pelkies per second</span>
-                        <span v-show="achievement.buildingId==103">have {{format(achievement.required)}} pelkies from clicking</span>
-                        <span v-show="achievement.buildingId==104">have {{format(achievement.required)}} total reality shards</span>
+                        {{ achievement.unlocked ? '√' : '×' }} 成就{{ achievement.buildingId }}-{{ achievement.id }}
+                        <span v-show="achievement.buildingId<100">拥有 {{formatInt(achievement.required)}} 个建筑 {{achievement.buildingId}}</span>
+                        <span v-show="achievement.buildingId==101">累计获得 {{format(achievement.required)}} 个佩干</span>
+                        <span v-show="achievement.buildingId==102">每秒生产 {{format(achievement.required)}} 个佩干</span>
+                        <span v-show="achievement.buildingId==103">点击获得 {{format(achievement.required)}} 个佩干</span>
+                        <span v-show="achievement.buildingId==104">累计获得 {{format(achievement.required)}} 个现实碎片</span>
 
                     </div>
                 </div>
@@ -368,21 +383,21 @@
         <!-- 飞升选项卡 -->
         <div v-if="currentTab === 3">
             <div v-if="canAscend">
-                <p>Ascend to get {{ format(this.totalShards.sub(this.totalRealityShards).max(0)) }} reality shards (next at {{format(nextShards)}})</p>
+                <p>飞升获取 {{ format(this.totalShards.sub(this.totalRealityShards).max(0)) }} 现实碎片 (下一个在 {{format(nextShards)}} 佩干)</p>
                 <button @click="ascend">Ascend!</button>
             </div>
             <div v-else>
-                <p>require 1e12 total pelkies ({{ format(totalLifetimePei) }}/1e12)</p>
+                <p>飞升(ascend)需要 1e12 累计佩干 ({{ format(totalLifetimePei) }}/1e12)</p>
             </div>
 
             <div class="shop">
-                <h4>ascension upgrades (you have {{ format(realityShards) }}/{{format(totalRealityShards)}} reality shards)</h4>
+                <h4>飞升升级 (你有 {{ format(realityShards) }}/{{format(totalRealityShards)}} 现实碎片)</h4>
                 <div v-for="upgrade in ascendU" :key="upgrade.id" class="upgrade-item" v-if="upgrade.id<5">
                     {{auDescription[upgrade.id-1]}}<br />
-                    level {{ formatInt(upgrade.level) }}/{{ formatInt(upgrade.maxLevel) }}
+                    等级 {{ formatInt(upgrade.level) }}/{{ formatInt(upgrade.maxLevel) }}
                     <button @click="buyAscendU(upgrade.id-1)"
                             :disabled="realityShards.lt(upgrade.cost)">
-                        cost {{ format(upgrade.cost) }} RS
+                        {{ format(upgrade.cost) }} RS
                     </button>
                 </div>
             </div>
@@ -392,8 +407,7 @@
         <div v-if="currentTab === 4">
 
             <div>
-                <p>require 1e48 total pelkies</p>
-                <p>transcend to get imaginary shards</p>
+                <p>超越(transcend)获取超越碎片(需要1e48)</p>
             </div>
 
         </div>
@@ -401,56 +415,58 @@
         <div v-if="currentTab === 5">
 
             <div>
-                <p>require 1e192 total pelkies</p>
-                <p>hyperscend to increase Galaxy level.</p>
+                <p>觉醒(hypercend)获取觉醒碎片(需要1e192累计佩干)</p>
             </div>
 
         </div>
         <!-- 统计选项卡 -->
         <div v-if="currentTab === 6">
-            <h3>Statistics:</h3>
-            <div>Current pelkies: {{format(peiCount)}}</div>
-            <div>Pelkies this ascension: {{format(thisAscendPei)}}</div>
-            <div>Total pelkies: {{format(totalLifetimePei)}}</div>
-            <div>Pelkies per second: {{format(peiPerSecond)}}</div>
-            <div>Click pelkies: {{format(totalClickPei)}}</div>
-            <div>Pelkies per click: {{format(peiPerClick)}}</div>
+            <h3>统计:</h3>
+            <div>当前佩干: {{format(peiCount)}}</div>
+            <div>本次飞升中的佩干: {{format(thisAscendPei)}}</div>
+            <div>累计佩干: {{format(totalLifetimePei)}}</div>
+            <div>佩干每秒: {{format(peiPerSecond)}}</div>
+            <div>点击获得的佩干: {{format(totalClickPei)}}</div>
+            <div>佩干每次点击: {{format(peiPerClick)}}</div>
 
-            <div>Ascend times: {{format(ascensionCount)}}</div>
-            <div>Current reality shards: {{format(realityShards)}}</div>
-            <div>Total reality shards: {{format(totalRealityShards)}}</div>
+            <div>飞升次数: {{format(ascensionCount)}}</div>
+            <div>当前现实碎片: {{format(realityShards)}}</div>
+            <div>累计现实碎片: {{format(totalRealityShards)}}</div>
 
-            <div>time played: {{ totalPlayTime }}</div>
-            <div>milk effect: x{{ format(milkBonus) }}</div>
-            <div>sugar effect: x{{ format(sugarBonus) }}</div>
+            <div>游戏时间: {{ Math.floor(totalPlayTime) }}</div>
+            <div>糖块计时: {{ Math.floor(playTime) }}/3600</div>
+            <div>牛奶乘数: x{{ format(milkBonus) }}</div>
+            <div>糖块乘数: x{{ format(sugarBonus) }}</div>
+            <div>飞升乘数: x{{ format(ascendBonus) }}</div>
             <!-- 原有统计信息... -->
         </div>
         <!-- 存档选项卡 -->
         <div v-if="currentTab === 7">
-            <button @click="saveGame()">export</button>
-            <button @click="loadGame()">import</button>
-            <button @click="hardReset()" style="color:red">wipe save</button>
+            <button @click="saveGame()">导出</button>
+            <button @click="loadGame()">导入</button>
+            <button @click="hardReset()" style="color:red">硬重置</button>
             <div>
-                pelle:<br />
-                disable cookie upgrades (except ascension)<br />
-                disable research center<br />
-                disable Grandmapocalypse<br />
-                disable seasons<br />
-                disable minigames<br />
-                change synergism upgrades effect<br />
-                sugar lump can't upgrade buildings<br />
-                delete some ascension upgrades<br />
-                delete some achivements<br />
-                "7" in golden pelkie effects are "6"<br />
-                delete some words in upgrades and effects<br />
-                softcapped ascension after 1e48 pelkies: x^(1/3)/1e12→x^1/4<br />
-                boost:<br />
-                prestige level effect x100<br />
-                passive sugar lump bonus but /10<br />
-                22 additional buildings<br />
-                start from 6h 80% offline production<br />
-                new prestige layer: transcension, require 1e48 pelkies<br />
-                new prestige layer: hypercension, require 1e192 pelkies<br />
+                Pelle把你的饼干变成了佩勒饼干，你无法逃离被毁灭的饼干宇宙，你几乎在整个游戏中都会受到重大削弱。
+                削弱:<br />
+                风味饼干升级被删除（天堂升级和建筑数量相关的除外）<br />
+                删除研究中心<br />
+                删除老奶奶末世<br />
+                删除季节<br />
+                删除小游戏<br />
+                协同升级效果被修改<br />
+                无法用糖块升级建筑<br />
+                移除了一些飞升升级<br />
+                移除了一些成就<br />
+                金饼干效果中的"7"变成"6"<br />
+                升级和效果中的一些文字被删除<br />
+                天堂碎片在1e12后被软上限:x^(1/3)/1e12→x^1/4<br />
+                增强:<br />
+                声望等级效果x100<br />
+                被动糖块乘数但效果倍率/10<br />
+                新增22个建筑<br />
+                一开始就有6小时80%的离线收益<br />
+                新声望层级:超越,在1e48累计饼干后解锁<br />
+                新声望层级:觉醒,在1e192累计饼干后解锁<br />
             </div>
         </div>
     </div>
@@ -575,7 +591,7 @@
                 })
             }
             //升级1075~1100:牛奶乘数
-            for (let i = 1; i <= 20; i++) {
+            for (let i = 1; i <= 40; i++) {
                 upgrades.push({
                     id: i,
                     buildingId: 102,
@@ -689,24 +705,32 @@
         const ASCENDU = (() => {
             const ascendU = [];
             ascendU.push({ id: 1, cost: N(1), maxLevel: N(1) });//解锁飞升系统
-            ascendU.push({ id: 2, cost: N(3), maxLevel: N(1) });//+10%pps
-            ascendU.push({ id: 3, cost: N(5), maxLevel: N(5) });//解锁风味佩干+pps 5+n*10
-            ascendU.push({ id: 4, cost: N(7), maxLevel: N(8) });//离线时长 7^(n+1)
-            ascendU.push({ id: 5, cost: N(50), maxLevel: N(2) });//初始拥有建筑 50*100^n
-            ascendU.push({ id: 6, cost: N(77), maxLevel: N(5) });//金佩干出现频率提升
-            ascendU.push({ id: 7, cost: N(777), maxLevel: N(5) });//金佩干技能时间提升
-            ascendU.push({ id: 8, cost: N(999), maxLevel: N(5) });//禁用金佩干，pps+40+10等级%
-            ascendU.push({ id: 9, cost: N(9000), maxLevel: N(1) });//牛奶效果加成
-            ascendU.push({ id: 10, cost: N(55555), maxLevel: N(4) });//点击收益提升
-            ascendU.push({ id: 11, cost: N(222222), maxLevel: N(2) });//解锁协同升级
-            ascendU.push({ id: 12, cost: N(1e8), maxLevel: N(5) });//?
+            ascendU.push({ id: 2, cost: N(3), maxLevel: N(3) });//佩干产量乘数+10% 3,6e6,9e12
+            ascendU.push({ id: 3, cost: N(5), maxLevel: N(5) });//解锁风味佩干 5+n*10
+            ascendU.push({ id: 4, cost: N(7), maxLevel: N(7) });//离线时长 7^(n+1)
+            ascendU.push({ id: 5, cost: N(50), maxLevel: N(2) });//初始拥有10建筑1或2 50*10^2n
+            ascendU.push({ id: 6, cost: N(77), maxLevel: N(10) });//金佩干出现频率提升10% 77*10^2n
+            ascendU.push({ id: 7, cost: N(100), maxLevel: N(5) });//背包 n*10^2n
+            ascendU.push({ id: 8, cost: N(777), maxLevel: N(10) });//金佩干技能时间提升10% 777*10^2n
+            ascendU.push({ id: 9, cost: N(999), maxLevel: N(6) });//禁用金佩干，pps+40+10等级% 999*10^3n
+            ascendU.push({ id: 10, cost: N(9000), maxLevel: N(2) });//牛奶效果加成
+            ascendU.push({ id: 11, cost: N(99999), maxLevel: N(10) });//建筑、升级价格降低1% 99999*10^5n
+            ascendU.push({ id: 12, cost: N(222222), maxLevel: N(2) });//解锁协同升级，当拥有15和75个建筑时出现
+            ascendU.push({ id: 13, cost: N(399999), maxLevel: N(1) });//升级价格除以5
+            ascendU.push({ id: 14, cost: N(1.5e7), maxLevel: N(1) });//1-6到1-20的乘数变为1000
+            ascendU.push({ id: 15, cost: N(1e8), maxLevel: N(10) });//糖块生长10%更快
+            ascendU.push({ id: 16, cost: N(3e8), maxLevel: N(10) });//释放糖块力量
+            ascendU.push({ id: 17, cost: N(1e9), maxLevel: N(6) });//禁用点击，pps+40+10等级% 10^(2n+9)
+            ascendU.push({ id: 18, cost: N(2e9), maxLevel: N(1) });//建筑2升级变为x4
+            ascendU.push({ id: 19, cost: N(9e9), maxLevel: N(5) });//牛奶价格降低10%
+            ascendU.push({ id: 20, cost: N(3.2e10), maxLevel: N(40) });//解锁不受束缚的升级
             return ascendU;
         })();
         new Vue({
             el: '#app',
             data: {
                 currentTab: 0,
-                tabs: ['Buildings', 'Upgrades', 'Achievements', 'Ascension', 'Transcension', 'Hypercension', 'Statistics', 'Save/Load'],
+                tabs: ['建筑', '升级', '成就', '飞升', '超越', '觉醒', '统计', '存档'],
                 peiCount: N(0),
                 thisAscendPei: N(0),
                 totalLifetimePei: N(0),
@@ -724,7 +748,7 @@
                     upgradeCostReduction: N(1),
                     randomBuildingBoost: null
                 },
-                effect: `none`,
+                effect: `无`,
                 activeEffects: [],
                 effectTimers: {},
                 clickEffects: [],
@@ -749,24 +773,33 @@
                 ascensionCount: N(0),
                 realityShards: N(0),
                 totalRealityShards: N(0),
+                ascendBonus: N(1),
                 ascendU: ASCENDU.map(r => ({
                     ...r,
                     unlocked: false,
                     level: N(0),
                 })),
                 auDescription: [
-                    "God ah! (unlock ascend system and some upgrades)",
-                    "a reality pelkie (+10% pps)",
-                    "pelle's 5 rifts (unlock flavored pelkies)",
-                    "6 hours until update (offline time cap +6h)",
-                    "you start with 10 buildings",
-                    "golden pelkies are 10% more often",
-                    "golden pelkie effects last 10% longer",
-                    "you can disable golden pelkies for 40+10*level% pps",
-                    "release milk boost again",
-                    "click pelkies +25%",
-                    "unlock synergism upgrades",
-                    "sugar lump(coming soon)",
+                    "神啊！（解锁飞升系统和升级）",
+                    "一个残余物（佩干产量乘数+10%）",
+                    "佩勒的5个裂隙（每级解锁10种风味佩干）",
+                    "6小时后更新（离线生产增加6小时）",
+                    "每次飞升保留10建筑{等级}",
+                    "每级使金佩勒出现频率提升10%",
+                    "解锁背包，背包中的升级在飞升时不会重置，每级解锁1个格子",
+                    "每级使金佩勒技能时间提升10%",
+                    "可以选择禁用黄金佩干，获得等级*10+40%佩干产量提升",
+                    "释放牛奶力量，佩干产量×(1+0.004×牛奶)",
+                    "建筑和升级的价格降低1%",
+                    "每级解锁40个协同升级，需要15或75个对应建筑",
+                    "升级的价格除以5",
+                    "升级1-6到1-20的乘数变为1000",
+                    "每级使糖块生长的速度增加10%",
+                    "释放糖块力量，佩干产量×(1+0.004×等级×糖块)",
+                    "可以选择禁用点击，获得等级*10+40%佩干产量提升",
+                    "建筑2产量提升的升级效果变为x4",
+                    "牛奶价格降低10%",
+                    "解锁不受束缚的升级",
                 ],
 
                 milk: N(0),
@@ -806,47 +839,47 @@
                     this.goldenPeiClick++;
                     const effects = [
                         {
-                            name: 'gain 15 <del>minutes</del> pps pelkies',
+                            name: '获得15<del>分钟</del>产量的佩干',
                             chance: 9,
                             apply: () => this.gainProduction(15)
                         },
                         {
-                            name: 'building x6 for 66 seconds',
+                            name: '获得的佩干×6，持续66秒',
                             chance: 6,
                             apply: () => this.applyBuildingMultiplier(6, 66)
                         },
                         {
-                            name: 'click x666 for 13 seconds',
+                            name: '点击获得的佩干×666，持续13秒',
                             chance: 6,
                             apply: () => this.applyClickMultiplier(666, 13)
                         },
                         {
-                            name: 'Random building boosts <del>CpS by building amount*</del>10% for 30 seconds',
+                            name: '随机建筑提升佩干产量<del>，基于其数量的</del>10%，持续30秒',
                             chance: 4,
                             apply: () => this.boostRandomBuilding(1.1, 30)
                         },
                         {
-                            name: 'building x15 for 30 seconds',
+                            name: '获得的佩干×15，持续30秒',
                             chance: 3,
                             apply: () => this.applyBuildingMultiplier(15, 30)
                         },
                         {
-                            name: 'click x1111 for 8 seconds',
+                            name: '点击获得的佩干×1111，持续8秒',
                             chance: 3,
                             apply: () => this.applyClickMultiplier(1111, 8)
                         },
                         {
-                            name: 'building cost -50% for 5 seconds',
+                            name: '建筑价格-50%，持续5秒',
                             chance: 2,
                             apply: () => this.applyBuildingCostReduction(0.5, 5)
                         },
                         {
-                            name: 'upgrade cost -50% for 5 seconds',
+                            name: '升级价格-50%，持续5秒',
                             chance: 2,
                             apply: () => this.applyUpgradeCostReduction(0.5, 5)
                         },
                         {
-                            name: 'sugar lump +1',
+                            name: '获得1个糖块',
                             chance: 1,
                             apply: () => this.gainCandy()
                         },
@@ -895,7 +928,7 @@
                     }, duration * 1000);
                 },
                 gainProduction(seconds) {
-                    const production = this.peiPerSecond.mul(seconds).mul(60);
+                    const production = this.peiPerSecond.mul(seconds);
                     this.peiCount = this.peiCount.add(production);
                 },
                 gainClicks(count) {
@@ -928,7 +961,7 @@
                     const toast = document.createElement('div');
                     toast.className = 'effect-toast';
                     toast.innerHTML = `
-                        <span>golden pelle effect:${effectName}</span>
+                        <span>获得金佩勒效果:${effectName}</span>
             `       ;
                     document.body.appendChild(toast);
                     setTimeout(() => toast.remove(), 5000);
@@ -974,6 +1007,10 @@
                     const upgrade = this.upgrades.filter(u => u.id == i && u.buildingId == b);
                     const c = upgrade[0].cost.mul(this.goldenPeiEffects.upgradeCostReduction);
                     return this.peiCount.gte(c) && !upgrade[0].unlocked
+                },
+                // 判断升级是否显示
+                showUpgrade(i , b) {
+
                 },
                 checkAchievements(buildingIndex) {
                     const relatedAchievements = this.achievements.filter(
@@ -1026,9 +1063,9 @@
                     const toast = document.createElement('div');
                     toast.className = 'achievement-toast';
                     toast.innerHTML = `
-                <span>achivement </span>
+                <span>成就 </span>
                 <strong>${achievement.buildingId}-${achievement.id}</strong>
-                <span> unlocked!</span>`
+                <span> 已解锁</span>`
                     ;
                     document.body.appendChild(toast);
 
@@ -1065,8 +1102,11 @@
                         this.realityShards = this.realityShards.sub(upgrade.cost);
                         this.ascendU[index].level = this.ascendU[index].level.add(1);
                     }
+                    if (index == 1) this.ascendU[1].cost = N(3).add(this.ascendU[1].level.mul(3)).mul(N(10).pow(this.ascendU[1].level.mul(6)));
                     if (index == 2) this.ascendU[2].cost = N(5).add(this.ascendU[2].level.mul(10));
                     if (index == 3) this.ascendU[3].cost = N(7).pow(this.ascendU[3].level.add(1));
+                    if (index == 4) this.ascendU[4].cost = N(50).mul(N(100).pow(this.ascendU[4].level));
+
                 },
                 format(decimal) {
                     let e = decimal.exponent.toFixed(0);
@@ -1224,7 +1264,7 @@
                     this.handleOfflineProduction(saveData.lastUpdateTime);
                 },
                 hardReset() {
-                    if (confirm("wipe save? this will delete all progress!")) {
+                    if (confirm("是否硬重置?这将重置你的所有进度!")) {
                         // 用户点击了确定
                         this.peiCount = N(0);
                         this.thisAscendPei = N(0);
@@ -1232,20 +1272,27 @@
                         this.totalClickPei = N(0);
                         this.goldenPeiClick = 0;
 
-                        this.buildings.forEach(b => {
-                            b.quantity = N(0);
-                            b.cost = b.baseCost;
-                            b.production = b.baseProd;
-                        });
-                        this.upgrades.forEach(u => {
-                            u.unlocked = false;
-                        });
-                        this.achivements.forEach(a => {
-                            a.unlocked = false;
-                        });
-                        this.ascendU.forEach(r => {
-                            r.level = N(0);
-                        });
+                        this.buildings= Array.from({ length: 42 }, (_, i) => ({
+                            id: i,
+                            quantity: N(0),
+                            baseCost: N(10).pow(i * (i - 1) / 40 + i + 1),
+                            cost: N(10).pow(i * (i - 1) / 40 + i + 1),
+                            baseProd: N(8).pow(i - 1),
+                            production: N(8).pow(i - 1),
+                        })),
+                        this.upgrades= UPGRADES.map(u => ({
+                                ...u,
+                                unlocked: false,
+                            })),
+                        this.achievements= ACHIEVEMENTS.map(a => ({
+                                    ...a,
+                                    unlocked: false,
+                                })),
+                        this.ascendU= ASCENDU.map(r => ({
+                                ...r,
+                                unlocked: false,
+                                level: N(0),
+                            })),
 
                         this.ascensionCount = N(0);
                         this.realityShards = N(0);
@@ -1268,6 +1315,11 @@
                         // 计算离线收益
                         const production = this.totalProduction.mul(offlineSeconds);
                         this.peiCount = this.peiCount.add(production);
+                        this.thisAscendPei = this.thisAscendPei.add(production);
+                        this.totalLifetimePei = this.totalLifetimePei.add(production);
+                        this.sugar = this.sugar.add(Math.floor(offlineSeconds / 3600));
+                        this.playTime = this.playTime + (offlineSeconds % 3600);
+                        this.totalPlayTime = this.totalPlayTime + offlineSeconds;
                         // 显示离线通知
                         this.showOfflineNotification(offlineSeconds, production);
                     }
@@ -1279,10 +1331,11 @@
                     const toast = document.createElement('div');
                     toast.className = 'offline-toast';
                     toast.innerHTML = `
-                <p>You have offlined ${hours}h${mins}m${secs}s</p>
-                <p>Offline pps: ${this.format(amount.div(seconds).mul(0.8))}</p>
-                <p>Efficiency: 80%, Max: ${this.ascendU[3].level.toNumber()*6+6}h</p>
-                <p>Gains ${this.format(amount)} pelkies</p>
+                <p>你离线了 ${hours}h${mins}m${secs}s</p>
+                <p>离线产量: ${this.format(amount.div(seconds).mul(0.8))}</p>
+                <p>效率: 80%, 时长上限: ${this.ascendU[3].level.toNumber()*6+6}h</p>
+                <p>获得 ${this.format(amount)} 佩干</p>
+                <p>获得 ${this.formatInt(N(seconds / 3600))} 糖块</p>
             `;
                     document.body.appendChild(toast);
                     setTimeout(() => toast.remove(), 5000);
@@ -1299,13 +1352,13 @@
                     if (this.upgrades.filter(u => u.buildingId == 1 && u.id == 4)[0].unlocked) {
                         mult = mult.add(this.upgrades.filter(u => u.buildingId == 1 && u.id > 4).reduce((prod, upgrade) => {
                             return upgrade.unlocked ? prod.mul(20) : prod;
-                        }, N(1)).mul(this.nonB1Count).mul(3.2));
+                        }, N(1)).mul(this.nonB1Count));
                     }
                     mult = mult.mul(this.upgrades.filter(u => u.buildingId == 101).reduce((prod, upgrade) => {
                         return upgrade.unlocked ? prod.mul(1.01) : prod;
                     }, N(1)));
                     
-                    return base.mul(mult);
+                    return base.mul(mult).mul(this.sugarBonus).mul(this.milkBonus).mul(this.ascendBonus);
                 },
                 totalProduction() {
                     let base = this.buildings.reduce((sum, building, index) => {
@@ -1318,7 +1371,7 @@
                             if (this.upgrades.filter(u => u.buildingId == 1 && u.id == 4)[0].unlocked) {
                                 buildingMult = buildingMult.add(this.upgrades.filter(u => u.buildingId == 1 && u.id > 4).reduce((prod, upgrade) => {
                                     return upgrade.unlocked ? prod.mul(20) : prod;
-                                }, N(1)).mul(this.nonB1Count).mul(3.2));
+                                }, N(1)).mul(this.nonB1Count));
                             }
                         }
                         if (index == 1) {
@@ -1341,7 +1394,7 @@
                         return sum.add(building.production);
                     }, N(0));
                     let milkMult = this.upgrades.filter(u => u.buildingId == 102).reduce((prod, upgrade, i) => {
-                        let factor = N(0.004).add(0.001 * i).min(0.01);
+                        let factor = i < 8 ? i < 4 ? N(0.004).add(0.001 * i) : N(0.008) : i < 12 ? N(0.016).sub(0.001 * i) : N(0.004);
                         return upgrade.unlocked ? prod.mul(factor.mul(this.unlockedAchievementsCount).add(1)) : prod;
                     }, N(1));
                     this.milkBonus = milkMult;
@@ -1353,6 +1406,7 @@
                         if (i == 5) return upgrade.unlocked ? sum.mul(1.01) : sum;
                         if (i == 6) return upgrade.unlocked ? sum.mul(1.1) : sum;
                     }, N(1));
+                    this.ascendBonus = ascendMult;
                     let pelkieMult = this.upgrades.filter(u => u.buildingId == 105).reduce((sum, upgrade) => {
                         return upgrade.unlocked ? sum.mul(N(1).add(N(upgrade.id-1).add(10).div(10).floor().div(100))) : sum;
                     }, N(1));
@@ -1388,10 +1442,10 @@
                     // 使用computed属性计算生产量
                     this.peiPerClick = this.totalClick;
                     this.peiPerSecond = this.totalProduction;
-                    this.peiCount = this.peiCount.add(this.totalProduction.div(100));
-                    this.thisAscendPei = this.thisAscendPei.add(this.totalProduction.div(100));
-                    this.totalLifetimePei = this.totalLifetimePei.add(this.totalProduction.div(100));
-                }, 10);
+                    this.peiCount = this.peiCount.add(this.totalProduction.div(50));
+                    this.thisAscendPei = this.thisAscendPei.add(this.totalProduction.div(50));
+                    this.totalLifetimePei = this.totalLifetimePei.add(this.totalProduction.div(50));
+                }, 20);
                 setInterval(() => {
                     this.goldenPeiTimer++
                     this.playTime++;
@@ -1410,11 +1464,10 @@
                         this.goldenPeiTimer = 0;
                     }
                     this.checkAchievements(101);
-                    this.localSave();
                 }, 1000);
                 setInterval(() => {
-
-                },60000)
+                    this.localSave();
+                },10000)
             }
         });
     </script>
