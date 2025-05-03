@@ -1020,7 +1020,7 @@
                 showUpgrade(u) {
                     if (u.unlocked) return false;
                     
-                    ((upgrade.buildingId < 100 && buildings[upgrade.buildingId - 1].quantity.gte(upgrade.required)) || (upgrade.buildingId == 101 && totalClickPei.gte(upgrade.required)) || (upgrade.buildingId == 102 && N(unlockedAchievementsCount).gte(upgrade.required)) || (upgrade.buildingId == 103 && buildings[upgrade.id + 1].quantity.gte(upgrade.required)) || (upgrade.buildingId == 104 && totalRealityShards.gte(1)) || (upgrade.buildingId == 105 && ascendU[2].level.gte(upgrade.required)) || (upgrade.buildingId == 777 && goldenPeiClick >= upgrade.required))"
+                    ((upgrade.buildingId < 100 && buildings[upgrade.buildingId - 1].quantity.gte(upgrade.required)) || (upgrade.buildingId == 101 && totalClickPei.gte(upgrade.required)) || (upgrade.buildingId == 102 && N(unlockedAchievementsCount).gte(upgrade.required)) || (upgrade.buildingId == 103 && buildings[upgrade.id + 1].quantity.gte(upgrade.required)) || (upgrade.buildingId == 104 && totalRealityShards.gte(1)) || (upgrade.buildingId == 105 && ascendU[2].level.gte(upgrade.required)) || (upgrade.buildingId == 777 && goldenPeiClick >= upgrade.required))
 
                 },
                 checkAchievements(buildingIndex) {
