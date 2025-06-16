@@ -414,7 +414,7 @@
         <div v-if="currentTab === 4">
 
             <div>
-                <p>超越(transcend)获取超越碎片(需要1e48累计佩干)</p>
+                <p>轮回(transcend)获取轮回点(需要1e48累计佩干)</p>
             </div>
 
         </div>
@@ -422,7 +422,8 @@
         <div v-if="currentTab === 5">
 
             <div>
-                <p>觉醒(hypercend)获取觉醒碎片(需要1e192累计佩干)</p>
+                <p>到达1e192累计佩干进行破碎</p>
+                <p>觉醒(hypercend)获取觉醒点(需要10次破碎，1e300佩干)</p>
             </div>
 
         </div>
@@ -453,6 +454,8 @@
             <button @click="loadGame()">导入</button>
             <button @click="hardReset()" style="color:red">硬重置</button>
             <div>
+                本游戏参考了《饼干点击》、《亿点放置》、《从细胞到奇点》、《真实割草增量》，<del>你可以点击链接游玩它们</del><br />
+                最终目标：到达1e9,000,000,000,000,000佩干并打败佩勒<br />
                 Pelle毁灭了你的饼干宇宙，把你的饼干变成了佩勒饼干，你无法逃离被毁灭的饼干宇宙，你在整个游戏中都会受到重大削弱。<br />
                 削弱:<br />
                 风味饼干升级被删除（天堂升级和建筑数量相关的除外）<br />
@@ -734,17 +737,20 @@
             ascendU.push({ id: 20, cost: N(3.2e10), maxLevel: N(40) });//解锁不受束缚的升级
             return ascendU;
         })();
+        const player={
+
+        }
         new Vue({
             el: '#app',
             data: {
                 currentTab: 0,
-                tabs: ['建筑', '升级', '成就', '飞升', '超越', '觉醒', '统计', '存档'],
+                tabs: ['建筑', '升级', '成就', '飞升', '轮回', '觉醒', '统计', '存档'],
                 peiCount: N(0),
                 thisAscendPei: N(0),
                 totalLifetimePei: N(0),
                 totalClickPei: N(0),
                 peiPerSecond: N(0),
-                peiPerClick: N(0),
+                peiPerClick: N(1),
                 bulkAmount: 1,
                 goldenPeiClick: 0,
                 goldenPeiTimer: 0,
@@ -809,6 +815,8 @@
                     "牛奶价格降低10%",
                     "解锁不受束缚的升级",
                 ],
+
+
 
                 milk: N(0),
                 milkBonus: N(1),
@@ -1145,7 +1153,7 @@
                     else return m + "e" + mm + "e" + ee;
                 },
                 comma(num) {
-                    if (num === null || num === undefined) return "NaN"
+                    if (num === null || num === undefined) return "END"
                     let init = num.toString()
                     let portions = init.split(".")
                     portions[0] = portions[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,")
@@ -1159,60 +1167,50 @@
                         totalLifetimePei: this.totalLifetimePei,
                         totalClickPei: this.totalClickPei,
                         goldenPeiClick: this.goldenPeiClick,
-
                         buildings: this.buildings,
                         upgrades: this.upgrades,
                         achievements: this.achievements,
-
                         ascensionCount: this.ascensionCount,
                         realityShards: this.realityShards,
                         totalRealityShards: this.totalRealityShards,
                         ascendU: this.ascendU,
-
                         milk: this.milk,
                         sugar: this.sugar,
                         playTime: this.playTime,
                         totalPlayTime: this.totalPlayTime,
                         lastUpdateTime: Date.now(),
+
                         // ...其他需要保存的数据...
                     };
-
                     // 2. 转换为JSON字符串
-                    const save= formatsave.encode(JSON.stringify(saveData))
-
+                    const save= formatsave.encode(saveData)
                     // 3. 显示给用户（示例）
-                    prompt("请复制存档代码", save);
                     navigator.clipboard.writeText(save);
+                    alert("存档代码已复制到剪贴板");
                 },
                 loadGame() {
                     const save = prompt("请输入存档代码");
-
                         // 4. 解析JSON
-                    const saveData = JSON.parse(formatsave.decode(save));
-
+                    const saveData = formatsave.decode(save);
                     transformToDecimal(saveData);
-
                         // 5. 应用存档数据
                     this.peiCount = saveData.peiCount;
                     this.thisAscendPei = saveData.thisAscendPei;
                     this.totalLifetimePei = saveData.totalLifetimePei;
                     this.totalClickPei = saveData.totalClickPei;
                     this.goldenPeiClick = saveData.goldenPeiClick;
-
                     this.buildings = saveData.buildings;
                     this.upgrades = saveData.upgrades;
                     this.achievements = saveData.achievements;
-
                     this.ascensionCount = saveData.ascensionCount;
                     this.realityShards = saveData.realityShards;
                     this.totalRealityShards = saveData.totalRealityShards;
                     this.ascendU = saveData.ascendU;
-
                     this.milk = saveData.milk;
                     this.sugar = saveData.sugar;
                     this.playTime = saveData.playTime;
                     this.totalPlayTime = saveData.totalPlayTime;
-
+                        // 6. 离线生产
                     this.handleOfflineProduction(saveData.lastUpdateTime);
                     alert("存档加载成功！");
                 },
@@ -1223,55 +1221,43 @@
                         totalLifetimePei: this.totalLifetimePei,
                         totalClickPei: this.totalClickPei,
                         goldenPeiClick: this.goldenPeiClick,
-
                         buildings: this.buildings,
                         upgrades: this.upgrades,
                         achievements: this.achievements,
-
                         ascensionCount: this.ascensionCount,
                         realityShards: this.realityShards,
                         totalRealityShards: this.totalRealityShards,
                         ascendU: this.ascendU,
-
                         milk: this.milk,
                         sugar: this.sugar,
                         playTime: this.playTime,
                         totalPlayTime: this.totalPlayTime,
                         lastUpdateTime: Date.now(),
+
                         // ...其他需要保存的数据...
                     };
-
-                    localStorage.pelkieClickerSave = formatsave.encode(JSON.stringify(saveData));
-
+                    localStorage.pelkieClickerSave = formatsave.encode(saveData);
                 },
                 localLoad() {
                     if (!localStorage.pelkieClickerSave) return;
-
-                    const saveData = JSON.parse(formatsave.decode(localStorage.pelkieClickerSave));
-
+                    const saveData = formatsave.decode(localStorage.pelkieClickerSave);
                     transformToDecimal(saveData);
-
-                    // 5. 应用存档数据
-                    this.peiCount = saveData.peiCount;
-                    this.thisAscendPei = saveData.thisAscendPei;
-                    this.totalLifetimePei = saveData.totalLifetimePei;
-                    this.totalClickPei = saveData.totalClickPei;
-                    this.goldenPeiClick = saveData.goldenPeiClick;
-
+                    this.peiCount = saveData.peiCount || N(0);
+                    this.thisAscendPei = saveData.thisAscendPei || N(0);
+                    this.totalLifetimePei = saveData.totalLifetimePei || N(0);
+                    this.totalClickPei = saveData.totalClickPei || N(0);
+                    this.goldenPeiClick = saveData.goldenPeiClick || 0;
                     this.buildings = saveData.buildings;
                     this.upgrades = saveData.upgrades;
                     this.achievements = saveData.achievements;
-
-                    this.ascensionCount = saveData.ascensionCount;
-                    this.realityShards = saveData.realityShards;
-                    this.totalRealityShards = saveData.totalRealityShards;
+                    this.ascensionCount = saveData.ascensionCount || N(0);
+                    this.realityShards = saveData.realityShards || N(0);
+                    this.totalRealityShards = saveData.totalRealityShards || N(0);
                     this.ascendU = saveData.ascendU;
-
-                    this.milk = saveData.milk;
-                    this.sugar = saveData.sugar;
-                    this.playTime = saveData.playTime;
-                    this.totalPlayTime = saveData.totalPlayTime;
-
+                    this.milk = saveData.milk || N(0);
+                    this.sugar = saveData.sugar || N(0);
+                    this.playTime = saveData.playTime || 0;
+                    this.totalPlayTime = saveData.totalPlayTime || 0
                     this.handleOfflineProduction(saveData.lastUpdateTime);
                 },
                 hardReset() {
@@ -1281,8 +1267,17 @@
                         this.thisAscendPei = N(0);
                         this.totalLifetimePei = N(0);
                         this.totalClickPei = N(0);
+                        this.peiPerSecond= N(0);
+                        this.peiPerClick= N(1);
                         this.goldenPeiClick = 0;
-
+                        this.goldenPeiTimer = 0;
+                        this.goldenPeiEffects = {
+                            clickMultiplier: N(1),
+                            buildingMultiplier: N(1),
+                            buildingCostReduction: N(1),
+                            upgradeCostReduction: N(1),
+                            randomBuildingBoost: null
+                        };
                         this.buildings= Array.from({ length: 42 }, (_, i) => ({
                             id: i,
                             quantity: N(0),
@@ -1296,9 +1291,9 @@
                                 unlocked: false,
                             })),
                         this.achievements= ACHIEVEMENTS.map(a => ({
-                                    ...a,
-                                    unlocked: false,
-                                })),
+                                ...a,
+                                unlocked: false,
+                            })),
                         this.ascendU= ASCENDU.map(r => ({
                                 ...r,
                                 unlocked: false,
@@ -1308,10 +1303,15 @@
                         this.ascensionCount = N(0);
                         this.realityShards = N(0);
                         this.totalRealityShards = N(0);
+                        this.ascendBonus= N(1);
+
                         this.milk = N(0);
                         this.sugar = N(0);
+                        this.sugarBonus= N(1);
+                        this.milkBonus= N(1);
                         this.playTime = N(0);
                         this.totalPlayTime = N(0);
+                        this.lastUpdateTime= Date.now();
                     }
                     else return;
                 },
@@ -1355,6 +1355,26 @@
             },
             computed: {
                 // 带升级加成的总生产量
+                sugarBonus(){
+                    let sugarMult = this.sugar.mul(0.001).add(1);
+                    return sugarMult;
+                },
+                milkBonus(){
+                    let milkMult = this.upgrades.filter(u => u.buildingId == 102).reduce((prod, upgrade, i) => {
+                        let factor = i < 8 ? i < 4 ? N(0.004).add(0.001 * i) : N(0.008) : i < 12 ? N(0.016).sub(0.001 * i) : N(0.004);
+                        return upgrade.unlocked ? prod.mul(factor.mul(this.unlockedAchievementsCount).add(1)) : prod;
+                    }, N(1));
+                    return milkMult;
+                },
+                ascendBonus(){
+                    let ascendMult = this.upgrades.filter(u => u.buildingId == 104).reduce((sum, upgrade, i) => {
+                        let factor=[0.05,0.2,0.25,0.25,0.25,]
+                        if (i < 5) return upgrade.unlocked ? sum.add(this.totalRealityShards.mul(factor[i])) : sum;
+                        if (i == 5) return upgrade.unlocked ? sum.mul(1.01) : sum;
+                        if (i == 6) return upgrade.unlocked ? sum.mul(1.1) : sum;
+                    }, N(1));
+                    return ascendMult;
+                },
                 totalClick() {
                     let base = N(this.goldenPeiEffects.clickMultiplier);
                     let mult = this.upgrades.filter(u => u.buildingId == 1 && u.id < 4).reduce((prod, upgrade) => {
@@ -1404,26 +1424,15 @@
                         building.production = building.quantity.mul(building.baseProd).mul(buildingMult)
                         return sum.add(building.production);
                     }, N(0));
-                    let milkMult = this.upgrades.filter(u => u.buildingId == 102).reduce((prod, upgrade, i) => {
-                        let factor = i < 8 ? i < 4 ? N(0.004).add(0.001 * i) : N(0.008) : i < 12 ? N(0.016).sub(0.001 * i) : N(0.004);
-                        return upgrade.unlocked ? prod.mul(factor.mul(this.unlockedAchievementsCount).add(1)) : prod;
-                    }, N(1));
-                    this.milkBonus = milkMult;
-                    let sugarMult = this.sugar.mul(0.001).add(1);
-                    this.sugarBonus = sugarMult;
-                    let ascendMult = this.upgrades.filter(u => u.buildingId == 104).reduce((sum, upgrade, i) => {
-                        let factor=[0.05,0.2,0.25,0.25,0.25,]
-                        if (i < 5) return upgrade.unlocked ? sum.add(this.totalRealityShards.mul(factor[i])) : sum;
-                        if (i == 5) return upgrade.unlocked ? sum.mul(1.01) : sum;
-                        if (i == 6) return upgrade.unlocked ? sum.mul(1.1) : sum;
-                    }, N(1));
-                    this.ascendBonus = ascendMult;
+                    
+                    
+
                     let pelkieMult = this.upgrades.filter(u => u.buildingId == 105).reduce((sum, upgrade) => {
                         return upgrade.unlocked ? sum.mul(N(1).add(N(upgrade.id-1).add(10).div(10).floor().div(100))) : sum;
                     }, N(1));
 
                     if (this.ascendU[1].level.gte(1)) base = base.mul(1.1);
-                    return base.mul(milkMult).mul(sugarMult).mul(ascendMult).mul(pelkieMult).mul(this.goldenPeiEffects.buildingMultiplier);
+                    return base.mul(this.milkBonus).mul(this.sugarBonus).mul(this.ascendBonus).mul(pelkieMult).mul(this.goldenPeiEffects.buildingMultiplier);
                 },
                 nonB1Count() {
                     let sum = N(0);
