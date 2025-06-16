@@ -19,11 +19,38 @@
         }
 
         .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            max-width: 540px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0 auto;
+        max-width: 540px;
+        width: 95%;
+     /* 保持原有其他属性不变 */
+        padding: 20px;
+        background: #ffffff;
+        border-radius: 10px;
+        }
+
+/* 移动端适配优化 */
+        @media (max-width: 540px) {
+            .container {
+                width: 95%;
+                padding: 10px;
+            }
+        }
+
+        .header-fixed {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            width: 100%;
+        }
+
+        .header-text{
+            font-weight: bold;
+            line-height:150%;
         }
 
         .tabs {
@@ -269,9 +296,11 @@
 </head>
 <body>
     <div id="app" class="container">
-        <h1>你有 {{ format(peiCount) }} 佩干</h1>
-
-        <h3>{{ format(peiPerSecond) }}/秒 {{ format(peiPerClick) }}/点击</h3>
+        <div class="header-fixed">
+            <div class="header-text" style="font-size: 32px;">你有 {{ format(peiCount) }} 佩干</div>
+            <div class="header-text" style="font-size: 20px;">{{ format(peiPerSecond) }}/秒</div>
+            <div class="header-text" style="font-size: 20px;">{{ format(peiPerClick) }}/点击</div>
+        </div>
 
         <div class="clickable" @click="clickPei" style="width: 200px; height: 200px; background-image: url('pelkie.bmp')">
             <div class="click-effects-container">
