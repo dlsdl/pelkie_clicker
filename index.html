@@ -373,7 +373,7 @@
                     <div>
                         升级{{ upgrade.buildingId }}-{{ upgrade.id }}
                         <span v-show="upgrade.buildingId==1 & upgrade.id<4">点击和建筑 1 生产的佩干×2&nbsp;&nbsp;</span>
-                        <span v-show="upgrade.buildingId==1 & upgrade.id==4">每个建筑 2~42 使点击和建筑 1 生产的佩干 +0.2&nbsp;&nbsp;</span>
+                        <span v-show="upgrade.buildingId==1 & upgrade.id==4">每个建筑 2~42 使点击和建筑 1 生产的佩干 +1&nbsp;&nbsp;</span>
                         <span v-show="upgrade.buildingId==1 & upgrade.id>4">升级 1-4 的效果 ×20&nbsp;&nbsp;</span>
                         <span v-show="upgrade.buildingId<100 & upgrade.buildingId>1">建筑 {{upgrade.buildingId}} 的产量 ×2&nbsp;&nbsp;</span>
                         <span v-show="upgrade.buildingId==101">点击获得的佩干 +1% <del>每秒生产的佩干</del></span>
@@ -426,9 +426,9 @@
                 <p>飞升(ascend)需要 1e12 累计佩干 ({{ format(totalLifetimePei) }}/1e12)</p>
             </div>
             <div class="divider">----------------------------------------------------------------</div>
-            <div class="shop">
+            <div v-if="this.ascensionCount.gte(1)" class="shop">
                 <h4>飞升升级 (你有 {{ format(realityShards) }}/{{format(totalRealityShards)}} 现实碎片)</h4>
-                <div v-for="upgrade in ascendU" :key="upgrade.id" class="upgrade-item" v-if="upgrade.id<5">
+                <div v-for="upgrade in ascendU" :key="upgrade.id" class="upgrade-item">
                     {{auDescription[upgrade.id-1]}}<br />
                     等级 {{ formatInt(upgrade.level) }}/{{ formatInt(upgrade.maxLevel) }}
                     <button @click="buyAscendU(upgrade.id-1)"
@@ -436,6 +436,9 @@
                         {{ format(upgrade.cost) }} RS
                     </button>
                 </div>
+            </div>
+            <div v-else class="shop">
+                <p>飞升一次以解锁</p>
             </div>
         </div>
 
@@ -465,6 +468,7 @@
             <div>佩干每秒: {{format(peiPerSecond)}}</div>
             <div>点击获得的佩干: {{format(totalClickPei)}}</div>
             <div>佩干每次点击: {{format(peiPerClick)}}</div>
+            <div>金佩勒点击数: {{goldenPeiClick}}</div>
 
             <div>飞升次数: {{format(ascensionCount)}}</div>
             <div>当前现实碎片: {{format(realityShards)}}</div>
@@ -499,14 +503,14 @@
                 移除了一些成就<br />
                 金饼干效果中的"7"变成"6"<br />
                 升级和效果中的一些文字被删除<br />
-                天堂碎片在1e12后被软上限:x^(1/3)/1e12→x^1/4<br />
+                天堂碎片在1e12后公式变为饼干^1/4<br />
                 增强:<br />
                 声望等级效果x100<br />
                 糖块生长速度×24<br />
                 新增22个建筑<br />
                 一开始就有6小时80%的离线收益<br />
-                新声望层级:超越,在1e48累计饼干后解锁<br />
-                新声望层级:觉醒,在1e192累计饼干后解锁<br />
+                新声望层级:轮回,在1e48累计饼干后解锁<br />
+                新声望层级:破碎/觉醒,在1e192/1e308累计饼干后解锁<br />
             </div>
         </div>
     </div>
@@ -827,7 +831,7 @@
                     "一个残余物（佩干产量乘数+10%）",
                     "佩勒的5个裂隙（每级解锁10种风味佩干）",
                     "6小时后更新（离线生产增加6小时）",
-                    "每次飞升保留10建筑{等级}",
+                    "每次飞升保留10个建筑，序号为该升级等级",
                     "每级使金佩勒出现频率提升10%",
                     "每级保留一个释放飞升乘数的升级，使它在飞升时不重置",
                     "每级使金佩勒技能时间提升10%",
@@ -855,13 +859,14 @@
                     "每级使建筑和升级的价格减少1%（每级乘以0.99）",
                     "每级使禁用金佩勒和点击的产量加成+10%",
                     "每级使建筑1升级5~20的乘数+10%",
-                    "每级使糖块之运增加100",
+                    "每级使糖块之运增加100(糖块获得数量+10%)",
                     "每级使每个成就提供的牛奶+10%",
-                    "每级使轮回获得的轮回点提高10%",
-                    "每级使飞升获得的飞升点提高10%",
-                    "每次轮回后保留所有建筑，数量为该升级的等级（最高100）",
+                    "每级使轮回乘数提高10%",
+                    "每级使飞升乘数提高10%",
+                    "每级使金佩勒效果乘数+10%",
                     "每级使协同升级系列1的效果+10%",
                     "每级使协同升级系列2的效果+10%",
+                    //普通轮回升级：1、每次轮回后保留100建筑；2、每次轮回后保留升级105；3、禁用金佩勒和点击的乘数常时生效；4、增加金佩勒出现频率
                 ],
 
                 breakCount: N(0),
@@ -870,7 +875,7 @@
                 totalHyperPoints: N(0),
 
                 bmDescription:[
-                    "1破碎：永久解锁机器选项卡，解锁自动化，且每次破碎使佩干产量×4",
+                    "1破碎：永久解锁自动化选项卡，且每次破碎使佩干产量×4",
                     "2破碎：每次破碎使飞升乘数翻倍",
                     "3破碎：每次破碎使轮回乘数翻倍",
                     "4破碎：每次破碎使每次糖块获取数量+1（从4破碎开始）",
@@ -883,7 +888,7 @@
                     "12破碎：从12破碎开始，每次破碎使觉醒充能翻倍",
                     "14破碎：从14破碎开始，每次破碎使觉醒充能效果+10%",
                     "16破碎：每次破碎使化石饼干产量+50%",
-                    "18破碎：每次破碎使副本1等级升级速度×1.25",
+                    "18破碎：每次破碎使副本1等级升级速度+25%",
                     "20破碎：从20破碎开始，觉醒充能效果每次破碎乘以1.1",
                     "30破碎：……",
                 ],
@@ -1224,11 +1229,25 @@
                         this.realityShards = this.realityShards.sub(upgrade.cost);
                         this.ascendU[index].level = this.ascendU[index].level.add(1);
                     }
-                    if (index == 1) this.ascendU[1].cost = N(3).add(this.ascendU[1].level.mul(3)).mul(N(10).pow(this.ascendU[1].level.mul(3)));
+                    if (index == 1) this.ascendU[1].cost = N(3).mul(N(1000).pow(this.ascendU[1].level));
                     if (index == 2) this.ascendU[2].cost = N(5).add(this.ascendU[2].level.mul(10));
                     if (index == 3) this.ascendU[3].cost = N(7).pow(this.ascendU[3].level.add(1));
                     if (index == 4) this.ascendU[4].cost = N(50).mul(N(100).pow(this.ascendU[4].level));
-
+                    if (index == 5) this.ascendU[5].cost = N(77).mul(N(100).pow(this.ascendU[5].level));
+                    if (index == 6) this.ascendU[6].cost = this.ascendU[6].level.add(1).mul(N(100).pow(this.ascendU[6].level.add(1)));
+                    if (index == 7) this.ascendU[7].cost = N(777).mul(N(100).pow(this.ascendU[7].level));
+                    if (index == 8) this.ascendU[8].cost = N(999).mul(N(100).pow(this.ascendU[8].level));
+                    if (index == 9) this.ascendU[9].cost = N(9000).mul(N(1e6).pow(this.ascendU[9].level));
+                    if (index == 10) this.ascendU[10].cost = N(99999).mul(N(10).pow(this.ascendU[10].level));
+                    if (index == 11) this.ascendU[11].cost = N(222222).add(this.ascendU[11].level.mul(2e6));
+                    if (index == 12) this.ascendU[12].cost = N(399999);
+                    if (index == 13) this.ascendU[13].cost = N(1.5e7);
+                    if (index == 14) this.ascendU[14].cost = N(1e8).mul(N(4).pow(this.ascendU[14].level));
+                    if (index == 15) this.ascendU[15].cost = N(2e8).mul(N(4).pow(this.ascendU[15].level));
+                    if (index == 16) this.ascendU[16].cost = N(1e9).mul(N(100).pow(this.ascendU[16].level));
+                    if (index == 17) this.ascendU[17].cost = N(2e9);
+                    if (index == 18) this.ascendU[18].cost = N(9e9).mul(N(1000).pow(this.ascendU[18].level));
+                    if (index == 19) this.ascendU[19].cost = N(3e10).mul(N(3).pow(this.ascendU[19].level));
                 },
                 format(decimal) {
                     let e = decimal.exponent.toFixed(0);
@@ -1473,15 +1492,15 @@
                 upgradeBonus(){
                     let upgradeMult = this.upgrades.filter(u => u.buildingId == 105).reduce((sum, upgrade) => {
                         return upgrade.unlocked ? sum.mul(N(1).add(N(upgrade.id-1).add(10).div(10).floor().div(100))) : sum;
-                    }, N(1));
-                    //let upgradeMult2 = this.upgrades.filter(u => u.buildingId == 104).reduce((sum, upgrade, i) => {
-//升级105-6，105-7的佩干乘数
-                    //}, N(1));
+                    }, N(1)).mul(this.upgrades.filter(u => u.buildingId == 104 & u.id>=6).reduce((sum, upgrade, i) => {
+                        let factor=[1.01,1.1,2,11,101]
+                        return upgrade.unlocked ? sum.mul(factor[i]) : sum;
+                    }, N(1))).mul(Decimal.pow(1.1,this.ascendU[1].level));
                     return upgradeMult;
                 },
                 ascendBonus(){
-                    let ascendMult = this.upgrades.filter(u => u.buildingId == 104).reduce((sum, upgrade, i) => {
-                        let factor=[0.05,0.2,0.25,0.25,0.25,]
+                    let ascendMult = this.upgrades.filter(u => u.buildingId == 104 & u.id<=5).reduce((sum, upgrade, i) => {
+                        let factor=[0.05,0.2,0.25,0.25,0.25]
                         return upgrade.unlocked ? sum.add(this.totalRealityShards.mul(factor[i])) : sum;
                     }, N(1));
                     console.log(ascendMult);
@@ -1500,8 +1519,7 @@
                     mult = mult.mul(this.upgrades.filter(u => u.buildingId == 101).reduce((prod, upgrade) => {
                         return upgrade.unlocked ? prod.mul(1.01) : prod;
                     }, N(1)));
-                    
-                    return base.mul(mult).mul(this.sugarBonus).mul(this.milkBonus).mul(this.upgradeBonus).mul(this.ascendBonus);
+                    return base.mul(mult).mul(this.sugarBonus).mul(this.milkBonus).mul(this.upgradeBonus).mul(this.ascendBonus).mul(this.goldenPeiEffects.buildingMultiplier);
                 },
                 totalProduction() {
                     let base = this.buildings.reduce((sum, building, index) => {
@@ -1536,9 +1554,6 @@
                         building.production = building.quantity.mul(building.baseProd).mul(buildingMult)
                         return sum.add(building.production);
                     }, N(0));
-                    
-                   
-
                     if (this.ascendU[1].level.gte(1)) base = base.mul(1.1);
                     return base.mul(this.milkBonus).mul(this.sugarBonus).mul(this.upgradeBonus).mul(this.ascendBonus).mul(this.goldenPeiEffects.buildingMultiplier);
                 },
