@@ -386,12 +386,12 @@
                         <span v-show="upgrade.buildingId==107 & upgrade.id==1">金佩勒出现频率翻倍，在屏幕上的持续时间翻倍</span>
                         <span v-show="upgrade.buildingId==107 & upgrade.id==2"><del>金佩勒出现频率翻倍，在屏幕上的持续时间翻倍</del>(被佩勒删除)</span>
                         <span v-show="upgrade.buildingId==107 & upgrade.id==3"><del>金佩勒效果的持续时间翻倍</del>(被佩勒删除)</span>
-                        <span v-show="upgrade.buildingId==108">每个建筑 {{upgrade.id+2}} 增加 5% 建筑 {{upgrade.id+1}} 的产量，每个建筑 {{upgrade.id+1}} 增加 0.1% 建筑 {{upgrade.id+2}} 的产量</span>
-                        <span v-show="upgrade.buildingId==109">每个建筑 {{upgrade.id+2}} 增加 5% 建筑 {{upgrade.id}} 的产量，每个建筑 {{upgrade.id}} 增加 0.1% 建筑 {{upgrade.id+2}} 的产量</span>
+                        <span v-show="upgrade.buildingId==108">每个建筑 {{upgrade.id+1}} 增加 5% 建筑 {{upgrade.id+2}} 的产量，每个建筑 {{upgrade.id+2}} 增加 0.1% 建筑 {{upgrade.id+1}} 的产量</span>
+                        <span v-show="upgrade.buildingId==109">每个建筑 {{upgrade.id}} 增加 5% 建筑 {{upgrade.id+2}} 的产量，每个建筑 {{upgrade.id+2}} 增加 0.1% 建筑 {{upgrade.id}} 的产量</span>
                     </div>
                     <button @click="buyUpgrade(upgrade.id, upgrade.buildingId)"
                             :disabled="!canBuyUpgrade(upgrade.id, upgrade.buildingId)">
-                        {{ format(upgrade.cost.mul(goldenPeiEffects.upgradeCostReduction)) }} 佩干
+                        {{ format(upgrade.cost.mul(upgradeCostMult)) }} 佩干
                     </button>
                 </div>
             </div>
@@ -482,7 +482,7 @@
             <div>累计现实碎片: {{format(totalRealityShards)}}</div>
 
             <div>游戏时间: {{ Math.floor(totalPlayTime) }}</div>
-            <div>糖块计时: {{ Math.floor(playTime) }}/3600</div>
+            <div>糖块计时: {{ Math.floor(playTime) }}/{{3600 - 300*(ascendU[14].level.toNumber())}}</div>
             <div>牛奶乘数: x{{ format(milkBonus) }}</div>
             <div>糖块乘数: x{{ format(sugarBonus) }}</div>
             <div>升级乘数: x{{ format(upgradeBonus) }}</div>
@@ -623,8 +623,8 @@
             for (let i = 1; i <= 1050; i++) {
                 let index = (i-1) % 25 + 1;
                 let bIndex = Math.floor((i-1) / 25);
-                let costMult = [10,50,500,50000,5e6,5e9,5e12,5e15,5e18,5e21,5e24,5e27,5e30,5e33,5e36,5e39,5e42,5e48,5e54,5e60,5e96,5e150,5e240,'5e390','5e600'];
-                let requirement = [1,5,25,50,100,150,200,250,300,350,400,450,500,550,600,650,700,800,900,1000,1600,2500,4000,6500,10000];
+                let costMult = [10,50,500,50000,5e6,5e9,5e12,5e15,5e18,5e21,5e24,5e27,5e30,5e33,5e36,5e39,5e42,5e48,5e54,5e60,5e120,5e240,'5e360','5e480','5e600'];
+                let requirement = [1,5,25,50,100,150,200,250,300,350,400,450,500,550,600,650,700,800,900,1000,2000,4000,6000,8000,10000];
                 upgrades.push({
                     id: index,
                     buildingId: bIndex+1,
@@ -655,8 +655,8 @@
                 upgrades.push({
                     id: i,
                     buildingId: 103,
-                    required: N(20),
-                    cost: N(Math.pow(10, i * (i - 1) / 40 + i + 1)).mul(200),
+                    required: N(15),
+                    cost: N(Math.pow(10, i * (i - 1) / 40 + i + 1)).mul(150),
                 })
             }
             //升级1151~1160:飞升效果
@@ -721,7 +721,7 @@
                     id: i,
                     buildingId: 108,
                     required: N(15),
-                    cost: N(Math.pow(10, (i + 2) * (i + 1) / 40 + i + 3)).mul(100),
+                    cost: N(Math.pow(10, (i + 1) * i / 40 + i + 2)).mul(150),
                 })
             }
             //升级1340~1379:飞升团结II升级,需要75个建筑
@@ -730,7 +730,7 @@
                     id: i,
                     buildingId: 109,
                     required: N(75),
-                    cost: N(Math.pow(10, (i + 2) * (i + 1) / 40 + i + 3)).mul(5e5),
+                    cost: N(Math.pow(10, (i + 1) * i / 40 + i + 2)).mul(5e5),
                 })
             }
             //其他升级……
@@ -821,7 +821,7 @@
             ascendU.push({ id: 13, cost: N(399999), maxLevel: N(1) });//升级价格除以5
             ascendU.push({ id: 14, cost: N(1.5e7), maxLevel: N(1) });//1-6到1-20的乘数变为1000
             ascendU.push({ id: 15, cost: N(1e8), maxLevel: N(10) });//糖块生长10%更快
-            ascendU.push({ id: 16, cost: N(2e8), maxLevel: N(10) });//释放糖块力量
+            ascendU.push({ id: 16, cost: N(2e8), maxLevel: N(9) });//释放糖块力量
             ascendU.push({ id: 17, cost: N(1e9), maxLevel: N(6) });//禁用点击，pps+40+10等级% 10^(2n+9)
             ascendU.push({ id: 18, cost: N(2e9), maxLevel: N(1) });//建筑2升级变为x4
             ascendU.push({ id: 19, cost: N(9e9), maxLevel: N(5) });//牛奶价格降低10%
@@ -894,18 +894,18 @@
                     "每级使金佩勒出现频率提升10%",
                     "飞升后保留前[该升级等级]个释放牛奶力量的升级",
                     "每级使金佩勒技能时间提升10%",
-                    "可以选择禁用黄金佩干，获得等级*10+40%佩干产量提升",
+                    "可以选择禁用金佩勒，获得等级*10+40%佩干产量提升",
                     "释放牛奶力量，佩干产量×(1+0.004×牛奶)",
                     "每级使建筑和升级的价格降低1%",
                     "每级解锁40个协同升级，需要15或75个对应建筑",
                     "升级的价格除以5",
-                    "升级1-6到1-20的乘数变为1000",
-                    "每级使糖块生长的速度增加10%",
+                    "升级1-4的乘数变为100",
+                    "每级使糖块生长的基础时间减少300秒",
                     "释放糖块力量（叠乘），佩干产量×(1+0.001×糖块)",
                     "可以选择禁用点击，获得等级*10+40%佩干产量提升",
-                    "建筑2产量提升的升级效果变为x4",
-                    "牛奶价格降低10%",
-                    "解锁不受束缚的升级，它们提高建筑3~42的升级效果",
+                    "建筑2的×2升级效果变为×3.5",
+                    "每级使牛奶价格降低10%",
+                    "第n级该升级使建筑n+2的×2升级效果提升(4.1-n×0.1)",
                 ],
 
                 transcensionCount: N(0),
@@ -1176,16 +1176,16 @@
                     const r = new Decimal(1.148698354997035); // 价格增长系数
                     const n = N(parseInt(this.bulkAmount));
                     const a1 = building.cost;
-                    if (n == 1) return a1.mul(this.goldenPeiEffects.buildingCostReduction);
+                    if (n == 1) return a1.mul(this.buildingCostMult);
                     // 使用等比数列求和公式：S = a1*(r^n - 1)/(r - 1)
-                    return r.pow(n).sub(1).mul(a1).div(r.sub(1)).mul(this.goldenPeiEffects.buildingCostReduction);
+                    return r.pow(n).sub(1).mul(a1).div(r.sub(1)).mul(this.buildingCostMult);
                 },
                 canBulkBuy(index) {
                     return this.peiCount.gte(this.calcBulkCost(index));
                 },
                 buyUpgrade(i, b) {
                     const upgrade = this.upgrades.filter(u => u.id == i && u.buildingId == b)
-                    const c = upgrade[0].cost.mul(this.goldenPeiEffects.upgradeCostReduction);
+                    const c = upgrade[0].cost.mul(this.upgradeCostMult);
                     if (this.canBuyUpgrade(i , b)) {
                         this.peiCount = this.peiCount.sub(c);
                         this.upgrades.filter(u => u.id == i && u.buildingId == b).map(u => u.unlocked = true);
@@ -1196,7 +1196,7 @@
                 // 判断是否可以购买升级
                 canBuyUpgrade(i , b) {
                     const upgrade = this.upgrades.filter(u => u.id == i && u.buildingId == b);
-                    const c = upgrade[0].cost.mul(this.goldenPeiEffects.upgradeCostReduction);
+                    const c = upgrade[0].cost.mul(this.upgradeCostMult);
                     return this.peiCount.gte(c) && !upgrade[0].unlocked
                 },
                 // 判断升级是否显示
@@ -1607,21 +1607,18 @@
             computed: {
                 // 带升级加成的总生产量
                 sugarBonus(){
-                    let sugarMult = this.sugar.mul(0.001).add(1);
-
-                    return sugarMult;
+                    return this.sugar.mul(0.001).add(1)
+                    .mul(Decimal.pow(this.sugar.mul(0.001).add(1), this.ascendU[15].level));
                 },
                 milkBonus(){
-                    let milkMult = this.upgrades.filter(u => u.buildingId == 102).reduce((prod, upgrade, i) => {
+                    return this.upgrades.filter(u => u.buildingId == 102).reduce((prod, upgrade, i) => {
                         let factor = i < 8 ? i < 4 ? N(0.004).add(0.001 * i) : N(0.008) : i < 12 ? N(0.016).sub(0.001 * i) : N(0.004);
                         return upgrade.unlocked ? prod.mul(factor.mul(this.milk).add(1)) : prod;
                     }, N(1))
                     .mul(Decimal.pow(this.milk.mul(0.004).add(1), this.ascendU[9].level));
-
-                    return milkMult;
                 },
                 upgradeBonus(){
-                    let upgradeMult = this.upgrades.filter(u => u.buildingId == 105).reduce((sum, upgrade) => {
+                    return this.upgrades.filter(u => u.buildingId == 105).reduce((sum, upgrade) => {
                         return upgrade.unlocked ? sum.mul(N(1).add(N(upgrade.id-1).add(10).div(10).floor().div(100))) : sum;
                     }, N(1))
                     .mul(this.upgrades.filter(u => u.buildingId == 104 & u.id>=6).reduce((sum, upgrade, i) => {
@@ -1631,27 +1628,29 @@
                     .mul(Decimal.pow(1.1,this.ascendU[1].level))
                     .mul(this.enableGolden?N(1):this.ascendU[8].level.mul(0.1).add(1.4))
                     .mul(this.enableClick?N(1):this.ascendU[16].level.mul(0.1).add(1.4));
-                    return upgradeMult;
                 },
                 ascendBonus(){
-                    let ascendMult = this.upgrades.filter(u => u.buildingId == 104 & u.id<=5).reduce((sum, upgrade, i) => {
+                    return this.upgrades.filter(u => u.buildingId == 104 & u.id<=5).reduce((sum, upgrade, i) => {
                         let factor=[0.05,0.2,0.25,0.25,0.25]
                         return upgrade.unlocked ? sum.add(this.totalRealityShards.mul(factor[i])) : sum;
                     }, N(1));
-
-                    return ascendMult;
+                },
+                buildingCostMult(){
+                    return this.goldenPeiEffects.buildingCostReduction.mul(this.ascendU[10].level.mul(-0.01).add(1));
+                },
+                upgradeCostMult(){
+                    return this.goldenPeiEffects.upgradeCostReduction.mul(this.ascendU[10].level.mul(-0.01).add(1)).mul(this.ascendU[12].level.gte(1)?0.2:1);
                 },
                 totalClick() {
                     let base = N(this.goldenPeiEffects.clickMultiplier);
                     let mult = this.upgrades.filter(u => u.buildingId == 1 && u.id < 4).reduce((prod, upgrade) => {
                         return upgrade.unlocked ? prod.mul(2) : prod;
-                    }, N(1));
-                    if (this.upgrades.filter(u => u.buildingId == 1 && u.id == 4)[0].unlocked) {
-                        mult = mult.add(this.upgrades.filter(u => u.buildingId == 1 && u.id > 4).reduce((prod, upgrade) => {
+                    }, N(1))
+                    .add(this.upgrades.filter(u => u.buildingId == 1 && u.id == 4)[0].unlocked?
+                        this.upgrades.filter(u => u.buildingId == 1 && u.id > 4).reduce((prod, upgrade) => {
                             return upgrade.unlocked ? prod.mul(20) : prod;
-                        }, N(1)).mul(this.nonB1Count));
-                    }
-                    mult = mult.mul(this.upgrades.filter(u => u.buildingId == 101).reduce((prod, upgrade) => {
+                        }, N(1)).mul(this.ascendU[13].level.gte(1)?100: 1).mul(this.nonB1Count):N(0))
+                    .mul(this.upgrades.filter(u => u.buildingId == 101).reduce((prod, upgrade) => {
                         return upgrade.unlocked ? prod.mul(1.01) : prod;
                     }, N(1)));
                     return base.mul(mult).mul(this.sugarBonus).mul(this.milkBonus).mul(this.upgradeBonus).mul(this.ascendBonus).mul(this.goldenPeiEffects.buildingMultiplier);
@@ -1663,27 +1662,33 @@
                             buildingMult = this.upgrades.filter(u => u.buildingId == 1 && u.id < 4).reduce((prod, upgrade) => {
                                 return upgrade.unlocked ? prod.mul(2) : prod;
                             }, N(1))
-                            .mul(this.goldenPeiEffects.randomBuildingBoost == index ? 1.1 : 1);    ;
-                            if (this.upgrades.filter(u => u.buildingId == 1 && u.id == 4)[0].unlocked) {
-                                buildingMult = buildingMult.add(this.upgrades.filter(u => u.buildingId == 1 && u.id > 4).reduce((prod, upgrade) => {
-                                    return upgrade.unlocked ? prod.mul(20) : prod;
-                                }, N(1)).mul(this.nonB1Count));
-                            }
+                            .add(this.upgrades.filter(u => u.buildingId == 1 && u.id == 4)[0].unlocked?
+                            this.upgrades.filter(u => u.buildingId == 1 && u.id > 4).reduce((prod, upgrade) => {
+                                return upgrade.unlocked ? prod.mul(20) : prod;
+                            }, N(1)).mul(this.ascendU[13].level.gte(1)?100: 1).mul(this.nonB1Count):N(0))
+                            .mul(this.upgrades.filter(u => u.buildingId == 109 && u.id == 1)[0].unlocked? this.buildings[2].quantity.mul(0.001).add(1):1)
+                            .mul(this.goldenPeiEffects.randomBuildingBoost == index ? 1.1 : 1);
                         }
                         if (index == 1) {
                             buildingMult = this.upgrades.filter(u => u.buildingId == 2).reduce((prod, upgrade) => {
-                                return upgrade.unlocked ? prod.mul(2) : prod;
+                                return upgrade.unlocked ? prod.mul(this.ascendU[17].level.gte(1)?3.5:2) : prod;
                             }, N(1))
                             .mul(this.upgrades.filter(u => u.buildingId == 103).reduce((prod, upgrade) => {
-                                return upgrade.unlocked ? prod.mul(2) : prod;
+                                return upgrade.unlocked ? prod.mul(this.ascendU[17].level.gte(1)?3.5:2) : prod;
                             }, N(1)))
+                            .mul(this.upgrades.filter(u => u.buildingId == 108 && u.id == 1)[0].unlocked? this.buildings[1].quantity.mul(0.001).add(1):1)
+                            .mul(this.upgrades.filter(u => u.buildingId == 109 && u.id == 2)[0].unlocked? this.buildings[2].quantity.mul(0.001).add(1):1)
                             .mul(this.goldenPeiEffects.randomBuildingBoost == index? 1.1:1);
                         }
                         if (index >= 2) {
                             buildingMult = this.upgrades.filter(u => u.buildingId == (index + 1)).reduce((prod, upgrade) => {
                                 return upgrade.unlocked ? prod.mul(2) : prod;
                             }, N(1))
-                                .mul(this.upgrades.filter(u => u.buildingId == 103 && u.id == index - 1)[0].unlocked ? N(1).add(this.buildings[1].quantity.div(index - 1).div(100)) : N(1))
+                                .mul(this.upgrades.filter(u => u.buildingId == 103 && u.id == index - 1)[0].unlocked ? this.buildings[1].quantity.div(index - 1).div(100).add(1) : 1)
+                                .mul(this.upgrades.filter(u => u.buildingId == 108 && u.id == index-1)[0].unlocked? this.buildings[index-1].quantity.mul(0.05).add(1):1)
+                                .mul(index<41? this.upgrades.filter(u => u.buildingId == 108 && u.id == index)[0].unlocked? this.buildings[index+1].quantity.mul(0.001).add(1):1:1)
+                                .mul(this.upgrades.filter(u => u.buildingId == 109 && u.id == index-1)[0].unlocked? this.buildings[index-2].quantity.mul(0.05).add(1):1)
+                                .mul(index<40? this.upgrades.filter(u => u.buildingId == 109 && u.id == index + 1)[0].unlocked? this.buildings[index+2].quantity.mul(0.001).add(1):1:1)
                                 .mul(this.goldenPeiEffects.randomBuildingBoost == index ? 1.1 : 1);
                         }
                         building.production = building.quantity.mul(building.baseProd).mul(buildingMult)
@@ -1743,14 +1748,14 @@
                     this.goldenPeiTimer++
                     this.playTime++;
                     this.totalPlayTime++;
-                    let sugarTimer = 3600;
+                    let sugarTimer = 3600 - 300*(this.ascendU[14].level.toNumber());
                     if (this.playTime >= sugarTimer) {
                         this.sugar = this.sugar.add(1);
                         this.playTime = 0;
                     }
                     let t = this.upgrades.filter(u => u.buildingId == 107 && u.id == 1)[0].unlocked ? 210 : 420;
                     let l = this.upgrades.filter(u => u.buildingId == 107 && u.id == 1)[0].unlocked ? 26 : 13;
-                    t=t/(this.ascendU[5].level.mul(0.1).add(1).toNumber());
+                    t=t/(this.ascendU[5].level.toNumber()*0.1+1);
                     if (this.goldenPeiTimer >= t) {
                         this.goldenPeiVisible = true;
                         setTimeout(() => {
