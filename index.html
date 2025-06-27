@@ -523,6 +523,7 @@
             <button @click="loadGame()">导入</button>
             <button @click="hardReset()" style="color:red">硬重置</button>
             <div>
+                佩干点击（pelkie clicker），又叫做cookie clicker NG+3<br />
                 本游戏参考了《饼干点击》、《亿点放置》、《从细胞到奇点》、《真实割草增量》，<del>你可以点击链接游玩它们</del><br />
                 最终目标：到达1e9,000,000,000,000,000佩干并打败佩勒<br />
                 Pelle毁灭了你的饼干宇宙，把你的饼干变成了佩勒饼干，你无法逃离被毁灭的饼干宇宙，你在整个游戏中都会受到重大削弱。<br />
@@ -1378,7 +1379,7 @@
                     }
                     for(let i=0;i<20;i++){
                         let a0=[1,3,5,7,50,77,100,777,999,9000,99999,222222,399999,1.5e7,1e8,2e8,1e9,1.92e9,9e9,1e10]
-                        let p=[0,1334,0,10,0,0,0,100,0,0,0,0,2e6,0,0,0,0,0,0,0,0]
+                        let p=[0,1334,10,0,0,0,0,100,0,0,0,0,2e6,0,0,0,0,0,0,0,0]
                         let q=[1,1,1,7,100,10,100,10,100,1e6,2,1,1,1,4,4,10,1,1000,1]
                     this.ascendU[i].cost = i==19?this.ascendU[19].level.add(3).pow(7).mul(1.5e7):N(a0[i]).add(this.ascendU[i].level.mul(p[i])).mul(Decimal.pow(q[i],this.ascendU[i].level))
                     }
@@ -1639,7 +1640,7 @@
                     for(let i=0;i<42;i++) this.buildings[i].cost = this.buildings[i].baseCost.mul(new Decimal(1.148698354997035).pow(this.buildings[i].quantity));
                     for(let i=0;i<20;i++){
                         let a0=[1,3,5,7,50,77,100,777,999,9000,99999,222222,399999,1.5e7,1e8,2e8,1e9,1.92e9,9e9,1e10]
-                        let p=[0,1334,0,10,0,0,0,100,0,0,0,0,2e6,0,0,0,0,0,0,0,0]
+                        let p=[0,1334,10,0,0,0,0,100,0,0,0,0,2e6,0,0,0,0,0,0,0,0]
                         let q=[1,1,1,7,100,10,100,10,100,1e6,2,1,1,1,4,4,10,1,1000,1]
                         this.ascendU[i].cost = i==19?this.ascendU[19].level.add(3).pow(7).mul(1.5e7):N(a0[i]).add(this.ascendU[i].level.mul(p[i])).mul(Decimal.pow(q[i],this.ascendU[i].level))
                     }
@@ -1800,7 +1801,7 @@
                     this.totalLifetimePei = this.totalLifetimePei.add(this.totalProduction.div(50));
                 }, 20);
                 setInterval(() => {
-                    this.goldenPeiTimer++
+                    if(this.enableGolden) this.goldenPeiTimer++
                     this.playTime++;
                     this.totalPlayTime++;
                     let sugarTimer = 3600 - 300*(this.ascendU[14].level.toNumber());
