@@ -25,8 +25,6 @@
         margin: 0 auto;
         max-width: 540px;
         width: 100%;
-     /* 保持原有其他属性不变 */
-        padding: 20px;
         background: #ffffff;
         border-radius: 10px;
         }
@@ -35,7 +33,6 @@
         @media (max-width: 540px) {
             .container {
                 width: 100%;
-                padding: 10px;
             }
         }
 
@@ -457,7 +454,7 @@
         <div v-if="currentTab === 4">
             <div class="divider">----------------------------------------------------------------</div>
             <div v-if="canTranscend">
-                <p>轮回将重置佩干、建筑、升级、现实碎片和飞升升级，获取 {{ format(this.totalTP.sub(this.totalTranscendPoints).max(0)) }} 轮回点(下一个在 {{format(nextTP)}} 佩干)</p>
+                <p>轮回将重置佩干、建筑、升级、现实碎片和飞升升级，获取 {{ format(this.totalTP.sub(this.totalTranscendPoints).max(0)) }} 轮回点(下一个在 {{format(nextTP)}} 现实碎片)</p>
                 <button @click="transcend" style="padding:5px 20px">轮回!</button>
             </div>
             <div v-else>
@@ -509,6 +506,7 @@
             <div>累计轮回点: {{format(totalTranscendPoints)}}</div>
 
             <div>游戏时间: {{ Math.floor(totalPlayTime) }}</div>
+            <div>金佩勒计时：{{Math.floor(this.goldenPeiTimer)}}/{{Math.floor((this.upgrades.filter(u => u.buildingId == 107 && u.id == 1)[0].unlocked ? 210 : 420)/(this.ascendU[5].level.toNumber()*0.1+1))}}</div>
             <div>糖块计时: {{ Math.floor(playTime) }}/{{3600 - 300*(ascendU[14].level.toNumber())}}</div>
             <div>牛奶乘数: x{{ format(milkBonus) }}</div>
             <div>糖块乘数: x{{ format(sugarBonus) }}</div>
@@ -937,7 +935,7 @@
                     "每级使糖块生长的基础时间减少300秒",
                     "释放糖块力量（叠乘），佩干产量×(1+0.001×糖块)",
                     "可以选择禁用点击，获得等级*10+40%佩干产量提升",
-                    "建筑2的×2升级效果变为×3.5",
+                    "建筑2的×2升级效果变为×3.333",
                     "每级使牛奶价格降低10%",
                     "第n级该升级使建筑n+2的×2升级效果乘以(5.1-n×0.1)",
                 ],
@@ -1103,12 +1101,12 @@
                             apply: () => this.applyClickMultiplier(1111*effectMult, 8*durationMult)
                         },
                         {
-                            name: '建筑价格-50%，持续5秒',
+                            name: '建筑价格-50%，持续'+(5*durationMult).toFixed(1)+'秒',
                             chance: 2,
                             apply: () => this.applyBuildingCostReduction(0.5, 5*durationMult)
                         },
                         {
-                            name: '升级价格-50%，持续5秒',
+                            name: '升级价格-50%，持续'+(5*durationMult).toFixed(1)+'秒',
                             chance: 2,
                             apply: () => this.applyUpgradeCostReduction(0.5, 5*durationMult)
                         },
@@ -1224,9 +1222,7 @@
                     this.bulkAmount=a;
                 },
                 buyAllBuilding() {
-                    this.buildings.forEach((building, index) => {
-                            this.buyMaxBuilding(index);
-                    });
+                    for(let i=41;i>=0;i--)        this.buyMaxBuilding(i);
                 },
                 calcBulkCost(index) {
                     const building = this.buildings[index];
@@ -1380,7 +1376,7 @@
                     for(let i=0;i<20;i++){
                         let a0=[1,3,5,7,50,77,100,777,999,9000,99999,222222,399999,1.5e7,1e8,2e8,1e9,1.92e9,9e9,1e10]
                         let p=[0,1334,10,0,0,0,100,0,0,0,0,2e6,0,0,0,0,0,0,0,0]
-                        let q=[1,1,1,7,100,10,100,10,100,1e6,2,1,1,1,4,4,10,1,1000,1]
+                        let q=[1,1,1,7,100,10,100,10,100,1e12,2,1,1,1,4,4,10,1,1000,1]
                     this.ascendU[i].cost = i==19?this.ascendU[19].level.add(3).pow(7).mul(1.5e7):N(a0[i]).add(this.ascendU[i].level.mul(p[i])).mul(Decimal.pow(q[i],this.ascendU[i].level))
                     }
                 },
@@ -1628,7 +1624,7 @@
                     toast.className = 'offline-toast';
                     toast.innerHTML = `
                 <p>你离线了 ${hours}h${mins}m${secs}s</p>
-                <p>离线产量: ${this.format(amount.div(seconds).mul(0.8))}</p>
+                <p>离线产量: ${this.format(amount.div(seconds))}</p>
                 <p>效率: 80%, 时长上限: ${this.ascendU[3].level.toNumber()*6+6}h</p>
                 <p>获得 ${this.format(amount)} 佩干</p>
                 <p>获得 ${this.formatInt(N(seconds / 3600))} 糖块</p>
@@ -1641,7 +1637,7 @@
                     for(let i=0;i<20;i++){
                         let a0=[1,3,5,7,50,77,100,777,999,9000,99999,222222,399999,1.5e7,1e8,2e8,1e9,1.92e9,9e9,1e10]
                         let p=[0,1334,10,0,0,0,100,0,0,0,0,2e6,0,0,0,0,0,0,0,0]
-                        let q=[1,1,1,7,100,10,100,10,100,1e6,2,1,1,1,4,4,10,1,1000,1]
+                        let q=[1,1,1,7,100,10,100,10,100,1e12,2,1,1,1,4,4,10,1,1000,1]
                         this.ascendU[i].cost = i==19?this.ascendU[19].level.add(3).pow(7).mul(1.5e7):N(a0[i]).add(this.ascendU[i].level.mul(p[i])).mul(Decimal.pow(q[i],this.ascendU[i].level))
                     }
                     for(let i=0;i<12;i++){
