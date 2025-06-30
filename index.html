@@ -378,7 +378,7 @@
                         <span v-if="upgrade.buildingId==1 & upgrade.id>4">升级 1-4 的效果 ×20&nbsp;&nbsp;</span>
                         <span v-if="upgrade.buildingId<100 & upgrade.buildingId>1">建筑 {{upgrade.buildingId}} 的产量 ×2&nbsp;&nbsp;</span>
                         <span v-if="upgrade.buildingId==101">点击获得的佩干 +1% <del>每秒生产的佩干</del></span>
-                        <span v-if="upgrade.buildingId==102">释放牛奶力量(叠乘)，佩干产量 ×(1+牛奶*{{format(upgrade.id <= 8 ? upgrade.id <= 4 ? N(0.003).add(0.001 * upgrade.id) : N(0.008) : upgrade.id <= 12 ? N(0.017).sub(0.001 * upgrade.id) : N(0.004))}})&nbsp;&nbsp;</span>
+                        <span v-if="upgrade.buildingId==102">释放牛奶力量(叠乘)，佩干产量 ×(1+牛奶*{{milkUpgradeBase[upgrade.id-1]*0.001.toFixed(3)}})&nbsp;&nbsp;</span>
                         <span v-if="upgrade.buildingId==103">建筑 2 的产量 ×2, 建筑 {{upgrade.id+2}} 的产量 +1% 每拥有 {{upgrade.id}} 个建筑 2 </span>
                         <span v-if="upgrade.buildingId==104 & upgrade.id<6">每个累计的现实碎片使佩干产量 +{{Math.max(5,upgrade.id*25-25)}}%</span>
                         <span v-if="upgrade.buildingId==104 & upgrade.id>=6">佩干产量乘数 +{{Math.pow(10,upgrade.id-6)}}%</span>
@@ -481,7 +481,7 @@
         <div v-if="currentTab === 5">
 
             <div>
-                <p>到达1e192累计佩干进行破碎(break),每次破碎需求乘1e16,根据破碎次数获得奖励</p>
+                <p>到达1e12累计轮回点进行破碎(break),每次破碎需要的轮回点乘10,根据破碎次数获得奖励（敬请期待）</p>
                 <p>觉醒(hypercend)重置破碎重置的内容但不重置破碎次数，获取觉醒点(需要8次破碎，1e308佩干)</p>
             </div>
 
@@ -505,9 +505,8 @@
             <div>当前轮回点: {{format(transcendPoints)}}</div>
             <div>累计轮回点: {{format(totalTranscendPoints)}}</div>
 
-            <div>游戏时间: {{ Math.floor(totalPlayTime) }}</div>
-            <div>金佩勒计时：{{Math.floor(this.goldenPeiTimer)}}/{{Math.floor((this.upgrades.filter(u => u.buildingId == 107 && u.id == 1)[0].unlocked ? 210 : 420)/(this.ascendU[5].level.toNumber()*0.1+1))}}</div>
-            <div>糖块计时: {{ Math.floor(playTime) }}/{{3600 - 300*(ascendU[14].level.toNumber())}}</div>
+            <div>金佩勒计时：{{Math.floor(this.goldenPeiTimer)}}/{{this.goldenPeiTimeCap}}</div>
+            <div>糖块计时: {{ Math.floor(playTime) }}/{{this.sugarTimeCap}}</div>
             <div>牛奶乘数: x{{ format(milkBonus) }}</div>
             <div>糖块乘数: x{{ format(sugarBonus) }}</div>
             <div>升级乘数: x{{ format(upgradeBonus) }}</div>
@@ -521,8 +520,13 @@
             <button @click="loadGame()">导入</button>
             <button @click="hardReset()" style="color:red">硬重置</button>
             <div>
-                佩干点击（pelkie clicker），又叫做cookie clicker NG+3<br />
+                佩乐点点勒（pelkie clicker）-v0.2.1-作者：6左爷6<br />
+                （又叫做cookie clicker NG+3）<br />
                 本游戏参考了《饼干点击》、《亿点放置》、《从细胞到奇点》、《真实割草增量》，<del>你可以点击链接游玩它们</del><br />
+                后续可能的更新：破碎/觉醒（第3层重置）、去树上（第4层重置，获得香料/坚果）、
+                副本1（中生代山谷，它的等级增加糖块加成）、糖粉化（副本1第1层重置）、糖浆化（1-2）、果糕/焦糖化（1-3）、
+                副本2（超越，它的等级增加牛奶加成）、炼乳化（2-1）、奶油化（2-2）、拜谢/黄油化（2-3）、
+                副本3（探索中心）、……等等
                 最终目标：到达1e9,000,000,000,000,000佩干并打败佩勒<br />
                 Pelle毁灭了你的饼干宇宙，把你的饼干变成了佩勒饼干，你无法逃离被毁灭的饼干宇宙，你在整个游戏中都会受到重大削弱。<br />
                 削弱:<br />
@@ -860,9 +864,12 @@
             for(let i=1;i<=12;i++) transcendU.push({ id: i, cost: N(1),});
             return transcendU;
         })();
-        const player={
-
-        }
+        const milkUpgradeBase=[4,5,6,7,8,8,8,8,
+            8,7,6,5,4,4,4,4,
+            1,1,1,1,1,2,2,2,
+            2,2,3,3,3,3,3,5,
+            5,5,6,6,6,7,7,7,
+        ]
         new Vue({
             el: '#app',
             data: {
@@ -927,16 +934,16 @@
                     "飞升后保留前[该升级等级]个释放牛奶力量的升级",
                     "每级使金佩勒技能时间提升10%",
                     "可以选择禁用金佩勒，获得等级*10+40%佩干产量提升",
-                    "释放牛奶力量，佩干产量×(1+0.004×牛奶)",
-                    "每级使建筑和升级的价格降低1%",
+                    "释放牛奶力量(叠乘)，佩干产量×(1+0.004×牛奶)",
+                    "使建筑和升级的价格降低等级×2%",
                     "每级解锁40个协同升级，需要15或75个对应建筑",
                     "升级的价格除以5",
-                    "升级1-4的乘数变为100",
-                    "每级使糖块生长的基础时间减少300秒",
-                    "释放糖块力量（叠乘），佩干产量×(1+0.001×糖块)",
+                    "升级1-4的效果乘以100",
+                    "每级使糖块生长的速度快10%",
+                    "释放糖块力量(叠乘)，佩干产量×(1+0.001×糖块)",
                     "可以选择禁用点击，获得等级*10+40%佩干产量提升",
                     "建筑2的×2升级效果变为×3.333",
-                    "每级使牛奶价格降低10%",
+                    "使牛奶价格降低等级×10%",
                     "第n级该升级使建筑n+2的×2升级效果乘以(5.1-n×0.1)",
                 ],
                 
@@ -947,6 +954,7 @@
                     ...r,
                     level: N(0),
                 })),
+                //transcendU2:[false,false,false,false,false,false,false,false,],
                 tuDescription:[
                     "每级提升20%所有佩干获取（叠乘）",
                     "每级提升20%点击佩干获取（叠加）",
@@ -962,10 +970,14 @@
                     "每级使协同升级系列2(109-x)的效果+10%",
                 ],
                 tuDescription2:[
-                    "每次轮回后保留100所有建筑1和建筑2",
-                    "每次飞升后保留升级105-1至105-5",
-                    "禁用金佩勒和点击的乘数常时生效",
-                    "解锁40个新的风味饼干升级",
+                    "每次轮回和飞升后保留升级105-1至105-5",
+                    "禁用金佩勒和点击的乘数变为常时生效",
+                    "每次轮回和飞升后保留100建筑1和建筑2",
+                    "金佩勒的获得佩干效果乘以10",
+                    "糖块的生长速度增加神器9等级*10%，最高200%",
+                    "金佩勒的出现频率增加神器6等级*2%，最高50%",
+                    "解锁40个新的风味饼干升级(在1e100~1e180佩干)",
+                    "解锁释放糖块力量的普通升级",
                 ],
 
                 breakCount: N(0),
@@ -977,19 +989,12 @@
                     "1破碎：永久解锁自动化选项卡，且每次破碎使佩干产量×4",
                     "2破碎：每次破碎使飞升乘数翻倍",
                     "3破碎：每次破碎使轮回乘数翻倍",
-                    "4破碎：每次破碎使每次糖块获取数量+1（从4破碎开始）",
+                    "4破碎：每次破碎使每次糖块获取数量+1(从4破碎开始计算)",
                     "5破碎：飞升次数对佩干产量的加数变为100%",
                     "6破碎：轮回次数对佩干产量的加数变为100%",
-                    "7破碎：每个成就提供的牛奶翻倍(爆炸)",
+                    "7破碎：每个成就提供的牛奶翻倍(太爆炸了)",
                     "8破碎：解锁觉醒重置，破碎不再重置建筑和升级，解锁觉醒神器",
-                    "9破碎：解锁一些新的升级",
-                    "10破碎：每次破碎使觉醒点获取量+25%",
-                    "12破碎：从12破碎开始，每次破碎使觉醒充能翻倍",
-                    "14破碎：从14破碎开始，每次破碎使觉醒充能效果+10%",
-                    "16破碎：每次破碎使化石饼干产量+50%",
-                    "18破碎：每次破碎使副本1等级升级速度+25%",
-                    "20破碎：从20破碎开始，觉醒充能效果每次破碎乘以1.1",
-                    "30破碎：……",
+
                 ],
 
                 hmDescription:[
@@ -1392,6 +1397,8 @@
                     this.peiCount = N(0);
                     this.thisAscendPei = N(0);
                     this.totalLifetimePei = N(0);
+                    this.enableClick=true;
+                    this.enableGolden=true;
                     this.buildings.forEach(b => {
                         b.quantity = N(0);
                         b.cost = b.baseCost;
@@ -1451,6 +1458,8 @@
                         totalLifetimePei: this.totalLifetimePei,
                         totalClickPei: this.totalClickPei,
                         goldenPeiClick: this.goldenPeiClick,
+                        enableClick: this.enableClick,
+                        enableGolden: this.enableGolden,
                         ascensionCount: this.ascensionCount,
                         realityShards: this.realityShards,
                         totalRealityShards: this.totalRealityShards,
@@ -1476,6 +1485,8 @@
                     this.totalLifetimePei = save.totalLifetimePei || N(0);
                     this.totalClickPei = save.totalClickPei || N(0);
                     this.goldenPeiClick = save.goldenPeiClick || 0;
+                    this.enableClick=save.enableClick || true;
+                    this.enableGolden=save.enableGolden || true;
                     this.ascensionCount = save.ascensionCount || N(0);
                     this.realityShards = save.realityShards || N(0);
                     this.totalRealityShards = save.totalRealityShards || N(0);
@@ -1546,6 +1557,8 @@
                         this.peiPerClick= N(1);
                         this.goldenPeiClick = 0;
                         this.goldenPeiTimer = 0;
+                        this.enableClick=true;
+                        this.enableGolden=true;
                         this.goldenPeiEffects = {
                             clickMultiplier: N(1),
                             buildingMultiplier: N(1),
@@ -1588,8 +1601,8 @@
 
                         this.milk = N(0);
                         this.sugar = N(0);
-                        this.playTime = N(0);
-                        this.totalPlayTime = N(0);
+                        this.playTime = 0;
+                        this.totalPlayTime = 0;
                         this.lastUpdateTime= Date.now();
 
                         this.localSave();
@@ -1609,8 +1622,7 @@
                         this.peiCount = this.peiCount.add(production);
                         this.thisAscendPei = this.thisAscendPei.add(production);
                         this.totalLifetimePei = this.totalLifetimePei.add(production);
-                        this.sugar = this.sugar.add(Math.floor(offlineSeconds / 3600));
-                        this.playTime = this.playTime + (offlineSeconds % 3600);
+                        this.playTime = this.playTime + offlineSeconds;
                         this.totalPlayTime = this.totalPlayTime + offlineSeconds;
                         // 显示离线通知
                         this.showOfflineNotification(offlineSeconds, production);
@@ -1627,7 +1639,7 @@
                 <p>离线产量: ${this.format(amount.div(seconds))}</p>
                 <p>效率: 80%, 时长上限: ${this.ascendU[3].level.toNumber()*6+6}h</p>
                 <p>获得 ${this.format(amount)} 佩干</p>
-                <p>获得 ${this.formatInt(N(seconds / 3600))} 糖块</p>
+                <p>糖块计时器增加了 ${seconds} 秒</p>
             `;
                     document.body.appendChild(toast);
                     setTimeout(() => toast.remove(), 5000);
@@ -1654,7 +1666,7 @@
                 },
                 milkBonus(){
                     return this.upgrades.filter(u => u.buildingId == 102).reduce((prod, upgrade, i) => {
-                        let factor = i < 8 ? i < 4 ? N(0.004).add(0.001 * i) : N(0.008) : i < 12 ? N(0.016).sub(0.001 * i) : N(0.004);
+                        let factor = N(milkUpgradeBase[upgrade.id-1]*0.001);
                         return upgrade.unlocked ? prod.mul(factor.mul(this.milk).mul(this.transcendU[9].level.mul(0.1).add(1)).add(1)) : prod;
                     }, N(1))
                     .mul(Decimal.pow(this.milk.mul(0.004).mul(this.transcendU[9].level.mul(0.1).add(1)).add(1), this.ascendU[9].level));
@@ -1666,6 +1678,9 @@
                     .mul(this.upgrades.filter(u => u.buildingId == 104 & u.id>=6).reduce((sum, upgrade, i) => {
                         let factor=[1.01,1.1,2,11,101]
                         return upgrade.unlocked ? sum.mul(factor[i]) : sum;
+                    }, N(1)))
+                    .mul(this.upgrades.filter(u => u.buildingId == 106).reduce((sum, upgrade) => {
+                        return upgrade.unlocked ? sum.mul(1.1) : sum;
                     }, N(1)))
                     .mul(Decimal.pow(1.1,this.ascendU[1].level))
                     .mul(Decimal.pow(1.2,this.transcendU[0].level))
@@ -1783,6 +1798,15 @@
                 },
                 nextTP(){
                     return this.totalRealityShards.gte(1e48) ? this.totalTP.add(1).pow(4) : this.totalTP.add(1).pow(3).mul(1e12);
+                },
+                goldenPeiTimeCap(){
+                    return (this.upgrades.filter(u => u.buildingId == 107 && u.id == 1)[0].unlocked ? 210 : 420) 
+                    / (this.ascendU[5].level.toNumber()*0.1+1);
+                },
+                sugarTimeCap(){
+                    return 3600 
+                    / (this.ascendU[14].level.toNumber()*0.1+1)
+                    * Math.max(this.sugar.toNumber()/1000,1);
                 }
             },
             mounted() {
@@ -1800,14 +1824,13 @@
                     if(this.enableGolden) this.goldenPeiTimer++
                     this.playTime++;
                     this.totalPlayTime++;
-                    let sugarTimer = 3600 - 300*(this.ascendU[14].level.toNumber());
+                    let sugarTimer = this.sugarTimeCap;
                     if (this.playTime >= sugarTimer) {
                         this.sugar = this.sugar.add(1);
-                        this.playTime = 0;
+                        this.playTime = this.playTime - sugarTimer;
                     }
-                    let t = this.upgrades.filter(u => u.buildingId == 107 && u.id == 1)[0].unlocked ? 210 : 420;
+                    let t = this.goldenPeiTimeCap;
                     let l = this.upgrades.filter(u => u.buildingId == 107 && u.id == 1)[0].unlocked ? 26 : 13;
-                    t=t/(this.ascendU[5].level.toNumber()*0.1+1);
                     if (this.goldenPeiTimer >= t) {
                         this.goldenPeiVisible = true;
                         setTimeout(() => {
