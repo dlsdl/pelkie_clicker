@@ -1714,7 +1714,7 @@
                     }, N(1))
                     .add(this.upgrades.filter(u => u.buildingId == 1 && u.id == 4)[0].unlocked?
                         this.upgrades.filter(u => u.buildingId == 1 && u.id > 4).reduce((prod, upgrade) => {
-                            return upgrade.unlocked ? prod.mul(this.transcendU[6].level.add(20)) : prod;
+                            return upgrade.unlocked ? prod.mul(this.transcendU[6].level.mul(0.1).add(1).mul(20)) : prod;
                         }, N(1)).mul(this.ascendU[13].level.gte(1)?100: 1).mul(this.nonB1Count):N(0))
                     .mul(this.upgrades.filter(u => u.buildingId == 101).reduce((prod, upgrade) => {
                         return upgrade.unlocked ? prod.mul(1.01) : prod;
@@ -1731,7 +1731,7 @@
                             }, N(1))
                             .add(this.upgrades.filter(u => u.buildingId == 1 && u.id == 4)[0].unlocked?
                                 this.upgrades.filter(u => u.buildingId == 1 && u.id > 4).reduce((prod, upgrade) => {
-                                    return upgrade.unlocked ? prod.mul(this.transcendU[6].level.add(20)) : prod;
+                                    return upgrade.unlocked ? prod.mul(this.transcendU[6].level.mul(0.1).add(1).mul(20)) : prod;
                                 }, N(1)).mul(this.ascendU[13].level.gte(1)?100: 1).mul(this.nonB1Count):N(0))
                             .mul(this.upgrades.filter(u => u.buildingId == 109 && u.id == 1)[0].unlocked? this.buildings[2].quantity.mul(0.001).mul(this.transcendU[11].level.mul(0.1).add(1)).add(1):1)
                             .mul(this.goldenPeiEffects.randomBuildingBoost == index ? 1.1 : 1);
