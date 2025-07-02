@@ -317,7 +317,7 @@
             <div>糖块: {{ format(sugar) }} {{this.sugar.gte(1000)?"(已达上限)":""}}</div>
         </div>
 
-        <div>金佩勒效果: {{effect}}</div>
+        <div>金佩勒效果: <span id="effectSpan"></span></div>
 
         <div class="tabs">
             <div v-for="(tab, index) in tabs" :key="index"
@@ -1233,6 +1233,7 @@
                 },
                 showEffectNotification(effectName) {
                     this.effect = effectName;
+                    document.getElementById('effectSpan').innerHTML = effectName;
                     const toast = document.createElement('div');
                     toast.className = 'effect-toast';
                     toast.innerHTML = `
