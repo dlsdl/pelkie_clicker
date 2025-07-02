@@ -314,7 +314,7 @@
 
         <div class="bonus-status">
             <div>牛奶: {{ format(milk) }}</div>
-            <div>糖块: {{ format(sugar) }} {{this.sugar.gte(1000)?"已达上限":""}}</div>
+            <div>糖块: {{ format(sugar) }} {{this.sugar.gte(1000)?"(已达上限)":""}}</div>
         </div>
 
         <div>金佩勒效果: {{effect}}</div>
@@ -523,8 +523,8 @@
             <div>当前轮回点: {{format(transcendPoints)}}</div>
             <div>累计轮回点: {{format(totalTranscendPoints)}}</div>
 
-            <div>金佩勒计时：{{Math.floor(this.goldenPeiTimer)}}/{{this.goldenPeiTimeCap}}</div>
-            <div>糖块计时: {{ Math.floor(playTime) }}/{{this.sugarTimeCap}}</div>
+            <div>金佩勒计时：{{Math.floor(this.goldenPeiTimer)}}/{{this.goldenPeiTimeCap.toFixed(0)}}</div>
+            <div>糖块计时: {{ Math.floor(playTime) }}/{{this.sugarTimeCap.toFixed(0)}}</div>
             <div>牛奶乘数: x{{ format(milkBonus) }}</div>
             <div>糖块乘数: x{{ format(sugarBonus) }}</div>
             <div>升级乘数: x{{ format(upgradeBonus) }}</div>
@@ -908,8 +908,10 @@
         new Vue({
             el: '#app',
             data: {
+                lastUpdate: 0,
+                backgroundDelta: 0,
                 currentTab: 0,
-                tabs: ['建筑', '升级', '成就', '飞升', '轮回', '觉醒', '统计', '存档'],
+                tabs: ['建筑', '升级', '成就', '飞升', '轮回', '破碎', '统计', '存档'],
 
                 peiCount: N(0),
                 thisAscendPei: N(0),
@@ -1439,7 +1441,7 @@
 
                     const gain = this.totalTP.sub(this.totalTranscendPoints).max(0);
                     this.transcendPoints = this.transcendPoints.add(gain);
-                    this.totalTranscendPoints = this.totalTP;
+                    this.totalTranscendPoints = this.totalTP.max(this.totalTranscendPoints);
                     this.transcensionCount = this.transcensionCount.add(1);
                     this.checkAchievements(105);
 
@@ -1881,15 +1883,32 @@
             },
             mounted() {
                 this.localLoad();
-                // 游戏循环
-                setInterval(() => {
-                    // 使用computed属性计算生产量
+                this.lastUpdate = Date.now();
+
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        this.lastUpdate = Date.now();
+                    } else {
+                        this.backgroundDelta += Date.now() - this.lastUpdate;
+                    }
+                });
+
+                const gameLoop = () => {
+                    const now = Date.now();
+                    const delta = (now - this.lastUpdate + this.backgroundDelta) / 1000;
+
                     this.peiPerClick = this.totalClick;
                     this.peiPerSecond = this.totalProduction;
-                    this.peiCount = this.peiCount.add(this.totalProduction.div(50));
-                    this.thisAscendPei = this.thisAscendPei.add(this.totalProduction.div(50));
-                    this.totalLifetimePei = this.totalLifetimePei.add(this.totalProduction.div(50));
-                }, 20);
+                    this.peiCount = this.peiCount.add(this.totalProduction.mul(delta));
+                    this.thisAscendPei = this.thisAscendPei.add(this.totalProduction.mul(delta));
+                    this.totalLifetimePei = this.totalLifetimePei.add(this.totalProduction.mul(delta));
+
+                    this.lastUpdate = now;
+                    this.backgroundDelta = 0;
+                    requestAnimationFrame(gameLoop);
+                };
+                gameLoop();
+
                 setInterval(() => {
                     if(this.enableGolden) this.goldenPeiTimer++
                     this.playTime++;
@@ -1898,8 +1917,8 @@
                     if (this.playTime >= sugarTimer) {
                         this.sugar = this.sugar.add(1);
                         this.playTime = this.playTime - sugarTimer;
-                        if(this.sugar.gte(1000)) this.sugar=N(1000);
                     }
+                    if(this.sugar.gte(1000)) this.sugar=N(1000);
                     let t = this.goldenPeiTimeCap;
                     let l = this.upgrades.filter(u => u.buildingId == 107 && u.id == 1)[0].unlocked ? 26 : 13;
                     if (this.goldenPeiTimer >= t) {
@@ -1911,6 +1930,7 @@
                     }
                     this.checkAchievements(101);
                 }, 1000);
+
                 setInterval(() => {
                     this.localSave();
                 },10000)
