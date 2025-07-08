@@ -2190,7 +2190,7 @@
                     return Decimal.pow(this.totalLifetimePei, 1/308).div(10).mul(this.HPmult).floor();
                 },
                 HPmult(){
-                    return (this.breakCount.gte(20)?this.breakCount.mul(0.25).sub(3):1)
+                    return (this.breakCount.gte(20)?this.breakCount.mul(0.25).sub(3):N(1))
                     .mul(this.hyperChargeU[6].unlocked?this.hyperEffect(7):1);
                 },
                 HCProduction(){
