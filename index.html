@@ -318,11 +318,11 @@
         <div :class="goldenPeiVisible?'golden-pei clickable':'golden-pei-hide'" @click="clickGoldenPei" style="font-size:36px; text-align:center">♅</div>
 
         <div class="bonus-status">
-            <div>牛奶: {{ format(milk) }}</div>
-            <div>糖块: {{ format(sugar) }} {{this.sugar.gte(1000)&this.breakCount.lt(1)?"(已达上限)":""}}</div>
+            <div title="每1个成就获得1(基础值)牛奶，购买对应升级后，基于牛奶数量提高佩干产量乘数">牛奶: {{ format(milk) }}</div>
+            <div title="每3600秒产生1(基础值)糖块，每个糖块+0.1%佩干产量，购买对应升级后，基于糖块数量提高佩干产量乘数">糖块: {{ format(sugar) }} {{this.sugar.gte(1000)&this.breakCount.lt(1)?"(已达上限)":""}}</div>
         </div>
 
-        <div>金佩勒效果: <span id="effectSpan"></span></div>
+        <div title="每420秒上方的♅区域会变成金色，点击♅后会随机获得一个新的效果">金佩勒效果: <span id="effectSpan"></span></div>
 
         <div class="tabs">
             <div v-for="(tab, index) in tabs" :key="index"
@@ -399,7 +399,7 @@
                         <span v-if="upgrade.buildingId==110">释放糖块力量(叠乘)，佩干产量 ×(1+糖块*{{milkUpgradeBase[upgrade.id-1]*0.001.toFixed(3)}})</span>
                     </div>
                     <button @click="buyUpgrade(upgrade.id, upgrade.buildingId)"
-                            :disabled="!canBuyUpgrade(upgrade.id, upgrade.buildingId)">
+                            :disabled="!canBuyUpgrade(upgrade)">
                         {{ format(upgrade.cost.mul(upgradeCostMult).mul(upgrade.buildingId==102?ascendU[18].level.mul(-0.1).add(1):1)) }} 佩干
                     </button>
                 </div>
@@ -546,26 +546,42 @@
             </div>
             <div v-if="this.breakCount.gte(1)" class="shop">
                 <h4>破碎里程碑 (你破碎了{{ format(this.breakCount) }}次)</h4>
-                <div v-for="i in 8" class="upgrade-item" :class="{ 'unlocked': breakCount.gte(i) }">
-                    破碎{{i}}次<br />
+                <div v-for="i in 12" class="upgrade-item" :class="{ 'unlocked': breakCount.gte(i<=8?i:i*5-30) }">
+                    破碎{{i<=8?i:i*5-30}}次<br />
                     {{bmDescription[i-1]}}
                 </div>
             </div>
             <div v-else class="shop">
                 <p>破碎一次以解锁</p>
             </div>
-                <!--p>觉醒(hypercend)重置破碎重置的内容但不重置破碎次数，获取觉醒点(需要8次破碎，1e308佩干)</p-->
         </div>
 
         <!-- 觉醒选项卡 -->
         <div v-if="currentTab === 7">
             <div class="divider">----------------------------------------------------------------</div>
             <div v-if="canHypercend">
-                <p>觉醒将重置破碎、现实碎片、升级、飞升升级和轮回神器，获取 {{ }} 觉醒点(下一个在 {{ }} 现实碎片)</p>
+                <p>觉醒将重置破碎重置的内容（但保留破碎次数），获取 {{format(this.HPGain)}} 觉醒点</p>
                 <button @click="hypercend" style="padding:5px 20px">觉醒!</button>
             </div>
             <div v-else>
-                <p>觉醒(hypercend)需要 8 次破碎 ({{ format(breakCount) }}/8) 和 1e308 佩干 ({{ format(totalLifetimePei) }}/1e308)</p>
+                <p>觉醒(hypercend)需要 8 次破碎 ({{ formatInt(breakCount) }}/8) 和 1e308 佩干 ({{ format(totalLifetimePei) }}/1e308)</p>
+            </div>
+            <div v-if="this.hypercendCount.gte(1)" class="shop">
+                <div>
+                    你有{{format(this.hypercendPoints)}}觉醒点，{{format(this.totalHypercendPoints)}}累计觉醒点，{{format(this.maxHypercendPoints)}}最高觉醒点
+                </div>
+                <h4>觉醒升级</h4> 
+                <div v-for="upgrade in hypercendU" :key="upgrade.id" class="upgrade-item" v-if="upgrade.id==1">
+                    {{huDescription[upgrade.id-1]}}<br />
+                    等级 {{ formatInt(upgrade.level) }}/{{ upgrade.maxLevel }}
+                    <button @click="buyHypercendU(upgrade.id-1)"
+                            :disabled="hypercendPoints.lt(upgrade.cost) | upgrade.level.gte(upgrade.maxLevel)">
+                        {{ format(upgrade.cost) }} 觉醒点
+                    </button>
+                </div>
+            </div>
+            <div v-else class="shop">
+                <p>觉醒一次以解锁</p>
             </div>
         </div>
 
@@ -575,7 +591,7 @@
             <div v-for="upgrade in automation" :key="upgrade.id" class="upgrade-item">
                 {{autoDescription[upgrade.id-1]}}<br />
                 <button @click="buyAuto(upgrade.id-1)" :disabled="upgrade.unlocked">
-                    解锁需要：{{format(upgrade.cost)}} 佩干
+                    解锁需要 {{format(upgrade.cost)}} 佩干
                 </button>
                 <button @click="toggleAuto(upgrade.id-1)" :disabled="!upgrade.unlocked">
                     {{upgrade.activate?"开启":"关闭"}}
@@ -586,8 +602,20 @@
         <!-- 充能选项卡 -->
         <div v-if="currentTab === 9">
             <div class="divider">----------------------------------------------------------------</div>
-            <div>
-                在觉醒升级中解锁觉醒充能
+            <div v-if="hypercendU[0].level.gte(1)">
+                你有 {{format(hyperCharge)}} 觉醒充能 (+{{format(HCProduction)}}/s)，它将你的佩干产量提高 {{format(hyperEffect(0))}} 倍。<br />
+                <h4>觉醒神器</h4>
+                <div v-for="upgrade in hyperChargeU" :key="upgrade.id" class="upgrade-item">
+                    觉醒神器{{upgrade.id}}：{{hcDescription[upgrade.id-1]}}<br />
+                    当前效果：×{{format(hyperEffect(upgrade.id))}}<br />
+                    <button @click="buyHyperChargeU(upgrade.id-1)" 
+                            :disabled="hypercendPoints.lt(upgrade.cost)">
+                        {{upgrade.unlocked?"已解锁":"解锁需要"+format(upgrade.cost)+"觉醒点"}}
+                    </button>
+                </div>
+            </div>
+            <div v-else>
+                需要购买觉醒升级1
             </div>
         </div>
 
@@ -627,11 +655,9 @@
             <button @click="loadGame()">导入</button>
             <button @click="hardReset()" style="color:red">硬重置</button>
             <div>
-                佩乐点点勒（pelkie clicker）-v0.3.1-作者：6左爷6<br />
+                佩乐点点勒（pelkie clicker）-v0.3.2-作者：6左爷6<br />
                 （又叫做cookie clicker NG+3）<br />
                 本游戏参考了《饼干点击》、《亿点放置》、《从细胞到奇点》、《真实割草增量》，<del>你可以点击链接游玩它们</del><br />
-                牛奶的作用：每个成就提供1牛奶（会在获得对应升级或里程碑后提高），购买对应升级后，基于牛奶数量提高佩干产量乘数<br />
-                糖块的作用：随游戏时间推移会自动产生糖块，基础每个糖块+0.1%佩干产量，购买对应升级后，基于糖块数量提高佩干产量乘数<br />
                 后续可能的更新：破碎/觉醒（第3层重置）、树化（第4层重置，获得香料/坚果）、
                 副本1（中生代山谷，它的等级增加糖块加成）、糖粉化（副本1第1层重置）、糖浆化（1-2）、果糕/焦糖化（1-3）、
                 副本2（超越，它的等级增加牛奶加成）、炼乳化（2-1）、奶油化（2-2）、拜谢/黄油化（2-3）、
@@ -990,6 +1016,21 @@
             transcendU.push({ id: 20, cost: N(1e8), maxLevel: N(4) });//解锁糖块升级
             return transcendU;
         })();
+        const HYPERCENDU = (() => {
+            const hypercendU = [];
+            hypercendU.push({ id: 1, cost: N(1), maxLevel: N(100) });//解锁觉醒充能，每级每秒获得1充能
+            hypercendU.push({ id: 2, cost: N(1e3), maxLevel: N(100) });//解锁觉醒点倍增器，充能率+10%每级
+            hypercendU.push({ id: 3, cost: N(1e6), maxLevel: N(100) });//解锁更多升级，充能率+10%每级
+            hypercendU.push({ id: 4, cost: N(1e9), maxLevel: N(100) });//解锁制造厂，充能率+10%每级
+            hypercendU.push({ id: 5, cost: N(1e12), maxLevel: N(100) });//解锁更多风味，充能率+10%每级
+            return hypercendU;
+        })();
+        const HYPERCHARGEU = (() => {
+            const hyperchargeU = [];
+            const cost=[5,10,15,30,100,300,1500,6000,5e5,2e7];
+            for(let i=1;i<=8;i++) hyperchargeU.push({ id: i, cost:N(cost[i-1]), unlocked:false });//根据你的觉醒点数提升佩干获取和觉醒充能速度
+            return hyperchargeU;
+        })();
         const AUTOMATION = (() => {
             const automation = [];
             const cost=[1e5,1e10,2.5e25,7.7e77,1e20,1e40,1e80,1e160,"1e320"]
@@ -1111,13 +1152,10 @@
                     "糖块的生长速度增加等级*20%，最高200%",
                     "金佩勒的出现频率增加等级*7.5%，最高75%",
                     "每级解锁10个新的风味饼干升级(在1e100~1e180佩干)",
-                    "每级解锁10个释放糖块力量的普通升级",
+                    "每级解锁5个释放糖块力量的普通升级",
                 ],
 
                 breakCount: N(0),
-                hypercensionCount: N(0),
-                hyperPoints: N(0),
-                totalHyperPoints: N(0),
 
                 bmDescription:[
                     "每次破碎使佩干产量×4，移除糖块数量上限，永久解锁自动化",//永久解锁自动化，
@@ -1127,27 +1165,50 @@
                     "每破碎使轮回神器1和2的基数+2.5%，从5破碎开始8破碎结束",
                     "每次破碎对佩干产量的乘数翻倍，变为8",
                     "每次破碎对佩干产量的乘数翻倍，变为16",
-                    "解锁觉醒重置，需要1e308佩干（敬请期待）",
-                    "解锁觉醒相关的佩干升级",
-                    "……",
+                    "解锁觉醒重置，需要1e308佩干",
+                    "佩干产量乘以(累计觉醒点+3)",
+                    "每次破碎使觉醒点的获取数量+25%，从17破碎开始",
+                    "每次破碎使觉醒充能翻倍，从25破碎开始44破碎结束",
+                    "每次破碎使觉醒充能的奖励乘以1.25，从30破碎开始",
+
                 ],
 
-                hmDescription:[
-                    "根据你的觉醒点数提升佩干获取和觉醒充能速度",//5HP(hypercension point,觉醒点)
+                hypercendCount: N(0),
+                hypercendPoints: N(0),
+                totalHypercendPoints: N(0),
+                maxHypercendPoints:N(0),
+                hyperCharge: N(0),
+                hypercendU: HYPERCENDU.map(r => ({
+                    ...r,
+                    level: N(0),
+                })),
+
+                huDescription:[
+                    "解锁觉醒充能和觉醒神器（在充能选项卡中），每级该升级每秒产生1觉醒充能",
+
+                ],
+
+                hyperChargeU: HYPERCHARGEU.map(r => ({
+                    ...r,
+                    level: N(0),
+                })),
+
+                hcDescription:[
+                    "基于累计觉醒点数增加觉醒充能速度",//5HP(hypercension point,觉醒点)
                     "基于最高觉醒点数增加神器1效果",//10
                     "基于当前觉醒点数增加神器2效果",//15
                     "基于当前轮回点数增加神器1/2/3效果",//30
                     "基于判定中的觉醒点数增加神器4效果",//100
                     "神器1效果再次乘以神器4的效果",//300
                     "基于最高觉醒点增加觉醒点乘数",//1500
-                    "基于糖块数量，增加神器1/2/3/4/5的效果",
-                    "基于累计轮回点数增加觉醒乘数",
-                    "神器4和神器8的效果再生效一次",
-                    "基于神器8的效果提升神器7的效果",
-                    "基于累计轮回点提升神器1/2/3/4/5/8/9/11的效果",
-                    "使神器12的效果对它自己生效",
-                    "使神器12的效果乘以它的的1/3次方",
-                    "使神器14的效果再生效一次",
+                    "基于糖块数量，增加神器1/2/3/4/5的效果",//6000
+                    "基于累计轮回点数增加觉醒乘数",//5e5
+                    "神器4和神器8的效果再生效一次",//2e7
+                    "基于神器8的效果提升神器7的效果",//1e9
+                    "基于累计轮回点提升神器1/2/3/4/5/8/9/11的效果",//4e9
+                    "使神器12的效果对它自己生效",//4e10
+                    "使神器12的效果乘以它的的1/3次方",//4e12
+                    "使神器14的效果再生效一次",//1e14
                     "根据盐块(月光石)的数量，提升神器1/2/3/4/5/8/9/11/12的效果",
                     "基于觉醒点数提升神器16的效果",
                     "基于甜度数量提升神器17的效果",
@@ -1156,6 +1217,7 @@
                     "基于挑战完成数量提升神器16/17/18的效果",
                     "基于挑战点数提升神器16/17/18的效果",
                     "提升之前所有神器的效果(就是神器1乘数^1.5)",
+                    "提升之前所有神器的效果",
                 ],
 
                 automation: AUTOMATION.map(a=>({
@@ -1174,7 +1236,7 @@
                     "自动购买觉醒神器",
                 ],
 
-                unlockedMisval: false,
+                unlockedMesval: false,
                 fossilkie: N(0),
                 
                 unlockedBeyond: false,
@@ -1198,10 +1260,9 @@
                     if(!this.enableClick) return;
                     this.peiCount = this.peiCount.add(this.peiPerClick);
                     this.totalClickPei = this.totalClickPei.add(this.peiPerClick);
+                    this.thisAscendPei = this.thisAscendPei.add(this.peiPerClick);
                     this.totalLifetimePei = this.totalLifetimePei.add(this.peiPerClick);
                     this.addClickEffect(this.peiPerClick);
-                    // 检查成就
-                    this.checkAchievements(103);
                 },
                 addClickEffect(amount) {
                     const effect = {
@@ -1322,6 +1383,7 @@
                 gainProduction(seconds) {
                     const production = this.peiPerSecond.mul(seconds);
                     this.peiCount = this.peiCount.add(production);
+                    this.thisAscendPei = this.thisAscendPei.add(production);
                     this.totalLifetimePei = this.totalLifetimePei.add(production);
                 },
                 gainClicks(count) {
@@ -1361,23 +1423,22 @@
                     setTimeout(() => toast.remove(), 5000);
                 },
                 buyBuilding(index) {
-                    const building = this.buildings[index];
-                    const amount = parseInt(this.bulkAmount);
-                    const totalCost = this.calcBulkCost(index);
+                    let building = this.buildings[index];
+                    let amount = parseInt(this.bulkAmount);
+                    let totalCost = this.calcBulkCost(index);
                     if (this.peiCount.lt(totalCost)) return;
                     // 执行购买
                     this.peiCount = this.peiCount.sub(totalCost);
                     building.quantity = building.quantity.add(amount);
                     // 更新下次购买价格（使用公式代替循环）
-                    building.cost = building.baseCost.mul(new Decimal(1.148698354997035).pow(building.quantity));
+                    building.cost = building.baseCost.mul(Decimal.pow(1.148698354997035, building.quantity));
                     // 检查成就
                     this.checkAchievements(index + 1);
-                    this.checkAchievements(102);
                 },
                 buyMaxBuilding(index) {
-                    const building = this.buildings[index];
-                    const r = 1.148698354997035;
-                    const maxAmount = this.peiCount.div(10).div(this.buildingCostMult).div(building.cost).mul(r-1).add(1).log(r);
+                    let building = this.buildings[index];
+                    let r = 1.148698354997035;
+                    let maxAmount = this.peiCount.div(this.buildingCostMult).div(building.cost).mul(r-1).add(1).log(r);
                     let a=this.bulkAmount;
                     this.bulkAmount = Decimal.max(Decimal.floor(maxAmount),0).toString();
                     this.buyBuilding(index);
@@ -1387,10 +1448,10 @@
                     for(let i=41;i>=0;i--)   this.buyMaxBuilding(i);
                 },
                 calcBulkCost(index) {
-                    const building = this.buildings[index];
-                    const r = 1.148698354997035; // 价格增长系数
-                    const n = N(parseInt(this.bulkAmount));
-                    const a1 = building.cost;
+                    let building = this.buildings[index];
+                    let r = 1.148698354997035; // 价格增长系数
+                    let n = parseInt(this.bulkAmount);
+                    let a1 = building.cost;
                     if (n == 1) return a1.mul(this.buildingCostMult);
                     // 使用等比数列求和公式：S = a1*(r^n - 1)/(r - 1)
                     return Decimal.pow(r,n).sub(1).mul(a1).div(r-1).mul(this.buildingCostMult);
@@ -1399,20 +1460,17 @@
                     return this.peiCount.gte(this.calcBulkCost(index));
                 },
                 buyUpgrade(i, b) {
-                    const upgrade = this.upgrades.filter(u => u.id == i && u.buildingId == b)
-                    const c = upgrade[0].cost.mul(this.upgradeCostMult).mul(upgrade[0].buildingId==102?this.ascendU[18].level.mul(-0.1).add(1):1);
-                    if (this.canBuyUpgrade(i , b)) {
+                    let upgrade = this.upgrades.filter(u => u.id == i && u.buildingId == b)
+                    let c = upgrade[0].cost.mul(this.upgradeCostMult).mul(upgrade[0].buildingId==102?this.ascendU[18].level.mul(-0.1).add(1):1);
+                    if (this.peiCount.gte(c)) {
                         this.peiCount = this.peiCount.sub(c);
                         this.upgrades.filter(u => u.id == i && u.buildingId == b).map(u => u.unlocked = true);
                     }
-                    //检查成就
-                    this.checkAchievements(102);
                 },
                 // 判断是否可以购买升级
-                canBuyUpgrade(i , b) {
-                    const upgrade = this.upgrades.filter(u => u.id == i && u.buildingId == b);
-                    const c = upgrade[0].cost.mul(this.upgradeCostMult);
-                    return this.peiCount.gte(c) & !upgrade[0].unlocked
+                canBuyUpgrade(upgrade) {
+                    let c = upgrade.cost.mul(this.upgradeCostMult).mul(upgrade.buildingId==102?this.ascendU[18].level.mul(-0.1).add(1):1);
+                    return this.peiCount.gte(c) & !upgrade.unlocked
                 },
                 showUpgrade(u) {
                     if (u.unlocked) return false;
@@ -1432,7 +1490,7 @@
                 buyAllUpgrades() {
                     this.upgrades.forEach(u => {
                         if (this.showUpgrade(u)) {
-                            if(this.canBuyUpgrade(u.id, u.buildingId)) this.buyUpgrade(u.id, u.buildingId);
+                            this.buyUpgrade(u.id, u.buildingId);
                         }
                     });
                 },
@@ -1443,7 +1501,7 @@
                     if (buildingIndex < 100) {
                         const building = this.buildings[buildingIndex-1];
                         relatedAchievements.forEach(achievement => {
-                            if (!achievement.unlocked && building.quantity.gte(achievement.required)) {
+                            if (!achievement.unlocked & building.quantity.gte(achievement.required)) {
                                 achievement.unlocked = true;
                                 this.showAchievementToast(achievement);
                             }
@@ -1451,7 +1509,7 @@
                     }
                     if (buildingIndex == 101) {
                         relatedAchievements.forEach(achievement => {
-                            if (!achievement.unlocked && this.totalLifetimePei.gte(achievement.required)) {
+                            if (!achievement.unlocked & this.totalLifetimePei.gte(achievement.required)) {
                                 achievement.unlocked = true;
                                 this.showAchievementToast(achievement);
                             }
@@ -1459,7 +1517,7 @@
                     }
                     if (buildingIndex == 102) {
                         relatedAchievements.forEach(achievement => {
-                            if (!achievement.unlocked && this.peiPerSecond.gte(achievement.required)) {
+                            if (!achievement.unlocked & this.peiPerSecond.gte(achievement.required)) {
                                 achievement.unlocked = true;
                                 this.showAchievementToast(achievement);
                             }
@@ -1467,7 +1525,7 @@
                     }
                     if (buildingIndex == 103) {
                         relatedAchievements.forEach(achievement => {
-                            if (!achievement.unlocked && this.totalClickPei.gte(achievement.required)) {
+                            if (!achievement.unlocked & this.totalClickPei.gte(achievement.required)) {
                                 achievement.unlocked = true;
                                 this.showAchievementToast(achievement);
                             }
@@ -1475,7 +1533,7 @@
                     }
                     if (buildingIndex == 104) {
                         relatedAchievements.forEach(achievement => {
-                            if (!achievement.unlocked && this.totalRealityShards.gte(achievement.required)) {
+                            if (!achievement.unlocked & this.totalRealityShards.gte(achievement.required)) {
                                 achievement.unlocked = true;
                                 this.showAchievementToast(achievement);
                             }
@@ -1483,7 +1541,15 @@
                     }
                     if (buildingIndex == 105) {
                         relatedAchievements.forEach(achievement => {
-                            if (!achievement.unlocked && this.totalTranscendPoints.gte(achievement.required)) {
+                            if (!achievement.unlocked & this.totalTranscendPoints.gte(achievement.required)) {
+                                achievement.unlocked = true;
+                                this.showAchievementToast(achievement);
+                            }
+                        });
+                    }
+                    if (buildingIndex == 106) {
+                        relatedAchievements.forEach(achievement => {
+                            if (!achievement.unlocked & this.totalHypercendPoints.gte(achievement.required)) {
                                 achievement.unlocked = true;
                                 this.showAchievementToast(achievement);
                             }
@@ -1499,7 +1565,7 @@
                 <span> 已解锁</span>`
                     ;
                     document.body.appendChild(toast);
-                    this.milk = N(this.unlockedAchievementsCount).mul(this.breakCount.gte(3)?2:1);
+                    this.milk = this.milk.add(this.breakCount.gte(3)?2:1);
                     setTimeout(() => {
                         toast.remove();
                     }, 5000);
@@ -1510,7 +1576,6 @@
                     this.realityShards = this.realityShards.add(gained);
                     this.totalRealityShards = this.totalShards.max(this.totalRealityShards);
                     this.ascensionCount = this.ascensionCount.add(1);
-                    this.checkAchievements(104);
                     // 重置游戏状态
                     this.peiCount = N(0);
                     this.thisAscendPei = N(0);
@@ -1556,15 +1621,14 @@
                     this.ascend();
                 },
                 transcend() {
-
                     const gain = this.totalTP.sub(this.totalTranscendPoints).max(0);
                     this.transcendPoints = this.transcendPoints.add(gain);
                     this.totalTranscendPoints = this.totalTP.max(this.totalTranscendPoints);
                     this.transcensionCount = this.transcensionCount.add(1);
-                    this.checkAchievements(105);
 
                     this.peiCount = N(0);
                     this.thisAscendPei = N(0);
+                    this.totalClickPei = N(0);
                     this.totalLifetimePei = N(0);
                     this.enableClick=true;
                     this.enableGolden=true;
@@ -1606,6 +1670,7 @@
                 breakReset(){
                     this.peiCount = N(0);
                     this.thisAscendPei = N(0);
+                    this.totalClickPei = N(0);
                     this.totalLifetimePei = N(0);
                     this.enableClick=true;
                     this.enableGolden=true;
@@ -1639,7 +1704,36 @@
                     upgrade.activate=!upgrade.activate;
                 },
                 hypercend(){
-                    const gain= Decimal.pow(10,this.totalLifetimePei.log(10).div(308)).sub(9);
+                    this.hypercendPoints = this.hypercendPoints.add(this.HPGain);
+                    this.totalHypercendPoints = this.totalHypercendPoints.add(this.HPGain);
+                    this.maxHypercendPoints = this.maxHypercendPoints.max(this.HPGain);
+                    this.hypercendCount =  this.hypercendCount.add(1);
+                    this.breakReset();
+                },
+                buyHypercendU(index){
+                    const upgrade=this.hypercendU[index];
+                    if (this.hypercendPoints.lt(upgrade.cost) | upgrade.level.gte(upgrade.maxLevel)) return;
+                    this.hypercendPoints = this.hypercendPoints.sub(upgrade.cost);
+                    upgrade.level = upgrade.level.add(1);
+                    this.hypercendU[index].cost=Decimal.pow(1000,index).mul(Decimal.pow(1.15,upgrade.level));
+                },
+                buyHyperChargeU(index){
+                    const upgrade=this.hyperChargeU[index];
+                    if (this.hypercendPoints.lt(upgrade.cost) | upgrade.unlocked) return;
+                    this.hypercendPoints = this.hypercendPoints.sub(upgrade.cost);
+                    upgrade.unlocked=true;
+                },
+                hyperEffect(tier){
+                    if(tier == 0) return this.hyperCharge.add(1).pow(2).mul(this.breakCount.gte(30)?Decimal.pow(1.25,this.breakCount.sub(29)):1);
+                    else if(tier == 1) return this.totalHypercendPoints.add(1);
+                    else if(tier == 2) return this.maxHypercendPoints.add(1);
+                    else if(tier == 3) return this.hypercendPoints.add(1);
+                    else if(tier == 4) return this.transcendPoints.add(1).pow(0.025);
+                    else if(tier == 5) return this.HPGain.add(1);
+                    else if(tier == 6) return this.transcendPoints.add(1).pow(0.025);
+                    else if(tier == 7) return this.maxHypercendPoints.add(1).pow(0.2);
+                    else if(tier == 8) return this.sugar.mul(0.001).add(1);
+                    else return N(1);
                 },
                 format(decimal) {
                     let e = decimal.exponent.toFixed(0);
@@ -1690,6 +1784,11 @@
                         transcendPoints: this.transcendPoints,
                         totalTranscendPoints: this.totalTranscendPoints,
                         breakCount: this.breakCount,
+                        hypercendCount: this.hypercendCount,
+                        hypercendPoints: this.hypercendPoints,
+                        totalHypercendPoints: this.totalHypercendPoints,
+                        maxHypercendPoints: this.maxHypercendPoints,
+                        hyperCharge: this.hyperCharge,
                         milk: this.milk,
                         sugar: this.sugar,
                         playTime: this.playTime,
@@ -1703,6 +1802,8 @@
                         automationa: this.automation.map(a => (a.activate)),
                         ascendU: this.ascendU.map(au => ( au.level )),
                         transcendU: this.transcendU.map(tu => (tu.level)),
+                        hypercendU: this.hypercendU.map(hu => (hu.level)),
+                        hyperChargeU: this.hyperChargeU.map(hu => (hu.unlocked)),
                     }
                 },
                 loadData(save){
@@ -1720,6 +1821,11 @@
                     this.transcendPoints = save.transcendPoints || N(0);
                     this.totalTranscendPoints = save.totalTranscendPoints || N(0);
                     this.breakCount = save.breakCount || N(0);
+                    this.hypercendCount = save.hypercendCount || N(0);
+                    this.hypercendPoints = save.hypercendPoints || N(0);
+                    this.totalHypercendPoints = save.totalHypercendPoints || N(0);
+                    this.maxHypercendPoints = save.maxHypercendPoints || N(0);
+                    this.hyperCharge = save.hyperCharge || N(0);
                     this.milk = save.milk || N(0);
                     this.sugar = save.sugar || N(0);
                     this.playTime = save.playTime || 0;
@@ -1743,6 +1849,12 @@
                     });
                     this.transcendU.forEach((tu, index) => {
                         tu.level = !save.transcendU? N(0):save.transcendU[index] || N(0);
+                    });
+                    this.hypercendU.forEach((hu, index) => {
+                        hu.level = !save.hypercendU? N(0):save.hypercendU[index] || N(0);
+                    });
+                    this.hyperChargeU.forEach((hu, index) => {
+                        hu.unlocked = !save.hyperChargeU? false:save.hyperChargeU[index] || false;
                     });
 
                     this.updateCost();
@@ -1826,6 +1938,14 @@
                                 ...r,
                                 level: N(0),
                             })),
+                        this.hypercendU= HYPERCENDU.map(r => ({
+                                ...r,
+                                level: N(0),
+                            })),
+                        this.hyperChargeU= HYPERCHARGEU.map(r => ({
+                                ...r,
+                                unlocked: false,
+                            }))
 
                         this.ascensionCount = N(0);
                         this.realityShards = N(0);
@@ -1836,6 +1956,11 @@
                         this.totalTranscendPoints = N(0);
 
                         this.breakCount=N(0);
+                        this.hypercendCount = N(0);
+                        this.hypercendPoints = N(0);
+                        this.totalHypercendPoints = N(0);
+                        this.maxHypercendPoints = N(0);
+                        this.hyperCharge = N(0);
 
                         this.milk = N(0);
                         this.sugar = N(0);
@@ -1895,6 +2020,7 @@
                     for(let i=0;i<20;i++){
                         this.transcendU[i].cost=Decimal.pow(s[i],this.transcendU[i].level).mul(r[i]);
                     }
+                    this.hypercendU[0].cost=Decimal.pow(1.15,this.hypercendU[0].level);
                 },
                 // 其他方法...
             },
@@ -1947,6 +2073,10 @@
                 breakBonus(){
                     return Decimal.pow(4*(this.breakCount.gte(6)?2:1)*(this.breakCount.gte(7)?2:1),this.breakCount);
                 },
+                hypercendBonus(){
+                    return this.hyperCharge.add(1).pow(2)
+                    .mul(this.breakCount.gte(15)?this.totalHypercendPoints.add(3):1);
+                },
                 buildingCostMult(){
                     return this.goldenPeiEffects.buildingCostReduction
                     .mul(this.ascendU[10].level.mul(-0.02).add(1))
@@ -1971,7 +2101,7 @@
                         return upgrade.unlocked ? prod.mul(1.01) : prod;
                     }, N(1)))
                     .mul(this.transcendU[1].level.mul(0.2+(this.breakCount.max(5).min(8).sub(4).mul(0.025).toNumber())).add(1));
-                    return base.mul(mult).mul(this.sugarBonus).mul(this.milkBonus).mul(this.upgradeBonus).mul(this.ascendBonus).mul(this.transcendBonus).mul(this.breakBonus).mul(this.goldenPeiEffects.buildingMultiplier);
+                    return base.mul(mult).mul(this.sugarBonus).mul(this.milkBonus).mul(this.upgradeBonus).mul(this.ascendBonus).mul(this.transcendBonus).mul(this.breakBonus).mul(this.hypercendBonus).mul(this.goldenPeiEffects.buildingMultiplier);
                 },
                 totalProduction() {
                     let base = this.buildings.reduce((sum, building, index) => {
@@ -2016,7 +2146,7 @@
                         return sum.add(building.production);
                     }, N(0));
                     if (this.ascendU[1].level.gte(1)) base = base.mul(1.1);
-                    return base.mul(this.milkBonus).mul(this.sugarBonus).mul(this.upgradeBonus).mul(this.ascendBonus).mul(this.transcendBonus).mul(this.breakBonus).mul(this.goldenPeiEffects.buildingMultiplier);
+                    return base.mul(this.milkBonus).mul(this.sugarBonus).mul(this.upgradeBonus).mul(this.ascendBonus).mul(this.transcendBonus).mul(this.breakBonus).mul(this.hypercendBonus).mul(this.goldenPeiEffects.buildingMultiplier);
                 },
                 nonB1Count() {
                     let sum = N(0);
@@ -2056,6 +2186,24 @@
                 nextBreak(){
                     return Decimal.pow(10,this.breakCount).mul(1e12);
                 },
+                HPGain(){
+                    return Decimal.pow(this.totalLifetimePei, 1/308).div(10).mul(this.HPmult).floor();
+                },
+                HPmult(){
+                    return (this.breakCount.gte(20)?this.breakCount.mul(0.25).sub(3):1)
+                    .mul(this.hyperChargeU[6].unlocked?this.hyperEffect(7):1);
+                },
+                HCProduction(){
+                    return this.hypercendU[0].level
+                    .mul(this.hyperChargeU[0].unlocked?this.hyperEffect(1):1)
+                    .mul(this.hyperChargeU[1].unlocked?this.hyperEffect(2):1)
+                    .mul(this.hyperChargeU[2].unlocked?this.hyperEffect(3):1)
+                    .mul(this.hyperChargeU[3].unlocked?this.hyperEffect(4).pow(3):1)
+                    .mul(this.hyperChargeU[4].unlocked?this.hyperEffect(5).pow(3):1)
+                    .mul(this.hyperChargeU[5].unlocked?this.hyperEffect(6):1)
+                    .mul(this.hyperChargeU[7].unlocked?this.hyperEffect(8).pow(9):1)
+                    .mul(this.breakCount.gte(25)?Decimal.pow(2,this.breakCount.sub(24).max(1).min(20)):1);
+                },
                 goldenPeiTimeCap(){
                     return (this.upgrades.filter(u => u.buildingId == 107 && u.id == 1)[0].unlocked ? 210 : 420) 
                     / (this.ascendU[5].level.toNumber()*0.1+1)
@@ -2065,7 +2213,7 @@
                     return 3600 
                     / (this.ascendU[14].level.toNumber()*0.1+1)
                     / (this.transcendU[16].level.toNumber()*0.2+1)
-                    * Math.max(this.sugar.toNumber()/1000,1);
+                    * Math.max(Math.pow(1.001, this.sugar.toNumber()-1000),1);
                 }
             },
             mounted() {
@@ -2081,6 +2229,7 @@
                     this.peiCount = this.peiCount.add(this.totalProduction.mul(delta));
                     this.thisAscendPei = this.thisAscendPei.add(this.totalProduction.mul(delta));
                     this.totalLifetimePei = this.totalLifetimePei.add(this.totalProduction.mul(delta));
+                    if(this.hypercendU[0].level.gte(1)) this.hyperCharge = this.hyperCharge.add(this.HCProduction.mul(delta));
 
                     this.lastUpdate = now;
                     requestAnimationFrame(gameLoop);
@@ -2107,6 +2256,11 @@
                         this.goldenPeiTimer = 0;
                     }
                     this.checkAchievements(101);
+                    this.checkAchievements(102);
+                    this.checkAchievements(103);
+                    this.checkAchievements(104);
+                    this.checkAchievements(105);
+                    this.checkAchievements(106);
                     if(this.automation[0].activate) this.buyAllBuilding();
                     if(this.automation[1].activate) this.buyAllUpgrades();
                     if(this.automation[2].activate) this.peiCount=this.peiCount.add(this.peiPerClick.mul(10));
