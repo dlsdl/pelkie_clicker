@@ -2394,7 +2394,7 @@
                     return this.totalTranscendPoints.gte(Decimal.pow(10,this.breakCount).mul(1e12));
                 },
                 canHypercend(){
-                    return this.totalLifetimePei.gte(1e308) & this.breakCount==8;
+                    return this.totalLifetimePei.gte(1e308) & this.breakCount.gte(8);
                 },
                 totalShards() {
                     return this.totalLifetimePei.gte(1e48) ? this.totalLifetimePei.pow(1 / 4).floor() : this.totalLifetimePei.div(1e12).pow(1 / 3).floor();
