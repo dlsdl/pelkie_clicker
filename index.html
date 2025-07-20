@@ -2239,6 +2239,7 @@
                     this.hypercendU[0].cost=Decimal.pow(1.15,this.hypercendU[0].level);
                     this.hypercendU[1].cost=Decimal.pow(1.15,this.hypercendU[1].level).mul(1e6);
                     this.hypercendU[2].cost=Decimal.pow(1.15,this.hypercendU[2].level).mul(1e12);
+                    this.milk = N(this.unlockedAchievementsCount).mul(this.breakCount.gte(3)?2:1);
                     for(let i=0;i<27;i++) if(this.peiLives[i].auto) this.startLifeProd(i);
                 },
                 // 其他方法...
