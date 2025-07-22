@@ -2384,6 +2384,10 @@
                         this.peiCount = this.peiCount.add(production);
                         this.thisAscendPei = this.thisAscendPei.add(production);
                         this.totalLifetimePei = this.totalLifetimePei.add(production);
+                        const fosskieproduction = this.fosskiePerSecond.mul(offlineSeconds*0.8);
+                        this.fosskie = this.fosskie.add(fosskieproduction);
+                        this.totalFosskie = this.totalFosskie.add(fosskieproduction);
+                        this.resetFosskie = this.resetFosskie.add(fosskieproduction);
                         this.playTime = this.playTime + offlineSeconds;
                         this.totalPlayTime = this.totalPlayTime + offlineSeconds;
                         // 显示离线通知
