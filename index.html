@@ -301,7 +301,7 @@
 /* 佩干生命卡片样式 */
 .pei-life {
   background: white;
-  border:#dfbf0d solid 1px;
+  border:#dfbf0d solid 2px;
   border-radius: 8px;
   padding: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -330,6 +330,8 @@
         </div>
         <div class="header-fixed" v-if="currentArea==2">
             <div class="header-text" style="font-size: 32px;">你有 {{ format(fosskie) }} 化石饼干</div>
+            <div class="header-text" style="font-size: 20px;">{{ format(fosskiePerSecond) }}/秒</div>
+            <div class="header-text" style="font-size: 20px;">{{ format(fosskiePerClick) }}/点击</div>
         </div>
 
         <div class="clickable" @click="clickPei" style="width: 200px; height: 200px; background-image: url('pelkie.bmp')">
@@ -670,6 +672,10 @@
             <div>当前轮回点: {{format(transcendPoints)}}</div>
             <div>累计轮回点: {{format(totalTranscendPoints)}}</div>
 
+            <div>觉醒次数: {{format(hypercendCount)}}</div>
+            <div>当前觉醒点: {{format(hypercendPoints)}}</div>
+            <div>累计觉醒点: {{format(totalHypercendPoints)}}</div>
+
             <div>金佩勒计时：{{Math.floor(this.goldenPeiTimer)}}/{{this.goldenPeiTimeCap.toFixed(0)}}</div>
             <div>糖块计时: {{ Math.floor(playTime) }}/{{this.sugarTimeCap.toFixed(0)}}</div>
             <div>牛奶乘数: x{{ format(milkBonus) }}</div>
@@ -687,10 +693,10 @@
             <button @click="loadGame()">导入</button>
             <button @click="hardReset()" style="color:red">硬重置</button>
             <div>
-                佩乐点点勒（pelkie clicker）-v0.3.4-作者：6左爷6<br />
+                佩乐点点勒（pelkie clicker）-v0.3.5-作者：6左爷6<br />
                 （又叫做cookie clicker NG+3）<br />
-                本游戏参考了《饼干点击》、《亿点放置》、《从细胞到奇点》、《真实割草增量》，<del>你可以点击链接游玩它们</del><br />
-                后续可能的更新：破碎/觉醒（第3层重置）、树化（第4层重置，获得香料/坚果）、
+                本游戏参考了《饼干点点乐》、《王朝之系谱》、《从细胞到奇点》、《真实割草增量》，<del>你可以点击链接游玩它们</del><br />
+                后续可能的更新：太空（第4层重置，获得香料/坚果）、暗物质（第5层重置）
                 副本1（中生代山谷，它的等级增加糖块加成）、糖粉化（副本1第1层重置）、糖浆化（1-2）、果糕/焦糖化（1-3）、
                 副本2（超越，它的等级增加牛奶加成）、炼乳化（2-1）、奶油化（2-2）、拜谢/黄油化（2-3）、
                 副本3（探索中心）、……等等
@@ -727,37 +733,53 @@
                 你发现了一个奇怪的骨骼化石，现在我需要您模拟一个活体标本进行研究，
                 这些生物曾经是地球上的主要生命形式，也许可以了解它们是如何走向灭亡的。
                 您可以通过传送随时返回到主界面（佩干宇宙）。 <br />
-                <!--点击大佩勒将获得1+1%每秒产量化石饼干，金佩勒在这里也起作用，效果只有“获得15秒产量化石饼干”一种，<br /--><br />
-                基于化石饼干总数，获得对所有糖块升级的加成（×1+化石饼干×0.001）<br /><br />
+                基于化石饼干总数，获得对所有糖块升级的加成（×(1+化石饼干/1e4)^0.25）<br />
+                <br />
                 到达1e12化石饼干后解锁“糖霜”重置，重置所有佩干生命，用糖霜升级一星特征<br />
                 到达1e48化石饼干后解锁“蜂蜜”重置，重置所有佩干生命和一星特征，用蜂蜜升级二星特征<br />
                 到达1e192化石饼干后可以变甜，重置所有佩干生命、一星、二星特征，基于变甜次数获得奖励<br />
-                变甜8次且到达1e308化石饼干后，解锁“焦糖”重置，重置变甜重置的内容，用焦糖升级三星特征
-                
+                变甜8次且到达1e308化石饼干后，解锁“焦糖”重置，重置变甜重置的内容，用焦糖升级三星特征<br />
+                <br />
+                化石饼干：{{format(fosskie)}}<br />
+                化石饼干总数：{{format(totalFosskie)}}<br />
+                本次重置中的化石饼干：{{format(resetFosskie)}}<br />
+                糖霜数量：{{format(icing)}}<br />
+                总计糖霜数量：{{format(totalIcing)}}<br />
+                蜂蜜数量：{{format(honey)}}<br />
+                总计蜂蜜数量：{{format(totalHoney)}}<br />
             </div>
         </div>
 
         <!--中生代山谷选项卡-->
         <div v-if="currentTab === 13" class="building-grid">
             <div class="divider">----------------------------------------------------------------</div>
+            <div>在中生代山谷中点击大佩干将获得化石饼干</div>
+            <div>佩干生命每500级产量乘以1e20</div>
             <div>总计化石饼干数量：{{format(totalFosskie)}}</div>
             <div>它们将糖块升级效果乘以{{format(this.totalFosskie.mul(0.0001).add(1).pow(0.25))}}</div>
-            <button @click="clickFosskie">
-                +1化石饼干
-            </button>
+            <div class="bulk-selector">
+                购买数量:
+                <select v-model="bulkLifeAmount">
+                    <option value="1">×1</option>
+                    <option value="10">×10</option>
+                    <option value="100">×100</option>
+                    <option value="1000">×1000</option>
+                </select>
+            </div>
             <div v-for="(p, index) in peiLives" :key="index" class="pei-life">
-            佩干生命{{ p.id }} - 类型：{{index%3==0?"草食":index%3==1?"肉食":"杂食"}}，{{index/3%3<1?"水生":index/3%3<2?"陆生":"两栖"}}，{{index/9%3<1?"小型":index/9%3<2?"中型":"大型"}}
-            进度：{{p.progress.toFixed(1)}}/{{p.duration.toFixed(1)}}s<br />
-            数量：{{p.level}} 基础产量：{{format(p.baseProd)}} 产量：{{format(calcLifeProd(index))}}<br />
-            <button @click="buyPeiLife(index)">
-            购买花费<br /> {{ format(calcLifeCost(index)) }}
+                佩干生命{{ p.id }} - 类型：{{index%3==0?"草食":index%3==1?"肉食":"杂食"}}，{{index/3%3<1?"水生":index/3%3<2?"陆生":"两栖"}}，{{index/9%3<1?"小型":index/9%3<2?"中型":"大型"}}
+                进度：{{p.progress.toFixed(1)}}/{{p.duration.toFixed(1)}}s<br />
+                数量：{{p.level}} 基础产量：{{format(p.baseProd)}} 产量：{{format(calcLifeProd(index))}}<br />
+                产量×{{format(calcLifeMult(index))}} 速度×{{format(calcSpeedMult(index))}} 价格÷{{format(calcCostMult(index))}}<br />
+            <button @click="buyPeiLife(index, bulkLifeAmount)" :disabled="fosskie.lt(calcLifeBulkCost(index, bulkLifeAmount))">
+                购买×{{bulkLifeAmount}}花费<br /> {{ format(calcLifeBulkCost(index, bulkLifeAmount)) }}
             </button>
-            <button @click="unlockLifeAuto(index)" :disabled="p.level.lte(0)">
-            <div v-if="!p.auto">解锁自动生产<br />{{ format(p.baseCost.mul(10)) }}</div>
-            <div v-else>已解锁<br />自动生产</div>
+            <button @click="unlockLifeAuto(index)" :disabled="p.level.lte(0) | fosskie.lt(p.baseCost.mul(10))">
+                <div v-if="!p.auto">解锁自动生产<br />{{ format(p.baseCost.mul(10)) }}</div>
+                <div v-else>已解锁<br />自动生产</div>
             </button>
             <button @click="startLifeProd(index)" :disabled="p.level.lte(0)">
-            开始<br />生产
+                开始<br />生产
             </button>
             <div class="progress-bar">
                 <div :style="{ width: p.progress/p.duration*100 + '%' }"></div>
@@ -765,7 +787,57 @@
             </div>
         </div>
 
+        <!--中生代山谷重置-->
+        <div v-if="currentTab === 14">
+            <div class="divider">----------------------------------------------------------------</div>
+            <div v-if="resetFosskie.gte(1e12)">
+                <p>糖霜重置将重置化石饼干和佩干生命（但保留自动生产）<br />获取 {{format(icingGain)}} 糖霜</p>
+                <button @click="icingReset" style="padding:5px 20px">糖霜重置</button>
+            </div>
+            <div v-else>
+                需要1e12本次重置中的化石饼干才能进行糖霜重置<br />
+                {{format(resetFosskie)}}/1e12
+            </div>
+            <div v-if="resetFosskie.gte(1e48)" class="shop">
+                <p>蜂蜜重置将重置化石饼干、佩干生命、糖霜、一星性状<br />获取 {{format(honeyGain)}} 蜂蜜</p>
+                <button @click="honeyReset" style="padding:5px 20px">蜂蜜重置</button>
+            </div>
+            <div v-else class="shop">
+                需要1e48本次重置中的化石饼干才能进行蜂蜜重置<br />
+                {{format(resetFosskie)}}/1e48
+            </div>
+            <div class="shop">
+                
+            </div>
+        </div>
 
+
+
+        <div v-if="currentTab === 15">
+            <div class="divider">----------------------------------------------------------------</div>
+            <div>
+                糖霜数量：{{format(icing)}}<br />
+                蜂蜜数量：{{format(honey)}}<br />
+                <p>一星性状（共27种） 糖霜重置一次后可购买</p>
+                <div v-for="(t, index) in traits" :key="index" class="pei-life" v-if="index<27">
+                    一星性状{{index+1}}: 每级将佩干生命{{index+1}}产量×2<br />
+                    等级：{{t.level}}，效果：×{{format(Decimal.pow(2,t.level))}}<br />
+                    <button @click="buyTrait(index)" :disabled="totalIcing.lte(0)">升级需要{{format(t.cost)}}糖霜</button>
+                </div>
+                <p>二星性状（共12种） 蜂蜜重置一次后可购买</p>
+                <div v-for="(t, index) in traits" :key="index" class="pei-life" v-if="index>=27 & index<39">
+                    二星性状{{index+1}}: 每级{{traitDescription[index-27]}}<br />
+                    等级：{{t.level}}，效果：×{{index<36?format(Decimal.pow(2,t.level)):format(t.level.mul(0.2).add(1))}}<br />
+                    <button @click="buyTrait(index)" :disabled="totalHoney.lte(0)">升级需要{{format(t.cost)}}蜂蜜</button>
+                </div>
+                <!--p>三星性状（共3种）</p>
+                <div v-for="(t, index) in traits" :key="index" class="pei-life" v-if="index>=39 & index<42">
+                    三星性状{{index+1}}: 每级将{{index==39?"所有佩干生命产量×2":index==40?"所有佩干生命速度×2":"所有佩干生命价格÷2"}}<br />
+                    等级：{{t.level}}，效果：×{{format(Decimal.pow(2,t.level))}}<br />
+                    <button @click="buyTrait(index)" disabled="caramel.lt(t.cost)">升级需要{{format(t.cost)}}焦糖</button>
+                </div-->
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1134,7 +1206,7 @@
                 backgroundDelta: 0,
                 currentTab: 0,
                 currentArea: 1,
-                tabs: ['建筑', '升级', '成就', '传送', '飞升', '轮回', '破碎', '觉醒', '自动', '充能', '统计', '杂项', '简介', '生命', '性状', '声望', '变甜', '炼糖厂',],
+                tabs: ['建筑', '升级', '成就', '传送', '飞升', '轮回', '破碎', '觉醒', '自动', '充能', '统计', '杂项', '简介', '生命', '声望', '性状', '变甜', '炼糖厂',],
 
                 peiCount: N(0),
                 thisAscendPei: N(0),
@@ -1338,6 +1410,7 @@
                 caramel:N(0),
                 totalCaramel:N(0),
 
+                bulkLifeAmount: 1,
                 peiLives: Array(27).fill().map((_,i) => ({
                     id: i+1,
                     level: N(0),       // 当前等级
@@ -1350,9 +1423,24 @@
                 })),
                 traits: Array(42).fill().map((_,i) => ({
                     id: i+1,
+                    tier: i<27?1:i<39?2:i<42?3:0,
                     level: N(0),
-                    cost: N(10).pow(i)
+                    cost: N(1)
                 })),
+                traitDescription:[
+                    "将草食生命产量×2",
+                    "将肉食生命产量×2",
+                    "将杂食生命产量×2",
+                    "将水生生命速度×2",
+                    "将陆生生命速度×2",
+                    "将两栖生命速度×2",
+                    "将小型生命价格÷2",
+                    "将中型生命价格÷2",
+                    "将大型生命价格÷2",
+                    "将点击获得的化石饼干+20%",
+                    "将糖块生长的速度+20%",
+                    "将糖块升级的效果+20%",
+                ],
                 
                 unlockedBeyond: false,
                 starkie: N(0),
@@ -1381,15 +1469,23 @@
                         if(this.breakCount.lt(1)) return [0,1,2,4,5,6,10,11].includes(i);
                         else return [0,1,2,3,4,5,6,7,8,9,10,11].includes(i);
                     }
-                    if(this.currentArea == 2) return[3,11,12,13].includes(i);
+                    if(this.currentArea == 2) return[3,11,12,13,14,15].includes(i);
                 },
                 clickPei() {
-                    if(!this.enableClick) return;
-                    this.peiCount = this.peiCount.add(this.peiPerClick);
-                    this.totalClickPei = this.totalClickPei.add(this.peiPerClick);
-                    this.thisAscendPei = this.thisAscendPei.add(this.peiPerClick);
-                    this.totalLifetimePei = this.totalLifetimePei.add(this.peiPerClick);
-                    this.addClickEffect(this.peiPerClick);
+                    if(this.currentArea==1){
+                        if(!this.enableClick) return;
+                        this.peiCount = this.peiCount.add(this.peiPerClick);
+                        this.totalClickPei = this.totalClickPei.add(this.peiPerClick);
+                        this.thisAscendPei = this.thisAscendPei.add(this.peiPerClick);
+                        this.totalLifetimePei = this.totalLifetimePei.add(this.peiPerClick);
+                        this.addClickEffect(this.peiPerClick);
+                    }
+                    else if(this.currentArea==2){
+                        this.fosskie = this.fosskie.add(this.fosskiePerClick);
+                        this.totalFosskie = this.totalFosskie.add(this.fosskiePerClick);
+                        this.resetFosskie = this.resetFosskie.add(this.fosskiePerClick);
+                        this.addClickEffect(this.fosskiePerClick);
+                    }
                 },
                 addClickEffect(amount) {
                     const effect = {
@@ -1779,7 +1875,7 @@
                 },
                 buyTranscendU(index) {
                     const upgrade=this.transcendU[index];
-                    if (this.transcendPoints.lt(upgrade.cost) | (upgrade.maxLevel.gt(0)&upgrade.level.gte(upgrade.maxLevel))) return;
+                    if ((upgrade.maxLevel.gt(0) & upgrade.level.gte(upgrade.maxLevel)) | this.transcendPoints.lt(upgrade.cost)) return;
                     this.transcendPoints = this.transcendPoints.sub(upgrade.cost);
                     upgrade.level = upgrade.level.add(1);
                     let r=[1,1,1,1,1,1,1,1,1,1,1,1,10,100,1000,10000,1e5,1e5,1e6,1e6];
@@ -1787,8 +1883,10 @@
                     this.transcendU[index].cost=Decimal.pow(s[index],this.transcendU[index].level).mul(r[index]);
                 },
                 buyAllTranscendU(){
-                    for(let i=0;i<12;i++) this.transcendU[i].level=N(this.transcendPoints.log(2)).floor().max(this.transcendU[i].level);
-                    for(let i=12;i<20;i++) this.buyTranscendU(i);
+                    for(let i=0;i<12;i++) this.transcendU[i].level=this.transcendU[i].level.max(Math.floor(this.transcendPoints.log(2)+1));
+                    this.transcendU.forEach(u => {
+                        for(let i=0;i<u.maxLevel.toNumber();i++) this.buyTranscendU(u.id-1);
+                    })
                 },
                 refundTranscendU() {
                     var confirm=window.confirm("确认回退所有轮回神器和升级吗？这将进行一次无奖励的轮回重置！");
@@ -1867,40 +1965,40 @@
                     else if(tier == 5) return this.HPGain.add(1);
                     else if(tier == 6) return this.transcendPoints.add(1).pow(0.02);
                     else if(tier == 7) return this.maxHypercendPoints.add(1).pow(0.2);
-                    else if(tier == 8) return this.sugar.mul(0.001).add(1);
+                    else if(tier == 8) return Decimal.pow(1.001,this.sugar);
                     else if(tier == 9) return this.transcendPoints.add(1).pow(0.06);
                     else if(tier == 10) return N(1);
-                    else if(tier == 11) return this.sugar.mul(0.001).add(1);
+                    else if(tier == 11) return Decimal.pow(1.001,this.sugar);
                     else if(tier == 12) return this.transcendPoints.add(1).pow(0.004);
                     else return N(1);
                 },
-                clickFosskie(){
-                    this.fosskie = this.fosskie.add(1);
-                    this.totalFosskie = this.totalFosskie.add(1);
-                    this.resetFosskie = this.resetFosskie.add(1);
+                calcLifeBulkCost(index, amount) {
+                    const pei = this.peiLives[index];
+                    const r = 1.148698354997035;
+                    const a1 = pei.baseCost.mul(Decimal.pow(r, pei.level));
+                    if (amount === 1) return a1.div(this.calcCostMult(index));
+                    return a1.mul(Decimal.pow(r, amount).sub(1)).div(r - 1).div(this.calcCostMult(index));
                 },
-                buyPeiLife(index) {
-                    const cost = this.calcLifeCost(index);
+                buyPeiLife(index, amount) {
+                    const cost = this.calcLifeBulkCost(index, amount);
                     if (this.fosskie.gte(cost)) {
-                    this.fosskie = this.fosskie.sub(cost);
-                    this.peiLives[index].level = this.peiLives[index].level.add(1);
+                        this.fosskie = this.fosskie.sub(cost);
+                        this.peiLives[index].level = this.peiLives[index].level.add(amount);
                     }
                 },
-                startLifeProd(index) {
-                    if (this.peiLives[index].progress>0) return;
-                    
-                    let last =Date.now()-50;
+                startLifeProd(index) {        
+                    let last =Date.now();
                     const updateProgress = () => {
                         let now = Date.now();
                         
                         const delta = (now - last) / 1000;
-                        this.peiLives[index].progress += delta;
+                        this.peiLives[index].progress += delta * this.calcSpeedMult(index).toNumber();
                         
                         if (this.peiLives[index].progress >= this.peiLives[index].duration) {
                             this.fosskie = this.fosskie.add(this.calcLifeProd(index));
                             this.totalFosskie = this.totalFosskie.add(this.calcLifeProd(index));
                             this.resetFosskie = this.resetFosskie.add(this.calcLifeProd(index));
-                            this.peiLives[index].progress = 0;
+                            this.peiLives[index].progress -= this.peiLives[index].duration;
                             cancelAnimationFrame(this.peiLives[index].timer);
                             if(this.peiLives[index].auto) this.startLifeProd(index);
                         } else {
@@ -1911,16 +2009,72 @@
                     updateProgress();
                 },
                 calcLifeProd(index){
-                    return this.peiLives[index].level.mul(this.peiLives[index].baseProd);
+                    return this.peiLives[index].level.mul(this.peiLives[index].baseProd).mul(this.calcLifeMult(index));
                 },
                 calcLifeCost(index){
                     return Decimal.pow(1.148698354997035,this.peiLives[index].level).mul(this.peiLives[index].baseCost);
+                },
+                calcLifeMult(index){
+                    return Decimal.pow(1e20, this.peiLives[index].level.div(500).floor())
+                    .mul(Decimal.pow(2, this.traits[index].level))
+                    .mul(index%3==0?Decimal.pow(2,this.traits[27].level):index%3==1?Decimal.pow(2,this.traits[28].level):Decimal.pow(2,this.traits[29].level));
+                },
+                calcSpeedMult(index){
+                    return index/3%3<1?Decimal.pow(2,this.traits[30].level):index/3%3<2?Decimal.pow(2,this.traits[31].level):Decimal.pow(2,this.traits[32].level);
+                
+                },
+                calcCostMult(index){
+                    return index/9%3<1?Decimal.pow(2,this.traits[33].level):index/9%3<2?Decimal.pow(2,this.traits[34].level):Decimal.pow(2,this.traits[35].level);
+                
                 },
                 unlockLifeAuto(index){
                     if (this.fosskie.lt(this.peiLives[index].baseCost.mul(10))) return;
                     this.peiLives[index].auto = true;
                     this.startLifeProd(index);
                     this.fosskie = this.fosskie.sub(this.peiLives[index].baseCost.mul(10));
+                },
+                buyTrait(index){
+                    if(this.traits[index].tier == 1 ){
+                        if(this.icing.lt(this.traits[index].cost)) return;
+                        this.icing = this.icing.sub(this.traits[index].cost);
+                    }
+                    else if(this.traits[index].tier == 2){
+                        if(this.honey.lt(this.traits[index].cost)) return;
+                        this.honey = this.honey.sub(this.traits[index].cost);
+                    }
+                    else if(this.traits[index].tier == 3){
+                        if(this.caramel.lt(this.traits[index].cost)) return;
+                        this.caramel = this.caramel.sub(this.traits[index].cost);
+                    }
+                    else return;
+                    this.traits[index].level = this.traits[index].level.add(1);
+                    this.traits[index].cost = Decimal.pow(4, this.traits[index].level).sub(1);
+                },
+                icingReset() {
+                    if (this.totalFosskie.lt(1e12)) return;
+                    this.icing = this.icing.add(this.icingGain);
+                    this.totalIcing = this.totalIcing.add(this.icingGain);
+                    this.fosskie = N(0);
+                    this.resetFosskie = N(0);
+                    this.peiLives.forEach(pei => {
+                        pei.level = N(0);
+                    });
+                    for(let i=0;i<27;i++) {cancelAnimationFrame(this.peiLives[i].timer);this.peiLives[i].progress = 0;}
+                },
+                honeyReset() {
+                    if (this.totalFosskie.lt(1e48)) return;
+                    this.honey = this.honey.add(this.honeyGain);
+                    this.totalHoney = this.totalHoney.add(this.honeyGain);
+                    this.icing = N(0);
+                    this.totalIcing = N(0);
+                    this.fosskie = N(0);
+                    this.resetFosskie = N(0);
+                    this.peiLives.forEach(pei => {
+                        pei.level = N(0);
+                    });
+                    for(let i=0;i<27;i++) {this.traits[i].level = N(0);
+                    cancelAnimationFrame(this.peiLives[i].timer);
+                    this.peiLives[i].progress = 0;}
                 },
 
                 //杂项
@@ -1981,6 +2135,12 @@
                         fosskie: this.fosskie,
                         totalFosskie: this.totalFosskie,
                         resetFosskie: this.resetFosskie,
+                        icing: this.icing,
+                        totalIcing: this.totalIcing,
+                        honey: this.honey,
+                        totalHoney: this.totalHoney,
+                        caramel: this.caramel,
+                        totalCaramel: this.totalCaramel,
                         milk: this.milk,
                         sugar: this.sugar,
                         playTime: this.playTime,
@@ -1998,6 +2158,7 @@
                         hyperChargeU: this.hyperChargeU.map(hu => (hu.unlocked)),
                         peiLives: this.peiLives.map(pl => (pl.level)),
                         peiLivesAuto: this.peiLives.map(pl => (pl.auto)),
+                        traits: this.traits.map(t => (t.level)),
                     }
                 },
                 loadData(save){
@@ -2023,6 +2184,12 @@
                     this.fosskie = save.fosskie || N(0);
                     this.totalFosskie = save.totalFosskie || N(0);
                     this.resetFosskie = save.resetFosskie || N(0);
+                    this.icing = save.icing || N(0);
+                    this.totalIcing = save.totalIcing || N(0);
+                    this.honey = save.honey || N(0);
+                    this.totalHoney = save.totalHoney || N(0);
+                    this.caramel = save.caramel || N(0);
+                    this.totalCaramel = save.totalCaramel || N(0);
                     this.milk = save.milk || N(0);
                     this.sugar = save.sugar || N(0);
                     this.playTime = save.playTime || 0;
@@ -2056,6 +2223,9 @@
                     this.peiLives.forEach((pl, index) => {
                         pl.level = !save.peiLives? N(0):save.peiLives[index] || N(0);
                         pl.auto = !save.peiLivesAuto? false:save.peiLivesAuto[index] || false;
+                    })
+                    this.traits.forEach((t, index) => {
+                        t.level = !save.traits? N(0):save.traits[index] || N(0);
                     })
 
                     this.updateCost();
@@ -2148,15 +2318,21 @@
                                 unlocked: false,
                             }))
                         this.peiLives= Array(27).fill().map((_,i) => ({
-                    id: i+1,
-                    level: N(0),       // 当前等级
-                    progress: 0,       // 生产进度(秒)
-                    auto: false,       // 自动生产
-                    timer: null,
-                    duration: Math.pow(10, i/10+0.4),//生产所需时间(秒)
-                    baseCost: N(12).pow(i+1),//基础成本
-                    baseProd: N(8).pow(i+1)//基础产量
-                })),
+                            id: i+1,
+                            level: N(0),       // 当前等级
+                            progress: 0,       // 生产进度(秒)
+                            auto: false,       // 自动生产
+                            timer: null,
+                            duration: Math.pow(10, i/10+0.4),//生产所需时间(秒)
+                            baseCost: N(12).pow(i+1),//基础成本
+                            baseProd: N(8).pow(i+1)//基础产量
+                        })),
+                        this.traits= Array(42).fill().map((_,i) => ({
+                            id: i+1,
+                            tier: i<27?1:i<39?2:i<42?3:0,
+                            level: N(0),
+                            cost: N(1)
+                        })),
 
                         this.ascensionCount = N(0);
                         this.realityShards = N(0);
@@ -2176,6 +2352,13 @@
                         this.fosskie = N(0);
                         this.totalFosskie = N(0);
                         this.resetFosskie = N(0);
+
+                        this.icing = N(0);
+                        this.totalIcing = N(0);
+                        this.honey = N(0);
+                        this.totalHoney = N(0);
+                        this.caramel = N(0);
+                        this.totalCaramel = N(0);
 
                         this.milk = N(0);
                         this.sugar = N(0);
@@ -2240,7 +2423,8 @@
                     this.hypercendU[1].cost=Decimal.pow(1.15,this.hypercendU[1].level).mul(1e6);
                     this.hypercendU[2].cost=Decimal.pow(1.15,this.hypercendU[2].level).mul(1e12);
                     this.milk = N(this.unlockedAchievementsCount).mul(this.breakCount.gte(3)?2:1);
-                    for(let i=0;i<27;i++) if(this.peiLives[i].auto) this.startLifeProd(i);
+                    for(let i=0;i<27;i++) if(this.peiLives[i].auto & this.peiLives[i].level.gte(1)) this.startLifeProd(i);
+                    for(let i=0;i<42;i++) this.traits[i].cost = Decimal.pow(4, this.traits[i].level).sub(1);
                 },
                 // 其他方法...
             },
@@ -2258,7 +2442,8 @@
                 },
                 sugarUpgradeMult(){
                     return this.transcendU[8].level.mul(0.1).add(1)
-                    .mul(this.totalFosskie.mul(0.0001).add(1).pow(0.25));
+                    .mul(this.totalFosskie.mul(0.0001).add(1).pow(0.25))
+                    .mul(this.traits[38].level.mul(0.2).add(1));
                 },
                 milkBonus(){
                     return this.upgrades.filter(u => u.buildingId == 102).reduce((prod, upgrade, i) => {
@@ -2315,7 +2500,7 @@
                     .mul(this.ascendU[12].level.gte(1)?0.2:1)
                     .mul(Decimal.pow(0.99,this.transcendU[3].level));
                 },
-                totalClick() {
+                baseClick() {
                     let base = N(this.goldenPeiEffects.clickMultiplier);
                     let mult = this.upgrades.filter(u => u.buildingId == 1 && u.id < 4).reduce((prod, upgrade) => {
                         return upgrade.unlocked ? prod.mul(2) : prod;
@@ -2328,9 +2513,12 @@
                         return upgrade.unlocked ? prod.mul(1.01) : prod;
                     }, N(1)))
                     .mul(this.transcendU[1].level.mul(0.2+(this.breakCount.max(5).min(8).sub(4).mul(0.025).toNumber())).add(1));
-                    return base.mul(mult).mul(this.sugarBonus).mul(this.milkBonus).mul(this.upgradeBonus).mul(this.ascendBonus).mul(this.transcendBonus).mul(this.breakBonus).mul(this.hypercendBonus).mul(this.goldenPeiEffects.buildingMultiplier);
+                    return base.mul(mult);
                 },
-                totalProduction() {
+                totalClick(){
+                    return this.baseClick.mul(this.sugarBonus).mul(this.milkBonus).mul(this.upgradeBonus).mul(this.ascendBonus).mul(this.transcendBonus).mul(this.breakBonus).mul(this.hypercendBonus).mul(this.goldenPeiEffects.buildingMultiplier);
+                },
+                baseProduction() {
                     let base = this.buildings.reduce((sum, building, index) => {
                         let buildingMult = N(1);
                         if (index == 0) {
@@ -2372,7 +2560,10 @@
                         building.production = building.quantity.mul(building.baseProd).mul(buildingMult)
                         return sum.add(building.production);
                     }, N(0));
-                    return base.mul(this.milkBonus).mul(this.sugarBonus).mul(this.upgradeBonus).mul(this.ascendBonus).mul(this.transcendBonus).mul(this.breakBonus).mul(this.hypercendBonus).mul(this.goldenPeiEffects.buildingMultiplier);
+                    return base;
+                },
+                totalProduction(){
+                    return this.baseProduction.mul(this.milkBonus).mul(this.sugarBonus).mul(this.upgradeBonus).mul(this.ascendBonus).mul(this.transcendBonus).mul(this.breakBonus).mul(this.hypercendBonus).mul(this.goldenPeiEffects.buildingMultiplier);
                 },
                 buildingCount() {
                     let sum = N(0);
@@ -2437,6 +2628,20 @@
                     .mul(this.hyperChargeU[11].unlocked?this.hyperEffect(12).pow(15):1)
                     .mul(this.breakCount.gte(25)?Decimal.pow(2,this.breakCount.sub(24).max(1).min(20)):1);
                 },
+                fosskiePerSecond(){
+                    return this.peiLives.reduce((sum, p, index) => {
+                        return p.auto? sum.add(p.baseProd.mul(p.level).mul(this.calcLifeMult(index).mul(this.calcSpeedMult(index)).div(p.duration))) : sum;
+                    }, N(0));
+                },
+                fosskiePerClick(){
+                    return this.fosskiePerSecond.div(20).add(1).mul(this.traits[36].level.mul(0.2).add(1));
+                },
+                icingGain(){
+                    return this.resetFosskie.gte(1e48)? this.resetFosskie.pow(1/4).floor(): this.resetFosskie.div(1e12).pow(1/3).floor();
+                },
+                honeyGain(){
+                    return this.resetFosskie.gte(1e192)? this.resetFosskie.pow(1/16).floor(): this.resetFosskie.div(1e48).pow(1/12).floor();
+                },
                 goldenPeiTimeCap(){
                     return (this.upgrades.filter(u => u.buildingId == 107 && u.id == 1)[0].unlocked ? 210 : 420) 
                     / (this.ascendU[5].level.toNumber()*0.1+1)
@@ -2446,6 +2651,7 @@
                     return 3600 
                     / (this.ascendU[14].level.toNumber()*0.1+1)
                     / (this.transcendU[16].level.toNumber()*0.2+1)
+                    / (this.traits[37].level.toNumber()*0.2+1)
                     * Math.max(Math.pow(1.001, this.sugar.toNumber()-1000),1);
                 }
             },
@@ -2470,6 +2676,24 @@
                 gameLoop();
 
                 setInterval(() => {
+                    this.checkAchievements(101);
+                    this.checkAchievements(102);
+                    this.checkAchievements(103);
+                    this.checkAchievements(104);
+                    this.checkAchievements(105);
+                    this.checkAchievements(106);
+                    if(this.automation[0].activate) this.buyAllBuilding();
+                    if(this.automation[1].activate) this.buyAllUpgrades();
+                    if(this.automation[2].activate) this.peiCount=this.peiCount.add(this.peiPerClick);
+                    if(this.automation[3].activate) this.clickGoldenPei();
+                    if(this.automation[4].activate) this.buyAllAscendU();
+                    if(this.automation[5].activate) {this.realityShards=this.totalRealityShards.max(this.totalShards); this.totalRealityShards=this.totalRealityShards.max(this.totalShards);}
+                    if(this.automation[6].activate) this.buyAllTranscendU();
+                    if(this.automation[7].activate) {this.transcendPoints=this.totalTranscendPoints.max(this.totalTP); this.totalTranscendPoints=this.totalTranscendPoints.max(this.totalTP);}
+                    if(this.automation[8].activate) {if(this.totalTranscendPoints.gte(this.nextBreak)) this.breakCount=this.breakCount.add(1);}
+                },100);
+
+                setInterval(() => {
                     if(this.enableGolden) this.goldenPeiTimer++
                     this.playTime++;
                     this.totalPlayTime++;
@@ -2488,21 +2712,6 @@
                         }, 1000*l);
                         this.goldenPeiTimer = 0;
                     }
-                    this.checkAchievements(101);
-                    this.checkAchievements(102);
-                    this.checkAchievements(103);
-                    this.checkAchievements(104);
-                    this.checkAchievements(105);
-                    this.checkAchievements(106);
-                    if(this.automation[0].activate) this.buyAllBuilding();
-                    if(this.automation[1].activate) this.buyAllUpgrades();
-                    if(this.automation[2].activate) this.peiCount=this.peiCount.add(this.peiPerClick.mul(10));
-                    if(this.automation[3].activate) this.clickGoldenPei();
-                    if(this.automation[4].activate) this.buyAllAscendU();
-                    if(this.automation[5].activate) {this.realityShards=this.totalRealityShards.max(this.totalShards); this.totalRealityShards=this.totalRealityShards.max(this.totalShards);}
-                    if(this.automation[6].activate) this.buyAllTranscendU();
-                    if(this.automation[7].activate) {this.transcendPoints=this.totalTranscendPoints.max(this.totalTP); this.totalTranscendPoints=this.totalTranscendPoints.max(this.totalTP);}
-                    if(this.automation[8].activate) {if(this.totalTranscendPoints.gte(this.nextBreak)) this.breakCount=this.breakCount.add(1);}
                 }, 1000);
 
                 setInterval(() => {
