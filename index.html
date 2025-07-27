@@ -2055,12 +2055,12 @@
                 },
                 calcLifeMult(index){
                     return Decimal.pow(1e20, this.peiLives[index].level.div(500).floor())
-                    .mul(this.breakCount.gte(400)?this.breakCount.div(100).add(1):1)
+                    .mul(this.breakCount.gte(400)?this.breakCount.div(100).add(1):N(1))
                     .mul(Decimal.pow(2, this.traits[index].level))
                     .mul(index%3==0?Decimal.pow(2,this.traits[27].level):index%3==1?Decimal.pow(2,this.traits[28].level):Decimal.pow(2,this.traits[29].level));
                 },
                 calcSpeedMult(index){
-                    return this.breakCount.gte(600)?this.breakCount.div(100).add(1):1
+                    return this.breakCount.gte(600)?this.breakCount.div(100).add(1):N(1)
                     .mul(index/3%3<1?Decimal.pow(2,this.traits[30].level):index/3%3<2?Decimal.pow(2,this.traits[31].level):Decimal.pow(2,this.traits[32].level));
                 
                 },
