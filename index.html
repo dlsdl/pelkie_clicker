@@ -533,7 +533,7 @@
                 <button @click="currentArea = 2" :disabled="currentArea==2" v-if="this.hypercendU[2].level.gte(1)">
                     传送
                 </button>
-                <span v-else>在觉醒升级中解锁（需要1e12觉醒点）</span>
+                <span v-else>（需要觉醒升级3，1e12觉醒点）</span>
             </div>
             <div class="upgrade-item">
                 超越（需要1e24焦糖）（敬请期待）
@@ -544,8 +544,8 @@
 
             </div>
             <div class="upgrade-item">
-                太空 {{currentArea==3?"（当前区域）":""}}
-                <button @click="currentArea = 3" :disabled="currentArea==3">
+                太空(需要觉醒升级5) {{currentArea==3?"（当前区域）":""}}
+                <button @click="currentArea = 3" :disabled="currentArea==3" v-if="this.hypercendU[5].level.gte(1)">
                     传送
                 </button>
             </div>
