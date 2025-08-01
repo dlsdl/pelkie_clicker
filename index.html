@@ -7,6 +7,54 @@
     <script type="text/javascript" src="pako.js"></script>
     <script type="text/javascript" src="break_infinity.js"></script>
     <style>
+.space-reset-section {
+    background: rgba(0,0,0,0.3);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+.space-reset-button {
+    background: #4a6cf7;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+.space-reset-button:hover {
+    background: #3a5ce7;
+}
+.reset-locked {
+    color: #ff6b6b;
+}
+.reset-ready {
+    color: #4ecdc4;
+}
+.space-upgrades-tree {
+    margin-top: 20px;
+}
+.upgrade-node {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.2);
+}
+.upgrade-node.unlocked {
+    background: rgba(78,205,196,0.2);
+}
+.children-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-left: 20px;
+    padding-left: 10px;
+    border-left: 2px dashed #4ecdc4;
+}
+.upgrade-info {
+    min-width: 200px;
+}
+
         body {
             text-align: center;
             font-family: MonospaceTypewriter, monospace;
@@ -415,28 +463,28 @@
                      class="upgrade">
                     <div>
                         升级{{ upgrade.buildingId }}-{{ upgrade.id }}
-                        <span v-if="upgrade.buildingId==1 & upgrade.id<4">点击和建筑 1 生产的佩干×2&nbsp;&nbsp;</span>
-                        <span v-if="upgrade.buildingId==1 & upgrade.id==4">每个建筑 2~42 使点击和建筑 1 生产的佩干 +1&nbsp;&nbsp;</span>
-                        <span v-if="upgrade.buildingId==1 & upgrade.id>4">升级 1-4 的效果 ×20&nbsp;&nbsp;</span>
-                        <span v-if="upgrade.buildingId<100 & upgrade.buildingId>1 & upgrade.id<=20">建筑 {{upgrade.buildingId}} 的产量 ×2&nbsp;&nbsp;</span>
-                        <span v-if="upgrade.buildingId<100 & upgrade.buildingId>1 & upgrade.id>20">每拥有一个建筑 {{upgrade.buildingId}} 它的产量就 ×{{Math.pow(2,upgrade.id/50-0.4).toFixed(6)}} (即每 100 个建筑 ×{{Math.pow(4,upgrade.id-20)}})</span>   
+                        <span v-if="upgrade.buildingId==1 & upgrade.id<4">点击和建筑 1 生产的佩干×2 </span>
+                        <span v-if="upgrade.buildingId==1 & upgrade.id==4">每个建筑 2~42 使点击和建筑 1 生产的佩干 +1 </span>
+                        <span v-if="upgrade.buildingId==1 & upgrade.id>4 & upgrade.id<=20">升级 1-4 的效果 ×20 </span>
+                        <span v-if="upgrade.buildingId<100 & upgrade.buildingId>1 & upgrade.id<=20">建筑 {{upgrade.buildingId}} 的产量 ×2 </span>
+                        <span v-if="upgrade.buildingId<100 & upgrade.id>20">建筑 {{upgrade.buildingId}} 的产量 ×{{format(Decimal.pow(buildings[upgrade.buildingId-1].baseCost,0.1).mul(upgrade.buildingId==1?1:1e6))}}，从 {{(upgrade.id-20)*(upgrade.id-20)*2000}} 个建筑 {{upgrade.buildingId}} 开始，每个建筑 {{upgrade.buildingId}} 使它的产量 ×{{Math.pow(2,0.02).toFixed(6)}} </span>   
                         <span v-if="upgrade.buildingId==101">点击获得的佩干 +1% <del>每秒生产的佩干</del></span>
-                        <span v-if="upgrade.buildingId==102">释放牛奶力量(叠乘)，佩干产量 ×(1+牛奶*{{milkUpgradeBase[upgrade.id-1]*0.001.toFixed(3)}})&nbsp;&nbsp;</span>
+                        <span v-if="upgrade.buildingId==102">释放牛奶力量(叠乘)，佩干产量 ×(1+牛奶*{{milkUpgradeBase[upgrade.id-1]*0.001.toFixed(3)}})</span>
                         <span v-if="upgrade.buildingId==103">建筑 2 的产量 ×2, 建筑 {{upgrade.id+2}} 的产量 +1% 每拥有 {{upgrade.id}} 个建筑 2 </span>
-                        <span v-if="upgrade.buildingId==104 & upgrade.id<6">每个累计的现实碎片使佩干产量 +{{Math.max(5,upgrade.id*25-25)}}%</span>
+                        <span v-if="upgrade.buildingId==104 & upgrade.id<6">每个累计的飞升点使佩干产量 +{{Math.max(5,upgrade.id*25-25)}}%</span>
                         <span v-if="upgrade.buildingId==104 & upgrade.id>=6">佩干产量乘数 +{{Math.pow(10,upgrade.id-6)}}%</span>
                         <span v-if="upgrade.buildingId==105">佩干产量乘数 +{{Math.floor((upgrade.id-1)/10)+1}}%</span>
                         <span v-if="upgrade.buildingId==106">佩干产量乘数 +10% (需要每个建筑数量{{upgrade.required}})</span>
                         <span v-if="upgrade.buildingId==107 & upgrade.id==1">金佩勒出现频率翻倍，在屏幕上的持续时间翻倍</span>
                         <span v-if="upgrade.buildingId==107 & upgrade.id==2"><del>金佩勒出现频率翻倍，在屏幕上的持续时间翻倍</del>(被佩勒删除)</span>
                         <span v-if="upgrade.buildingId==107 & upgrade.id==3"><del>金佩勒效果的持续时间翻倍</del>(被佩勒删除)</span>
-                        <span v-if="upgrade.buildingId==108">每个建筑 {{upgrade.id+1}} 增加 5% 建筑 {{upgrade.id+2}} 的产量，每个建筑 {{upgrade.id+2}} 增加 0.1% 建筑 {{(upgrade.id)%40+3}} 的产量</span>
-                        <span v-if="upgrade.buildingId==109">每个建筑 {{upgrade.id}} 增加 5% 建筑 {{upgrade.id+2}} 的产量，每个建筑 {{upgrade.id+2}} 增加 0.1% 建筑 {{(upgrade.id+1)%40+3}} 的产量</span>
+                        <span v-if="upgrade.buildingId==108">每个建筑 {{upgrade.id+1}} 增加 1% 建筑 {{upgrade.id+2}} 的产量，每个建筑 {{upgrade.id+2}} 增加 0.1% 建筑 {{(upgrade.id)%40+3}} 的产量</span>
+                        <span v-if="upgrade.buildingId==109">每个建筑 {{upgrade.id}} 增加 1% 建筑 {{upgrade.id+2}} 的产量，每个建筑 {{upgrade.id+2}} 增加 0.1% 建筑 {{(upgrade.id+1)%40+3}} 的产量</span>
                         <span v-if="upgrade.buildingId==110">释放糖块力量(叠乘)，佩干产量 ×(1+糖块*{{milkUpgradeBase[upgrade.id-1]*0.001.toFixed(3)}})</span>
                     </div>
                     <button @click="buyUpgrade(upgrade.id, upgrade.buildingId)"
                             :disabled="!canBuyUpgrade(upgrade)">
-                        {{ format(upgrade.cost.mul(upgradeCostMult).mul(upgrade.buildingId==102?ascendU[18].level.mul(-0.1).add(1):1)) }} 佩干
+                        {{ format(upgrade.cost.mul(upgradeCostMult)) }} 佩干
                     </button>
                 </div>
             </div>
@@ -462,7 +510,7 @@
                         <span v-if="achievement.buildingId==101">累计获得 {{format(achievement.required)}} 个佩干</span>
                         <span v-if="achievement.buildingId==102">每秒生产 {{format(achievement.required)}} 个佩干</span>
                         <span v-if="achievement.buildingId==103">点击获得 {{format(achievement.required)}} 个佩干</span>
-                        <span v-if="achievement.buildingId==104">累计获得 {{format(achievement.required)}} 个现实碎片</span>
+                        <span v-if="achievement.buildingId==104">累计获得 {{format(achievement.required)}} 个飞升点</span>
                         <span v-if="achievement.buildingId==105">累计获得 {{format(achievement.required)}} 个轮回点</span>
                         <span v-if="achievement.buildingId==106">累计获得 {{format(achievement.required)}} 个觉醒点</span>
                     </div>
@@ -507,14 +555,14 @@
         <div v-if="currentTab === 4">
             <div class="divider">----------------------------------------------------------------</div>
             <div v-if="canAscend">
-                <p>飞升将重置佩干、建筑和升级，获取 {{ format(this.totalShards.sub(this.totalRealityShards).max(0)) }} 现实碎片 (下一个在 {{format(nextShards)}} 佩干)</p>
+                <p>飞升将重置佩干、建筑和升级，获取 {{ format(this.totalShards.sub(this.totalRealityShards).max(0)) }} 飞升点 (下一个在 {{format(nextShards)}} 佩干)</p>
                 <button @click="ascend" style="padding:5px 20px" :disabled="this.totalShards.sub(this.totalRealityShards).lte(0)">飞升!</button>
             </div>
             <div v-else>
                 <p>飞升(ascend)需要 1e12 累计佩干 ({{ format(totalLifetimePei) }}/1e12)</p>
             </div>
             <div v-if="this.ascensionCount.gte(1)" class="shop">
-                <h4>飞升升级 (你有 {{ format(realityShards) }}/{{format(totalRealityShards)}} 现实碎片)</h4>
+                <h4>飞升升级 (你有 {{ format(realityShards) }}/{{format(totalRealityShards)}} 飞升点)</h4>
                 <div class="bulk-selector">
                     <button @click="buyAllAscendU" v-show="ascensionCount.gte(1)">一键购买</button>
                     <button @click="refundAscendU">回退</button>
@@ -524,7 +572,7 @@
                     等级 {{ formatInt(upgrade.level) }}/{{ formatInt(upgrade.maxLevel) }}
                     <button @click="buyAscendU(upgrade.id-1)"
                             :disabled="realityShards.lt(upgrade.cost) || upgrade.level.gte(upgrade.maxLevel)">
-                        {{ format(upgrade.cost) }} RS
+                        {{ format(upgrade.cost) }} 飞升点
                     </button>
                     <button v-show="ascendU[8].level.gte(1) & upgrade.id==9" @click="switchGolden">
                         金佩勒：{{enableGolden?"启用":"禁用"}}
@@ -543,11 +591,11 @@
         <div v-if="currentTab === 5">
             <div class="divider">----------------------------------------------------------------</div>
             <div v-if="canTranscend">
-                <p>轮回将重置佩干、建筑、升级、现实碎片和飞升升级，获取 {{ format(this.totalTP.sub(this.totalTranscendPoints).max(0)) }} 轮回点(下一个在 {{format(nextTP)}} 现实碎片)</p>
+                <p>轮回将重置佩干、建筑、升级、飞升点和飞升升级，获取 {{ format(this.totalTP.sub(this.totalTranscendPoints).max(0)) }} 轮回点(下一个在 {{format(nextTP)}} 飞升点)</p>
                 <button @click="transcend" style="padding:5px 20px" :disabled="this.totalTP.sub(this.totalTranscendPoints).lte(0)">轮回!</button>
             </div>
             <div v-else>
-                <p>轮回(transcend)需要 1e12 累计现实碎片 ({{ format(totalRealityShards) }}/1e12)</p>
+                <p>轮回(transcend)需要 1e12 累计飞升点 ({{ format(totalRealityShards) }}/1e12)</p>
             </div>
             <div v-if="this.transcensionCount.gte(1)" class="shop">
                 <div>你的总计轮回点数使佩干产量乘以{{format(transcendBonus)}}</div>
@@ -583,7 +631,7 @@
         <div v-if="currentTab === 6">
             <div class="divider">----------------------------------------------------------------</div>
             <div v-if=canBreak>
-                <p>破碎将重置佩干、建筑、升级、现实碎片、飞升升级、轮回点、轮回神器和升级，增加1次破碎次数</p>
+                <p>破碎将重置佩干、建筑、升级、飞升点、飞升升级、轮回点、轮回神器和升级，增加1次破碎次数</p>
                 <button @click="doBreak" style="padding:5px 20px">破碎!</button>
             </div>
             <div v-else>
@@ -622,6 +670,9 @@
                     <button @click="buyHypercendU(upgrade.id-1)"
                             :disabled="hypercendPoints.lt(upgrade.cost) | upgrade.level.gte(upgrade.maxLevel)">
                         {{ format(upgrade.cost) }} 觉醒点
+                    </button>
+                    <button @click="buyMaxHypercendU(upgrade.id-1)">
+                        购买最大
                     </button>
                 </div>
             </div>
@@ -676,8 +727,8 @@
             <div>金佩勒点击数: {{goldenPeiClick}}</div>
 
             <div>飞升次数: {{format(ascensionCount)}}</div>
-            <div>当前现实碎片: {{format(realityShards)}}</div>
-            <div>累计现实碎片: {{format(totalRealityShards)}}</div>
+            <div>当前飞升点: {{format(realityShards)}}</div>
+            <div>累计飞升点: {{format(totalRealityShards)}}</div>
 
             <div>轮回次数: {{format(transcensionCount)}}</div>
             <div>当前轮回点: {{format(transcendPoints)}}</div>
@@ -767,7 +818,7 @@
             <div>在中生代山谷中点击大佩干将获得化石饼干</div>
             <div>佩干生命每500级产量乘以1e20</div>
             <div>总计化石饼干数量：{{format(totalFosskie)}}</div>
-            <div>它们将糖块升级效果乘以{{format(this.totalFosskie.mul(0.0001).add(1).pow(0.25))}}</div>
+            <div>它们将糖块升级效果乘以{{format(this.totalFosskie.add(1).pow(0.25))}}</div>
             <div class="bulk-selector">
                 购买数量:
                 <select v-model="bulkLifeAmount">
@@ -778,8 +829,7 @@
                 </select>
             </div>
             <div v-for="(p, index) in peiLives" :key="index" class="pei-life">
-                佩干生命{{ p.id }} - 类型：{{index%3==0?"草食":index%3==1?"肉食":"杂食"}}，{{index/3%3<1?"水生":index/3%3<2?"陆生":"两栖"}}，{{index/9%3<1?"小型":index/9%3<2?"中型":"大型"}}
-                进度：{{p.progress.toFixed(1)}}/{{p.duration.toFixed(1)}}s<br />
+                佩干生命{{ p.id }} - {{index%3==0?"草食":index%3==1?"肉食":"杂食"}}，{{index/3%3<1?"水生":index/3%3<2?"陆生":"两栖"}}，{{index/9%3<1?"小型":index/9%3<2?"中型":"大型"}} - {{p.progress.toFixed(1)}}/{{p.duration.toFixed(1)}}s<br />
                 数量：{{p.level}} 基础产量：{{format(p.baseProd)}} 产量：{{format(calcLifeProd(index))}}<br />
                 产量×{{format(calcLifeMult(index))}} 速度×{{format(calcSpeedMult(index))}} 价格÷{{format(calcCostMult(index))}}<br />
             <button @click="buyPeiLife(index, bulkLifeAmount)" :disabled="fosskie.lt(calcLifeBulkCost(index, bulkLifeAmount))">
@@ -863,9 +913,63 @@
             太空重置
         </div>
 
-        <div v-if="currentTab === 19" class="space">
-            <div class="divider">----------------------------------------------------------------</div>
-            太空升级
+        <div v-if="currentTab === 18" class="space">
+            <div class="space-reset-section">
+                    <h3>太空重置</h3>
+                    <p v-if="!canSpaceReset()" class="reset-locked">需要 hypercendU[5].level > 1 才能解锁</p>
+                <div v-else class="reset-ready">
+                    <p>当前可获得坚果: {{ format(peiCount.div(1e12)) }}</p>
+                    <p>已重置次数: {{ format(spaceResetCount) }}</p>
+                    <button @click="spaceReset" class="space-reset-button">执行太空重置</button>
+                </div>
+            </div>
+            <div class="space-upgrades-tree">
+                <h2>太空升级树 ({{ format(nutCount) }} 坚果)</h2>
+                <div class="upgrade-node" :class="{unlocked: getSpaceUpgrade(1).level.gte(1)}">
+                        <div class="upgrade-info">
+                            <h3>升级 1</h3>
+                            <p>等级: {{ getSpaceUpgrade(1).level }}</p>
+                            <p>成本: {{ format(getSpaceUpgrade(1).cost) }} 坚果</p>
+                            <button @click="buySpaceUpgrade(1)">购买</button>
+                        </div>
+                        <div class="children-container">
+                            <div class="upgrade-node" :class="{unlocked: getSpaceUpgrade(2).level.gte(1) || getSpaceUpgrade(1).level.gte(1)}">
+                                <div class="upgrade-info">
+                                    <h3>升级 2</h3>
+                                    <p>等级: {{ getSpaceUpgrade(2).level }}</p>
+                                    <p>成本: {{ format(getSpaceUpgrade(2).cost) }} 坚果</p>
+                                    <button @click="buySpaceUpgrade(2)" :disabled="getSpaceUpgrade(1).level.lt(1)">购买</button>
+                                </div>
+                            </div>
+                            <div class="upgrade-node" :class="{unlocked: getSpaceUpgrade(3).level.gte(1) || getSpaceUpgrade(1).level.gte(1)}">
+                                <div class="upgrade-info">
+                                    <h3>升级 3</h3>
+                                    <p>等级: {{ getSpaceUpgrade(3).level }}</p>
+                                    <p>成本: {{ format(getSpaceUpgrade(3).cost) }} 坚果</p>
+                                    <button @click="buySpaceUpgrade(3)" :disabled="getSpaceUpgrade(1).level.lt(1)">购买</button>
+                                </div>
+                                <div class="children-container">
+                                    <div v-for="childId in [5,6,7,8,9]" :key="childId" class="upgrade-node" :class="{unlocked: getSpaceUpgrade(childId).level.gte(1) || getSpaceUpgrade(3).level.gte(1)}">
+                                        <div class="upgrade-info">
+                                            <h3>升级 {{ childId }}</h3>
+                                            <p>等级: {{ getSpaceUpgrade(childId).level }}</p>
+                                            <p>成本: {{ format(getSpaceUpgrade(childId).cost) }} 坚果</p>
+                                            <button @click="buySpaceUpgrade(childId)" :disabled="getSpaceUpgrade(3).level.lt(1)">购买</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="upgrade-node" :class="{unlocked: getSpaceUpgrade(4).level.gte(1) || getSpaceUpgrade(1).level.gte(1)}">
+                                <div class="upgrade-info">
+                                    <h3>升级 4</h3>
+                                    <p>等级: {{ getSpaceUpgrade(4).level }}</p>
+                                    <p>成本: {{ format(getSpaceUpgrade(4).cost) }} 坚果</p>
+                                    <button @click="buySpaceUpgrade(4)" :disabled="getSpaceUpgrade(1).level.lt(1)">购买</button>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+            </div>0">
         </div>
 
     </div>
@@ -971,8 +1075,8 @@
             for (let i = 1; i <= 1050; i++) {
                 let index = (i-1) % 25 + 1;
                 let bIndex = Math.floor((i-1) / 25);
-                let costMult = [10,50,500,50000,5e6,5e9,5e12,5e15,5e18,5e21,5e24,5e27,5e30,5e33,5e36,5e39,5e42,5e48,5e54,5e60,5e120,5e240,'5e600','5e1800','5e6000'];
-                let requirement = [1,5,25,50,100,150,200,250,300,350,400,450,500,550,600,650,700,800,900,1000,2000,4000,10000,30000,100000];
+                let costMult = [10,50,500,50000,5e6,5e9,5e12,5e15,5e18,5e21,5e24,5e27,5e30,5e33,5e36,5e39,5e42,5e48,5e54,5e60,5e120,'5e360','5e720','5e1200','5e1800'];
+                let requirement = [1,5,25,50,100,150,200,250,300,350,400,450,500,550,600,650,700,800,900,1000,2000,6000,12000,20000,30000];
                 upgrades.push({
                     id: index,
                     buildingId: bIndex+1,
@@ -995,7 +1099,7 @@
                     id: i,
                     buildingId: 102,
                     required: i==1?N(10):N(25).mul(i-1),
-                    cost: N(1000).pow(i).mul(9000).mul(i>2?10:1).mul(i>4?10:1),
+                    cost: N(1000).pow(i).mul(9000),
                 })
             }
             //升级1111~1150:建筑2协同
@@ -1032,35 +1136,19 @@
                 upgrades.push({
                     id: i,
                     buildingId: 106,
-                    required: i<=13?i*50+50:i<=22?i*1000-12000:i<=31?i*10000-210000:i*100000-3000000,
-                    cost: i<=13?N(1000).pow(i).mul(1e87):i<=22?N(1e60).pow(i-12):i<=31?N("1e600").pow(i-21):N("1e6000").pow(i-30),
+                    required: i<=16?i*50+50:i*1000-16000,
+                    cost: i<=16?N(1000).pow(i).mul(1e87):N(1e60).pow(i-16).mul(1e87),
                 })
             }
             //升级1291~1299:金佩勒升级
-            upgrades.push({
-                id: 1,
-                buildingId: 107,
-                required: 7,
-                cost: N(777777777),
-            })//金佩乐出现频率加倍且持续时间加倍. other 2 upgrades are deleted by pelle.
-            upgrades.push({
-                id: 2,
-                buildingId: 107,
-                required: 27,
-                cost: N(77777777777),
-            })
-            upgrades.push({
-                id: 3,
-                buildingId: 107,
-                required: 77,
-                cost: N(77777777777777),
-            })
-            for (let i = 1; i <= 7; i++) {
+            for (let i = 1; i <= 10; i++) {
+                let requires = [7,27,77,9e15,9e15,9e15,9e15,9e15,9e15,9e15,]
+                let costs = [777777777, 77777777777, 77777777777777, "7e1777", "7e2777", "7e3777", "7e4777", "7e5777", "7e6777", "7e7777"];
                 upgrades.push({
-                    id: i+3,
+                    id: i,
                     buildingId: 107,
-                    required: 9e15,
-                    cost: N("e9e15"),
+                    required: N(requires[i-1]),
+                    cost: N(costs[i-1]),
                 })
             }
             //升级1300~1339:飞升团结I升级,需要15个建筑
@@ -1087,7 +1175,7 @@
                     id: i,
                     buildingId: 110,
                     required: N(Math.floor((i-1)/10)+1),
-                    cost: N(1e10).pow(i).mul(8e98),
+                    cost: N(1e10).pow(i).mul(8e90),
                 })
             }
             //其他升级……
@@ -1172,16 +1260,16 @@
             ascendU.push({ id: 7, cost: N(100), maxLevel: N(5) });//背包 n*10^2n
             ascendU.push({ id: 8, cost: N(777), maxLevel: N(10) });//金佩干技能时间提升10% 777*10^2n
             ascendU.push({ id: 9, cost: N(999), maxLevel: N(6) });//禁用金佩干，pps+40+10等级% 999*10^3n
-            ascendU.push({ id: 10, cost: N(9000), maxLevel: N(5) });//牛奶效果加成
+            ascendU.push({ id: 10, cost: N(9000), maxLevel: N(10) });//牛奶效果加成
             ascendU.push({ id: 11, cost: N(99999), maxLevel: N(10) });//建筑、升级价格降低2% 99999*10^5n
             ascendU.push({ id: 12, cost: N(222222), maxLevel: N(2) });//解锁协同升级，当拥有15和75个建筑时出现
             ascendU.push({ id: 13, cost: N(399999), maxLevel: N(1) });//升级价格除以5
             ascendU.push({ id: 14, cost: N(1.5e7), maxLevel: N(1) });//1-6到1-20的乘数变为1000
             ascendU.push({ id: 15, cost: N(1e8), maxLevel: N(10) });//糖块生长10%更快
-            ascendU.push({ id: 16, cost: N(2e8), maxLevel: N(4) });//释放糖块力量
+            ascendU.push({ id: 16, cost: N(2e8), maxLevel: N(10) });//释放糖块力量
             ascendU.push({ id: 17, cost: N(1e9), maxLevel: N(6) });//禁用点击，pps+40+10等级% 10^(2n+9)
-            ascendU.push({ id: 18, cost: N(2e9), maxLevel: N(1) });//建筑2升级变为x3.333
-            ascendU.push({ id: 19, cost: N(9e9), maxLevel: N(5) });//牛奶价格降低10%
+            ascendU.push({ id: 18, cost: N(2e9), maxLevel: N(1) });//建筑2升级变为x3.2
+            ascendU.push({ id: 19, cost: N(9e9), maxLevel: N(5) });//每级每个牛奶升级增加建筑29%
             ascendU.push({ id: 20, cost: N(3.2e10), maxLevel: N(40) });//解锁不受束缚的升级
             return ascendU;
         })();
@@ -1192,8 +1280,8 @@
             transcendU.push({ id: 14, cost: N(100), maxLevel: N(1) });//禁用效果常时生效
             transcendU.push({ id: 15, cost: N(1000), maxLevel: N(1) });//金佩勒效果乘100
             transcendU.push({ id: 16, cost: N(10000), maxLevel: N(1) });//点击增加
-            transcendU.push({ id: 17, cost: N(1e6), maxLevel: N(10) });//糖块生长增加20%
-            transcendU.push({ id: 18, cost: N(1e6), maxLevel: N(10) });//金佩勒出现频率增加7.5%
+            transcendU.push({ id: 17, cost: N(1e6), maxLevel: N(15) });//糖块生长增加20%
+            transcendU.push({ id: 18, cost: N(1e6), maxLevel: N(15) });//金佩勒出现频率增加5%
             transcendU.push({ id: 19, cost: N(1e8), maxLevel: N(4) });//解锁更多风味佩干
             transcendU.push({ id: 20, cost: N(1e8), maxLevel: N(4) });//解锁糖块升级
             return transcendU;
@@ -1201,11 +1289,11 @@
         const HYPERCENDU = (() => {
             const hypercendU = [];
             hypercendU.push({ id: 1, cost: N(1), maxLevel: N(100) });//解锁觉醒充能，每级每秒获得1充能
-            hypercendU.push({ id: 2, cost: N(1e6), maxLevel: N(100) });//解锁觉醒点倍增器，充能率+10%每级
-            hypercendU.push({ id: 3, cost: N(1e12), maxLevel: N(100) });//解锁更多升级，充能率+10%每级
-            hypercendU.push({ id: 4, cost: N(1e24), maxLevel: N(100) });//解锁制造厂，充能率+10%每级
-            hypercendU.push({ id: 5, cost: N(1e36), maxLevel: N(100) });//解锁更多风味，充能率+10%每级
-            hypercendU.push({ id: 6, cost: N(1e60), maxLevel: N(100) });//解锁更多风味，充能率+10%每级
+            hypercendU.push({ id: 2, cost: N(1e6), maxLevel: N(100) });//解锁更多风味，充能率+49%每级
+            hypercendU.push({ id: 3, cost: N(1e12), maxLevel: N(100) });//解锁更多风味，充能率+19%每级
+            hypercendU.push({ id: 4, cost: N(1e24), maxLevel: N(100) });//解锁更多风味，充能率+9%每级
+            hypercendU.push({ id: 5, cost: N(1e36), maxLevel: N(100) });//解锁更多风味，充能率+4%每级
+            hypercendU.push({ id: 6, cost: N(1e60), maxLevel: N(100) });//解锁更多风味，充能率+1%每级
             return hypercendU;
         })();
         const HYPERCHARGEU = (() => {
@@ -1216,8 +1304,8 @@
         })();
         const AUTOMATION = (() => {
             const automation = [];
-            const cost=[1e5,1e10,2.5e25,7.7e77,1e20,1e40,1e80,1e160,"1e320","1e1000"]
-            for(let i=0;i<10;i++){
+            const cost=[1e5,1e10,2.5e25,7.7e77,1e20,1e40,1e80,1e160,"1e320","1e640","1e10000","1e14142","1e20000","1e28284"]
+            for(let i=0;i<14;i++){
                 automation.push({id:i+1, cost: N(cost[i]), unlocked:false, activate: false});//自动购买
             }
             return automation;
@@ -1291,7 +1379,7 @@
                 auDescription: [
                     "神啊！（解锁飞升系统和升级）",
                     "一个残余物（佩干产量乘数+10%）",
-                    "佩勒的5个裂隙（每级解锁10种风味佩干，到达1e10佩干后在升级中显示）",
+                    "佩勒的5个裂隙（每级解锁10种风味佩干升级，获得1e10佩干后出现）",
                     "6小时后更新（离线生产增加6小时）",
                     "飞升后保留10个前[该升级等级]种建筑",
                     "每级使金佩勒出现频率提升10%",
@@ -1300,15 +1388,15 @@
                     "可以选择禁用金佩勒，获得等级*10+40%佩干产量提升",
                     "释放牛奶力量(叠乘)，佩干产量×(1+0.001×等级×牛奶)",
                     "使建筑和升级的价格降低等级×2%",
-                    "每级解锁40个协同升级，需要15或75个对应建筑",
+                    "每级解锁40个协同升级，分别需要15和75个建筑3~42",
                     "升级的价格除以5",
-                    "升级1-4的效果乘以100",
-                    "每级使糖块生长的速度快10%",
+                    "升级1-4的效果×25，点击产量×40",
+                    "每级使糖块生长的速度增加20%",
                     "释放糖块力量(叠乘)，佩干产量×(1+0.001×(等级+1)×糖块)",
                     "可以选择禁用点击，获得等级*10+40%佩干产量提升",
-                    "建筑2的×2升级效果变为×3.333",
-                    "使牛奶价格降低等级×10%",
-                    "第n级该升级使建筑n+2的×2升级效果乘以1.06^(41-n)",
+                    "建筑2的×2升级效果变为×3.2",
+                    "每级每个牛奶使建筑2产量增加0.2%",
+                    "第n级该升级使建筑n+2的×2升级效果乘以1.05^(41-n)",
                 ],
                 
                 transcensionCount: N(0),
@@ -1320,8 +1408,8 @@
                 })),
                 
                 tuDescription:[
-                    "每级提升20%所有佩干获取（叠乘）",
-                    "每级提升20%点击佩干获取（叠加）",
+                    "每级提升10%所有佩干获取（叠乘）",
+                    "每级提升10%点击佩干获取（叠乘）",
                     "每级使建筑的价格减少1%（每级乘以0.99）",
                     "每级使升级的价格减少1%（每级乘以0.99）",
                     "每级使禁用金佩勒和点击的产量加成+10%",
@@ -1336,8 +1424,8 @@
                     "禁用金佩勒和点击的乘数变为常时生效",
                     "金佩勒获得饼干和随机建筑的效果乘以10",
                     "升级1-5至1-20的乘数乘以5",
-                    "糖块的生长速度增加等级*20%，最高200%",
-                    "金佩勒的出现频率增加等级*7.5%，最高75%",
+                    "糖块的生长速度增加等级*20%，最高300%",
+                    "金佩勒的出现频率增加等级*5%，最高75%",
                     "每级解锁10个新的风味饼干升级(在1e100~1e180佩干)",
                     "每级解锁10个释放糖块力量的普通升级",
                 ],
@@ -1345,22 +1433,22 @@
                 breakCount: N(0),
 
                 bmDescription:[
-                    "每次破碎使佩干产量×4，移除糖块数量上限，永久解锁自动化",
+                    "每次破碎使佩干产量×4，永久解锁自动化，每次飞升/轮回/破碎后保留1000建筑1和建筑2",
                     "糖块获取数量乘以破碎次数，最高乘以10(爆炸)",
                     "每个成就提供的牛奶翻倍(太爆炸了)",
                     "每破碎使建筑×2升级的基数加0.4，从4破碎开始8破碎结束",
                     "每破碎使轮回神器1和2的基数+2.5%，从5破碎开始8破碎结束",
                     "每次破碎对佩干产量的乘数翻倍，变为8",
                     "每次破碎对佩干产量的乘数翻倍，变为16",
-                    "解锁觉醒重置，需要1e308佩干",
-                    "佩干产量乘以(累计觉醒点+4)",
+                    "解锁觉醒重置，需要1e308佩干，飞升升级18的基数变为5",
+                    "佩干产量乘以(累计觉醒点+4)，飞升升级20的基数变为1.1",
                     "每次破碎使觉醒点的获取数量+25%，从17破碎开始",
                     "每次破碎使觉醒充能翻倍，从25破碎开始44破碎结束",
-                    "每次破碎使觉醒充能的奖励乘以1.25，从30破碎开始",
+                    "每次破碎使觉醒充能的奖励乘以1.25，从30破碎开始120破碎结束",
                     "每次破碎增加化石饼干产量1%",
                     "每次破碎增加佩干生命速度1%",
-                    "每次破碎增加糖块生长速度0.1%",
-                    "每100次破碎使糖块获取数量+1",
+                    "每次破碎增加糖块出现频率0.1%",
+                    "每1000次破碎使糖块获取数量+1",
                 ],
 
                 hypercendCount: N(0),
@@ -1406,7 +1494,7 @@
                     "使神器14的效果再生效一次，即变为乘以它的1次方",//1e16
                     "根据盐块(月光石)的数量，提升神器1/2/3/4/5/8/9/11/12的效果",
                     "基于觉醒点数提升神器16的效果",
-                    "基于甜度数量提升神器17的效果",
+                    "基于  数量提升神器17的效果",
                     "神器16/17/18的效果^1.02",
                     "基于平衡数量提升神器16/17/18的效果",
                     "基于挑战完成数量提升神器16/17/18的效果",
@@ -1418,18 +1506,40 @@
                     ...a,
                 })),
                 autoDescription:[
-                    "每秒自动购买建筑",
-                    "每秒自动购买升级",
-                    "每秒自动获得10×点击佩干收益",
+                    "自动购买建筑",
+                    "自动购买升级",
+                    "每0.1秒获得一次点击佩干收益",
                     "金佩勒出现时自动点击金佩勒",
-                    "每秒自动购买飞升升级",
-                    "每秒自动获得现实碎片",
-                    "每秒自动购买轮回升级",
-                    "每秒自动获得轮回点",
+                    "自动购买飞升升级",
+                    "自动获得飞升点",
+                    "自动购买轮回升级",
+                    "自动获得轮回点",
                     "自动进行破碎，破碎不再重置任何东西",
                     "每秒自动生产0.1%判定中的觉醒点",
-                    "自动购买佩干生命",
-                    "自动购买佩干生命的自动生产",
+                    "自动购买佩干生命，它们不消耗化石饼干",
+                    "自动购买一星性状，它们不消耗糖霜",
+                    "每0.1秒获得一次点击化石饼干收益",
+                    "自动购买二星性状，它们不消耗蜂蜜",
+                    "每秒自动获得0.1%判定中的糖霜",
+                    "每秒自动获得0.1%判定中的蜂蜜",
+                    "自动购买觉醒升级和觉醒神器",
+                    "自动进行变甜重置，变甜不再重置任何东西",
+                    "自动购买三星性状，它们不消耗焦糖",
+                    "每秒自动获得0.1%判定中的焦糖",
+                ],
+
+                nutCount: N(0),
+                spaceResetCount: N(0),
+                spaceUpgrades: [
+                    { id: 1, cost: N(10), level: N(0), children: [2,3,4] },
+                    { id: 2, cost: N(100), level: N(0), children: [] },
+                    { id: 3, cost: N(100), level: N(0), children: [5,6,7,8,9] },
+                    { id: 4, cost: N(100), level: N(0), children: [] },
+                    { id: 5, cost: N(1000), level: N(0), children: [] },
+                    { id: 6, cost: N(1000), level: N(0), children: [] },
+                    { id: 7, cost: N(1000), level: N(0), children: [] },
+                    { id: 8, cost: N(1000), level: N(0), children: [] },
+                    { id: 9, cost: N(1000), level: N(0), children: [] }
                 ],
 
                 unlockedMesval: false,
@@ -1543,7 +1653,7 @@
                 clickGoldenPei() {
                     if (!this.goldenPeiVisible || !this.enableGolden) return;
                     this.goldenPeiClick++;
-                    const durationMult = this.hypercendU[3].level.gte(1)?1e10:this.ascendU[5].level.mul(0.1).add(1).toNumber();
+                    const durationMult = this.ascendU[5].level.mul(0.1).add(1).toNumber();
                     const effectMult = this.transcendU[5].level.mul(0.1).add(1).toNumber();
                     const effectmult2 = this.transcendU[14].level.gte(1)?10:1;
                     const effects = [
@@ -1695,13 +1805,25 @@
                     let building = this.buildings[index];
                     let r = 1.148698354997035;
                     let maxAmount = this.peiCount.div(this.buildingCostMult).div(building.cost).mul(r-1).add(1).log(r);
-                    let a=this.bulkAmount;
-                    this.bulkAmount = Decimal.max(Decimal.floor(maxAmount),0).toString();
-                    this.buyBuilding(index);
-                    this.bulkAmount=a;
+                    let a = Decimal.max(Decimal.floor(maxAmount),0);
+                    let totalCost = Decimal.pow(r,a).sub(1).mul(building.cost).div(r-1).mul(this.buildingCostMult);
+                    if (this.peiCount.lt(totalCost)) return;
+                    this.peiCount = this.peiCount.sub(totalCost);
+                    building.quantity = building.quantity.add(a);
+                    building.cost = building.baseCost.mul(Decimal.pow(r, building.quantity));
+                    this.checkAchievements(index + 1);
                 },
                 buyAllBuilding() {
-                    for(let i=41;i>=0;i--) this.buyMaxBuilding(i);
+                    if (this.hypercendU[1].level.lt(1)) {for(let i=41;i>=0;i--) this.buyMaxBuilding(i);}
+                    else {
+                        for(let i=41;i>=0;i--) {
+                            let building = this.buildings[i];
+                            if (this.peiCount.lt(building.cost.mul(this.buildingCostMult))) return;
+                            let r = 1.148698354997035;
+                            building.quantity = N(Math.floor(this.peiCount.div(this.buildingCostMult).div(building.baseCost).max(1).log(r)+1));
+                            building.cost = building.baseCost.mul(Decimal.pow(r, building.quantity));
+                        }
+                    }
                 },
                 calcBulkCost(index) {
                     let building = this.buildings[index];
@@ -1717,7 +1839,7 @@
                 },
                 buyUpgrade(i, b) {
                     let upgrade = this.upgrades.filter(u => u.id == i && u.buildingId == b)
-                    let c = upgrade[0].cost.mul(this.upgradeCostMult).mul(upgrade[0].buildingId==102?this.ascendU[18].level.mul(-0.1).add(1):1);
+                    let c = upgrade[0].cost.mul(this.upgradeCostMult);
                     if (this.peiCount.gte(c)) {
                         this.peiCount = this.peiCount.sub(c);
                         this.upgrades.filter(u => u.id == i && u.buildingId == b).map(u => u.unlocked = true);
@@ -1725,7 +1847,7 @@
                 },
                 // 判断是否可以购买升级
                 canBuyUpgrade(upgrade) {
-                    let c = upgrade.cost.mul(this.upgradeCostMult).mul(upgrade.buildingId==102?this.ascendU[18].level.mul(-0.1).add(1):1);
+                    let c = upgrade.cost.mul(this.upgradeCostMult);
                     return this.peiCount.gte(c) & !upgrade.unlocked
                 },
                 showUpgrade(u) {
@@ -1737,7 +1859,7 @@
                     || (u.buildingId == 103 && this.buildings[u.id + 1].quantity.gte(u.required)) 
                     || (u.buildingId == 104 && this.ascendU[0].level.gte(1)) 
                     || (u.buildingId == 105 && this.ascendU[2].level.add(this.transcendU[18].level).gte(u.required) && this.thisAscendPei.gte(u.cost)) 
-                    || (u.buildingId == 106 && this.buildings[41].quantity.gte(u.required) && u.id<=13)
+                    || (u.buildingId == 106 && this.buildings[41].quantity.gte(u.required) && u.id<=16)
                     || (u.buildingId == 107 && this.goldenPeiClick >= u.required)
                     || (u.buildingId == 108 && this.ascendU[11].level.gte(1) && this.buildings[u.id + 1].quantity.gte(15))
                     || (u.buildingId == 109 && this.ascendU[11].level.gte(2) && this.buildings[u.id + 1].quantity.gte(75))
@@ -1852,6 +1974,8 @@
                     if(this.ascendU[4].level.gte(2)) this.buildings[1].quantity=N(10);
                     if(this.transcendU[12].level.gte(1)) this.buildings[0].quantity=N(100);
                     if(this.transcendU[12].level.gte(1)) this.buildings[1].quantity=N(100);
+                    if(this.breakCount.gte(1)) this.buildings[0].quantity=N(1000);
+                    if(this.breakCount.gte(1)) this.buildings[1].quantity=N(1000);
                     for(let i=1; i<=this.ascendU[6].level.toNumber(); i++) this.upgrades[1070+i].unlocked=true;
                 },
                 buyAscendU(index) {
@@ -1863,8 +1987,8 @@
                         this.ascendU[index].level = this.ascendU[index].level.add(1);
                     }
                     let a0=[1,3,5,7,50,77,100,777,999,9000,99999,222222,399999,1.5e7,1e8,2e8,1e9,1.92e9,9e9,1e10]
-                    let p=[0,1334,10,0,0,0,100,0,0,0,0,2e6,0,0,0,0,0,0,0,0]
-                    let q=[1,1,1,7,100,10,100,10,100,1e12,2,1,1,1,4,4,10,1,1000,1]
+                    let p=[0,1334,10,0,0,0,100,0,0,0,0,2e6,0,0,0,2e8,0,0,0,0]
+                    let q=[1,1,1,7,100,10,100,10,100,1e9,2,1,1,1,4,1000,10,1,1000,1]
                     this.ascendU[index].cost = index==19?this.ascendU[19].level.add(3).pow(7).mul(1.5e7):N(a0[index]).add(this.ascendU[index].level.mul(p[index])).mul(Decimal.pow(q[index],this.ascendU[index].level))
                 },
                 buyAllAscendU() {
@@ -1905,6 +2029,8 @@
                     this.ascendU.forEach(u => u.level = N(0));
                     if(this.transcendU[12].level.gte(1)) this.buildings[0].quantity=N(100);
                     if(this.transcendU[12].level.gte(1)) this.buildings[1].quantity=N(100);
+                    if(this.breakCount.gte(1)) this.buildings[0].quantity=N(1000);
+                    if(this.breakCount.gte(1)) this.buildings[1].quantity=N(1000);
                     this.updateCost();
                 },
                 buyTranscendU(index) {
@@ -1913,11 +2039,14 @@
                     this.transcendPoints = this.transcendPoints.sub(upgrade.cost);
                     upgrade.level = upgrade.level.add(1);
                     let r=[1,1,1,1,1,1,1,1,1,1,1,1,10,100,1000,10000,1e5,1e5,1e6,1e6];
-                    let s=[2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,4,4,10,1e12]
+                    let s=[2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,4,4,10,1e6]
                     this.transcendU[index].cost=Decimal.pow(s[index],this.transcendU[index].level).mul(r[index]);
                 },
                 buyAllTranscendU(){
-                    for(let i=0;i<12;i++) this.transcendU[i].level=this.transcendU[i].level.max(Math.floor(this.transcendPoints.log(2)+1));
+                    for(let i=0;i<12;i++) {
+                        this.transcendU[i].level=this.transcendU[i].level.max(Math.floor(this.transcendPoints.log(2)+1));
+                        this.transcendU[i].cost=Decimal.pow(2,this.transcendU[i].level);
+                    }
                     this.transcendU.forEach(u => {
                         for(let i=0;i<u.maxLevel.toNumber();i++) this.buyTranscendU(u.id-1);
                     })
@@ -1952,8 +2081,11 @@
                     this.transcendPoints = N(1);
                     this.totalTranscendPoints = N(1);
                     this.transcendU.forEach(u => u.level=N(0));
+                    this.buildings[0].quantity=N(1000);
+                    this.buildings[1].quantity=N(1000);
                     this.updateCost();
-                    this.milk = N(this.unlockedAchievementsCount).mul(this.breakCount.gte(3)?2:1);
+                    this.milk = N(this.unlockedAchievementsCount).mul(this.breakCount.gte(2)?2:1);
+                    if(this.breakCount.lte(0)) alert('你破碎了这个佩干宇宙，因此出现了4个新的选项卡。  佩勒：这次你可能早些时候就明白了，飞升轮回直到破碎，都是你自己创造的。由你自身思绪的残余所构成的事物，暗示了这一点。但是，你从未想过那会是你，对吧？');
                 },
                 doBreak(){
                     this.breakReset();
@@ -1982,8 +2114,11 @@
                     if (this.hypercendPoints.lt(upgrade.cost) | upgrade.level.gte(upgrade.maxLevel)) return;
                     this.hypercendPoints = this.hypercendPoints.sub(upgrade.cost);
                     upgrade.level = upgrade.level.add(1);
-                    let t=[0,1e6,1e12,1e24,1e36,1e60]
+                    let t=[1,1e6,1e12,1e18,1e24,1e60]
                     this.hypercendU[index].cost=Decimal.pow(1.148698354997035,upgrade.level).mul(t[index]);
+                },
+                buyMaxHypercendU(index){
+                    for(let i=1;i<=100;i++) this.buyHypercendU(index);
                 },
                 buyHyperChargeU(index){
                     const upgrade=this.hyperChargeU[index];
@@ -1992,25 +2127,61 @@
                     upgrade.unlocked=true;
                 },
                 hyperEffect(tier){
-                    if(tier == 0) return this.hyperCharge.add(1).pow(2).mul(this.breakCount.gte(30)?Decimal.pow(1.25,this.breakCount.sub(29)):1);
-                    else if(tier == 1) return this.totalHypercendPoints.add(1);
-                    else if(tier == 2) return this.maxHypercendPoints.add(1);
-                    else if(tier == 3) return this.hypercendPoints.add(1);
-                    else if(tier == 4) return this.transcendPoints.add(1).pow(0.02);
-                    else if(tier == 5) return this.HPGain.add(1);
-                    else if(tier == 6) return this.transcendPoints.add(1).pow(0.02);
+                    if(tier == 0) return this.hyperCharge.add(1).pow(2).mul(this.breakCount.gte(30)?Decimal.pow(1.25,this.breakCount.sub(29).min(91)):1);
+                    else if(tier == 1) return this.totalHypercendPoints.add(1).pow(1.4);
+                    else if(tier == 2) return this.maxHypercendPoints.add(1).pow(1.4);
+                    else if(tier == 3) return this.hypercendPoints.add(1).pow(1.4);
+                    else if(tier == 4) return this.transcendPoints.add(1).pow(0.033);
+                    else if(tier == 5) return this.HPGain.add(1).pow(0.4);
+                    else if(tier == 6) return this.transcendPoints.add(1).pow(0.033);
                     else if(tier == 7) return this.maxHypercendPoints.add(1).pow(0.2);
-                    else if(tier == 8) return Decimal.pow(1.001,this.sugar);
-                    else if(tier == 9) return this.transcendPoints.add(1).pow(0.06);
+                    else if(tier == 8) return this.sugar.add(1).pow(0.25);
+                    else if(tier == 9) return this.transcendPoints.add(1).pow(0.1);
                     else if(tier == 10) return N(1);
-                    else if(tier == 11) return Decimal.pow(1.001,this.sugar);
-                    else if(tier == 12) return this.transcendPoints.add(1).pow(0.003);
-                    else if(tier == 13) return this.transcendPoints.add(1).pow(0.003);
-                    else if(tier == 14) return this.transcendPoints.add(1).pow(0.001);
-                    else if(tier == 15) return this.transcendPoints.add(1).pow(0.001);
-                    else if(tier == 16) return this.transcendPoints.add(1).pow(0.001);
+                    else if(tier == 11) return this.sugar.add(1).pow(0.25);
+                    else if(tier == 12) return this.transcendPoints.add(1).pow(1/1111);
+                    else if(tier == 13) return this.transcendPoints.add(1).pow(1/1111);
+                    else if(tier == 14) return this.transcendPoints.add(1).pow(1/3333);
+                    else if(tier == 15) return this.transcendPoints.add(1).pow(1/3333);
+                    else if(tier == 16) return this.transcendPoints.add(1).pow(1/3333);
                     else return N(1);
                 },
+                canSpaceReset() {
+                    return this.hypercendU[5].level.gt(1);
+                },
+                spaceReset() {
+                    if (!this.canSpaceReset()) return;
+                    
+                    // 计算获得的坚果
+                    const nutsGained = this.peiCount.div(1e12);
+                    this.nutCount = this.nutCount.add(nutsGained);
+                    
+                    // 重置佩干、建筑、升级等
+                    this.peiCount = N(0);
+                    this.thisAscendPei = N(0);
+                    this.buildings.forEach(b => { b.quantity = N(0); });
+                    this.ascendU.forEach(au => { au.level = N(0); });
+                    this.transcendU.forEach(tu => { tu.level = N(0); });
+                    this.breakCount = N(0);
+                    this.hyperCharge = N(0);
+                    this.hypercendU.forEach(hu => { hu.level = N(0); });
+                    
+                    this.spaceResetCount = this.spaceResetCount.add(1);
+                    alert('太空重置成功！获得 ' + this.format(nutsGained) + ' 坚果');
+                },
+                buySpaceUpgrade(id) {
+                    const upgrade = this.spaceUpgrades.find(u => u.id === id);
+                    if (!upgrade || this.nutCount.lt(upgrade.cost)) return;
+                    
+                    this.nutCount = this.nutCount.sub(upgrade.cost);
+                    upgrade.level = upgrade.level.add(1);
+                    upgrade.cost = upgrade.cost.mul(2); // 简单的成本增长
+                },
+                getSpaceUpgrade(id) {
+                    return this.spaceUpgrades.find(u => u.id === id);
+                },
+
+                //中生代山谷
                 calcLifeBulkCost(index, amount) {
                     const pei = this.peiLives[index];
                     const r = 1.148698354997035;
@@ -2023,6 +2194,12 @@
                     if (this.fosskie.gte(cost)) {
                         this.fosskie = this.fosskie.sub(cost);
                         this.peiLives[index].level = this.peiLives[index].level.add(amount);
+                    }
+                },
+                buyMaxPeiLife(){
+                    for(let i=0;i<27;i++) {
+                        let amount=Math.floor(this.fosskie.mul(this.calcCostMult(i)).div(this.peiLives[i].baseCost).max(1).log(1.148698354997035));
+                        this.peiLives[i].level = this.peiLives[i].level.max(amount);
                     }
                 },
                 startLifeProd(index) {        
@@ -2060,12 +2237,11 @@
                     .mul(index%3==0?Decimal.pow(2,this.traits[27].level):index%3==1?Decimal.pow(2,this.traits[28].level):Decimal.pow(2,this.traits[29].level));
                 },
                 calcSpeedMult(index){
-                    return this.breakCount.gte(600)?this.breakCount.div(100).add(1):N(1)
+                    return (this.breakCount.gte(600)?this.breakCount.div(100).add(1):N(1))
                     .mul(index/3%3<1?Decimal.pow(2,this.traits[30].level):index/3%3<2?Decimal.pow(2,this.traits[31].level):Decimal.pow(2,this.traits[32].level));
-                
                 },
                 calcCostMult(index){
-                    return index/9%3<1?Decimal.pow(2,this.traits[33].level):index/9%3<2?Decimal.pow(2,this.traits[34].level):Decimal.pow(2,this.traits[35].level);
+                    return (index/9%3<1?Decimal.pow(2,this.traits[33].level):index/9%3<2?Decimal.pow(2,this.traits[34].level):Decimal.pow(2,this.traits[35].level));
                 
                 },
                 unlockLifeAuto(index){
@@ -2091,6 +2267,20 @@
                     this.traits[index].level = this.traits[index].level.add(1);
                     this.traits[index].cost = Decimal.pow(3, this.traits[index].level).sub(1);
                 },
+                buyMaxTrait1(){
+                    for(let i=0;i<27;i++) {
+                        let amount=Math.floor(this.icing.add(1).log(3)+1);
+                        this.traits[i].level = this.traits[i].level.max(amount);
+                        this.traits[i].cost = Decimal.pow(3, this.traits[i].level).sub(1);
+                    }
+                },
+                buyMaxTrait2(){
+                    for(let i=27;i<39;i++) {
+                        let amount=Math.floor(this.honey.add(1).log(3)+1);
+                        this.traits[i].level = this.traits[i].level.max(amount);
+                        this.traits[i].cost = Decimal.pow(3, this.traits[i].level).sub(1);
+                    }
+                },
                 icingReset() {
                     if (this.totalFosskie.lt(1e12)) return;
                     this.icing = this.icing.add(this.icingGain);
@@ -2114,9 +2304,16 @@
                         pei.level = N(0);
                     });
                     for(let i=0;i<27;i++) {this.traits[i].level = N(0);
-                    cancelAnimationFrame(this.peiLives[i].timer);
-                    this.peiLives[i].progress = 0;}
+                        this.traits[i].cost = Decimal.pow(3, this.traits[i].level).sub(1);
+                        cancelAnimationFrame(this.peiLives[i].timer);
+                        this.peiLives[i].progress = 0;}
                 },
+
+                //超越
+
+
+                //探索中心
+
 
                 //杂项
                 format(decimal) {
@@ -2131,7 +2328,8 @@
                     if (decimal.lt(1000)) return decimal.toFixed(1);
                     else if (decimal.lt(1e12)) return this.comma(decimal);
                     else if (decimal.lt("1e1000000000000")) return m + "e" + this.comma(e);
-                    else return m + "e" + mm + "e" + ee;
+                    else if (decimal.lt("1e9000000000000000")) return m + "e" + mm + "e" + ee;
+                    else return "END"
                 },
                 formatInt(decimal) {
                     let e = decimal.exponent.toFixed(0);
@@ -2142,7 +2340,8 @@
                     if (mm == "10.000") mm = "9.999";
                     else if (decimal.lt(1e12)) return this.comma(decimal);
                     else if (decimal.lt("1e1000000000000")) return m + "e" + this.comma(e);
-                    else return m + "e" + mm + "e" + ee;
+                    else if (decimal.lt("1e9000000000000000")) return m + "e" + mm + "e" + ee;
+                    else return "END"
                 },
                 comma(num) {
                     if (num === null || num === undefined) return "END"
@@ -2454,17 +2653,17 @@
                 updateCost(){
                     for(let i=0;i<42;i++) this.buildings[i].cost = this.buildings[i].baseCost.mul(new Decimal(1.148698354997035).pow(this.buildings[i].quantity));
                     let a0=[1,3,5,7,50,77,100,777,999,9000,99999,222222,399999,1.5e7,1e8,2e8,1e9,1.92e9,9e9,1e10];
-                    let p=[0,1334,10,0,0,0,100,0,0,0,0,2e6,0,0,0,0,0,0,0,0];
-                    let q=[1,1,1,7,100,10,100,10,100,1e12,2,1,1,1,4,4,10,1,1000,1];
+                    let p=[0,1334,10,0,0,0,100,0,0,0,0,2e6,0,0,0,2e8,0,0,0,0];
+                    let q=[1,1,1,7,100,10,100,10,100,1e9,2,1,1,1,4,1000,10,1,1000,1];
                     for(let i=0;i<20;i++){
                         this.ascendU[i].cost = i==19?this.ascendU[19].level.add(3).pow(7).mul(1.5e7):N(a0[i]).add(this.ascendU[i].level.mul(p[i])).mul(Decimal.pow(q[i],this.ascendU[i].level))
                     }
                     let r=[1,1,1,1,1,1,1,1,1,1,1,1,10,100,1000,10000,1e5,1e5,1e6,1e6];
-                    let s=[2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,4,4,10,1e12]
+                    let s=[2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,4,4,10,1e6]
                     for(let i=0;i<20;i++){
                         this.transcendU[i].cost=Decimal.pow(s[i],this.transcendU[i].level).mul(r[i]);
                     }
-                    let t=[1,1e6,1e12,1e24,1e36,1e60]
+                    let t=[1,1e6,1e12,1e18,1e24,1e60]
                     for(let i=0;i<6;i++) this.hypercendU[i].cost=Decimal.pow(1.148698354997035,this.hypercendU[i].level).mul(t[i]);
                     this.milk = N(this.unlockedAchievementsCount).mul(this.breakCount.gte(3)?2:1);
                     for(let i=0;i<27;i++) if(this.peiLives[i].auto & this.peiLives[i].level.gte(1)) this.startLifeProd(i);
@@ -2478,15 +2677,15 @@
                     return this.sugar.mul(0.001).mul(this.sugarUpgradeMult).add(1)
                     .mul(this.upgrades.filter(u => u.buildingId == 110).reduce((prod, upgrade, i) => {
                         let factor = N(milkUpgradeBase[upgrade.id-1]*0.001);
-                        return upgrade.unlocked ? prod.mul(factor.mul(this.sugar).mul(this.sugarUpgradeMult).add(1)) : prod;
+                        return upgrade.unlocked ? prod.mul(factor.mul(this.sugar.min(1000)).mul(this.sugarUpgradeMult).add(1)) : prod;
                     }, N(1)))
-                    .mul([2,3,4,5].reduce((prod,i)=>{
-                        return this.ascendU[15].level.gte(i)?prod.mul(this.sugar.mul(0.001*i).mul(this.sugarUpgradeMult).add(1)):prod;
+                    .mul([2,3,4,5,6,7,8,9,10].reduce((prod,i)=>{
+                        return this.ascendU[15].level.gte(i)?prod.mul(this.sugar.min(1000).mul(0.001*i).mul(this.sugarUpgradeMult).add(1)):prod;
                     },N(1)))
                 },
                 sugarUpgradeMult(){
                     return this.transcendU[8].level.mul(0.1).add(1)
-                    .mul(this.totalFosskie.mul(0.0001).add(1).pow(0.25))
+                    .mul(this.totalFosskie.add(1).pow(0.25))
                     .mul(this.traits[38].level.mul(0.2).add(1));
                 },
                 milkBonus(){
@@ -2494,7 +2693,7 @@
                         let factor = N(milkUpgradeBase[upgrade.id-1]*0.001);
                         return upgrade.unlocked ? prod.mul(factor.mul(this.milk).mul(this.milkUpgradeMult).add(1)) : prod;
                     }, N(1))
-                    .mul([1,2,3,4,5].reduce((prod,i)=>{
+                    .mul([1,2,3,4,5,6,7,8,9,10].reduce((prod,i)=>{
                         return this.ascendU[9].level.gte(i)?prod.mul(this.milk.mul(0.001*i).mul(this.milkUpgradeMult).add(1)):prod;
                     },N(1)))
                 },
@@ -2513,7 +2712,7 @@
                         return upgrade.unlocked ? sum.mul(1.1) : sum;
                     }, N(1)))
                     .mul(Decimal.pow(1.1,this.ascendU[1].level))
-                    .mul(Decimal.pow(1.2+(this.breakCount.max(5).min(8).sub(4).mul(0.025).toNumber()),this.transcendU[0].level))
+                    .mul(Decimal.pow(1.1+(this.breakCount.max(5).min(8).sub(4).mul(0.025).toNumber()),this.transcendU[0].level))
                     .mul(this.enableGolden&!this.transcendU[13].level.gte(1)?N(1):this.ascendU[8].level.add(this.transcendU[4].level).mul(0.1).add(1.4))
                     .mul(this.enableClick&!this.transcendU[13].level.gte(1)?N(1):this.ascendU[16].level.add(this.transcendU[4].level).mul(0.1).add(1.4));
                 },
@@ -2530,37 +2729,39 @@
                     return Decimal.pow(4*(this.breakCount.gte(6)?2:1)*(this.breakCount.gte(7)?2:1),this.breakCount);
                 },
                 hypercendBonus(){
-                    return this.hyperCharge.add(1).pow(2)
+                    return this.hyperEffect(0)
                     .mul(this.breakCount.gte(15)?this.totalHypercendPoints.add(4):1);
                 },
                 buildingCostMult(){
-                    return this.goldenPeiEffects.buildingCostReduction
+                    return (this.hypercendU[3].level.gte(1)?N(0.5).div(this.transcendU[5].level.mul(0.1).add(1)):this.goldenPeiEffects.buildingCostReduction)
                     .mul(this.ascendU[10].level.mul(-0.02).add(1))
                     .mul(Decimal.pow(0.99,this.transcendU[2].level));
                 },
                 upgradeCostMult(){
-                    return this.goldenPeiEffects.upgradeCostReduction
+                    return (this.hypercendU[3].level.gte(1)?N(0.5).div(this.transcendU[5].level.mul(0.1).add(1)):this.goldenPeiEffects.upgradeCostReduction)
                     .mul(this.ascendU[10].level.mul(-0.02).add(1))
                     .mul(this.ascendU[12].level.gte(1)?0.2:1)
                     .mul(Decimal.pow(0.99,this.transcendU[3].level));
                 },
                 baseClick() {
-                    let base = N(this.goldenPeiEffects.clickMultiplier);
+                    let base = N(this.hypercendU[3].level.gte(1)?this.transcendU[5].level.toNumber()*177.8+1778:this.goldenPeiEffects.clickMultiplier);
                     let mult = this.upgrades.filter(u => u.buildingId == 1 && u.id < 4).reduce((prod, upgrade) => {
                         return upgrade.unlocked ? prod.mul(2) : prod;
                     }, N(1))
                     .add(this.upgrades.filter(u => u.buildingId == 1 && u.id == 4)[0].unlocked?
-                        this.upgrades.filter(u => u.buildingId == 1 && u.id > 4).reduce((prod, upgrade) => {
+                        this.upgrades.filter(u => u.buildingId == 1 && u.id > 4 && u.id <= 20).reduce((prod, upgrade) => {
                             return upgrade.unlocked ? prod.mul(this.transcendU[6].level.mul(0.1).add(1).mul(this.transcendU[15].level.gte(1)?100:20)) : prod;
-                        }, N(1)).mul(this.ascendU[13].level.gte(1)?100: 1).mul(this.buildingCount):N(0))
+                        }, N(1)).mul(this.ascendU[13].level.gte(1)?1000: 1).mul(this.buildingCount):N(0))
                     .mul(this.upgrades.filter(u => u.buildingId == 101).reduce((prod, upgrade) => {
                         return upgrade.unlocked ? prod.mul(1.01) : prod;
                     }, N(1)))
-                    .mul(this.transcendU[1].level.mul(0.2+(this.breakCount.max(5).min(8).sub(4).mul(0.025).toNumber())).add(1));
+                    .mul(Decimal.pow(1.1+(this.breakCount.max(5).min(8).sub(4).mul(0.025).toNumber()),this.transcendU[1].level));
                     return base.mul(mult);
                 },
                 totalClick(){
-                    return this.baseClick.mul(this.sugarBonus).mul(this.milkBonus).mul(this.upgradeBonus).mul(this.ascendBonus).mul(this.transcendBonus).mul(this.breakBonus).mul(this.hypercendBonus).mul(this.goldenPeiEffects.buildingMultiplier);
+                    return this.baseClick.mul(this.sugarBonus).mul(this.milkBonus).mul(this.upgradeBonus)
+                    .mul(this.ascendBonus).mul(this.transcendBonus).mul(this.breakBonus).mul(this.hypercendBonus)
+                    .mul(this.hypercendU[3].level.gte(1)?this.transcendU[5].level.toNumber()*2.2+22:this.goldenPeiEffects.buildingMultiplier);
                 },
                 baseProduction() {
                     let base = this.buildings.reduce((sum, building, index) => {
@@ -2570,36 +2771,41 @@
                                 return upgrade.unlocked ? prod.mul(2) : prod;
                             }, N(1))
                             .add(this.upgrades.filter(u => u.buildingId == 1 && u.id == 4)[0].unlocked?
-                                this.upgrades.filter(u => u.buildingId == 1 && u.id > 4).reduce((prod, upgrade) => {
+                                this.upgrades.filter(u => u.buildingId == 1 && u.id > 4 && u.id <= 20).reduce((prod, upgrade) => {
                                     return upgrade.unlocked ? prod.mul(this.transcendU[6].level.mul(0.1).add(1).mul(this.transcendU[15].level.gte(1)?100:20).mul(this.breakCount.max(4).min(8).sub(3).mul(0.2).add(1))) : prod;
-                                }, N(1)).mul(this.ascendU[13].level.gte(1)?100: 1).mul(this.buildingCount):N(0))
-                            .mul(this.goldenPeiEffects.randomBuildingBoost == index ? 1.1 : 1);
+                                }, N(1))
+                                .mul(this.upgrades.filter(u => u.buildingId == 1 & u.id>20).reduce((prod, upgrade, i) => {
+                                    return upgrade.unlocked ? prod.mul(Decimal.pow(4,this.buildings[index].quantity/100 - 10*(i+1)*(i+2))).mul(Decimal.pow(this.buildings[index].baseCost, 0.1)) : prod;
+                                }, N(1)))
+                                .mul(this.ascendU[13].level.gte(1)?25: 1).mul(this.buildingCount):N(0))
+                            .mul(this.hypercendU[3].level.gte(1)?this.transcendU[5].level.toNumber()*0.1+2:this.goldenPeiEffects.randomBuildingBoost == index ? 1.1 : 1);
                         }
                         if (index == 1) {
                             buildingMult = this.upgrades.filter(u => u.buildingId == 2).reduce((prod, upgrade) => {
-                                return upgrade.unlocked ? prod.mul(this.ascendU[17].level.gte(1)?3.333:2).mul(this.breakCount.max(4).min(8).sub(3).mul(0.2).add(1)) : prod;
+                                return upgrade.unlocked ? prod.mul(this.ascendU[17].level.gte(1)?this.breakCount.gte(8)?5:3.2:2).mul(this.breakCount.max(4).min(8).sub(3).mul(0.2).add(1)) : prod;
                             }, N(1))
                             .mul(this.upgrades.filter(u => u.buildingId == 103).reduce((prod, upgrade) => {
-                                return upgrade.unlocked ? prod.mul(this.ascendU[17].level.gte(1)?3.333:2) : prod;
+                                return upgrade.unlocked ? prod.mul(this.ascendU[17].level.gte(1)?this.breakCount.gte(8)?5:3.2:2) : prod;
                             }, N(1)))
-                            .mul(this.upgrades.filter(u => u.buildingId == 2 & u.id>20).reduce((prod, upgrade) => {
-                                return upgrade.unlocked ? prod.mul(Decimal.pow(4,this.buildings[index].quantity/100)) : prod;
+                            .mul(this.upgrades.filter(u => u.buildingId == 2 & u.id>20).reduce((prod, upgrade, i) => {
+                                return upgrade.unlocked ? prod.mul(Decimal.pow(4,this.buildings[index].quantity/100 - 10*(i+1)*(i+2))).mul(Decimal.pow(this.buildings[index].baseCost, 0.1).mul(1e6)) : prod;
                             }, N(1)))
-                            .mul(this.goldenPeiEffects.randomBuildingBoost == index? 1.1:1);
+                            .mul(this.ascendU[18].level.mul(this.milk).mul(0.002).add(1))
+                            .mul(this.hypercendU[3].level.gte(1)?this.transcendU[5].level.toNumber()*0.1+2:this.goldenPeiEffects.randomBuildingBoost == index ? 1.1:1);
                         }
                         if (index >= 2) {
                             buildingMult = this.upgrades.filter(u => u.buildingId == (index + 1) & u.id<=20).reduce((prod, upgrade) => {
-                                return upgrade.unlocked ? prod.mul(this.ascendU[19].level.gte(index-1)?Math.pow(1.06,42-index)*2:2).mul(this.breakCount.max(4).min(8).sub(3).mul(0.2).add(1)) : prod;
+                                return upgrade.unlocked ? prod.mul(this.ascendU[19].level.gte(index-1)?Math.pow(this.breakCount.gte(15)?1.1:1.05,42-index)*2:2).mul(this.breakCount.max(4).min(8).sub(3).mul(0.2).add(1)) : prod;
                             }, N(1))
-                            .mul(this.upgrades.filter(u => u.buildingId == (index + 1) & u.id>20).reduce((prod, upgrade) => {
-                                return upgrade.unlocked ? prod.mul(Decimal.pow(4,this.buildings[index].quantity/100)) : prod;
+                            .mul(this.upgrades.filter(u => u.buildingId == (index + 1) & u.id>20).reduce((prod, upgrade, i) => {
+                                return upgrade.unlocked ? prod.mul(Decimal.pow(4,this.buildings[index].quantity/100 - 10*(i+1)*(i+2))).mul(Decimal.pow(this.buildings[index].baseCost, 0.1).mul(1e6)) : prod;
                             }, N(1)))
                             .mul(this.upgrades.filter(u => u.buildingId == 103 && u.id == index - 1)[0].unlocked ? this.buildings[1].quantity.div(index - 1).div(100).mul(this.transcendU[7].level.mul(0.1).add(1)).add(1) : 1)
-                            .mul(this.upgrades.filter(u => u.buildingId == 108 && u.id == index - 1      )[0].unlocked? this.buildings[index - 1      ].quantity.mul(0.05) .mul(this.transcendU[10].level.mul(0.1).add(1)).add(1):1)
+                            .mul(this.upgrades.filter(u => u.buildingId == 108 && u.id == index - 1      )[0].unlocked? this.buildings[index - 1      ].quantity.mul(0.01) .mul(this.transcendU[10].level.mul(0.1).add(1)).add(1):1)
                             .mul(this.upgrades.filter(u => u.buildingId == 108 && u.id == (index+37)%40+1)[0].unlocked? this.buildings[(index+37)%40+2].quantity.mul(0.001).mul(this.transcendU[10].level.mul(0.1).add(1)).add(1):1)
-                            .mul(this.upgrades.filter(u => u.buildingId == 109 && u.id == index - 1      )[0].unlocked? this.buildings[index-2        ].quantity.mul(0.05) .mul(this.transcendU[11].level.mul(0.1).add(1)).add(1):1)
+                            .mul(this.upgrades.filter(u => u.buildingId == 109 && u.id == index - 1      )[0].unlocked? this.buildings[index-2        ].quantity.mul(0.01) .mul(this.transcendU[11].level.mul(0.1).add(1)).add(1):1)
                             .mul(this.upgrades.filter(u => u.buildingId == 109 && u.id == (index+36)%40+1)[0].unlocked? this.buildings[(index+36)%40+2].quantity.mul(0.001).mul(this.transcendU[11].level.mul(0.1).add(1)).add(1):1)
-                            .mul(this.goldenPeiEffects.randomBuildingBoost == index ? 1.1 : 1);
+                            .mul(this.hypercendU[3].level.gte(1)?this.transcendU[5].level.toNumber()*0.1+2:this.goldenPeiEffects.randomBuildingBoost == index ? 1.1 : 1);
                         }
                         building.production = building.quantity.mul(building.baseProd).mul(buildingMult)
                         return sum.add(building.production);
@@ -2607,7 +2813,9 @@
                     return base;
                 },
                 totalProduction(){
-                    return this.baseProduction.mul(this.milkBonus).mul(this.sugarBonus).mul(this.upgradeBonus).mul(this.ascendBonus).mul(this.transcendBonus).mul(this.breakBonus).mul(this.hypercendBonus).mul(this.goldenPeiEffects.buildingMultiplier);
+                    return this.baseProduction.mul(this.milkBonus).mul(this.sugarBonus).mul(this.upgradeBonus)
+                    .mul(this.ascendBonus).mul(this.transcendBonus).mul(this.breakBonus).mul(this.hypercendBonus)
+                    .mul(this.hypercendU[3].level.gte(1)?this.transcendU[5].level.toNumber()*2.2+22:this.goldenPeiEffects.buildingMultiplier);
                 },
                 buildingCount() {
                     let sum = N(0);
@@ -2642,13 +2850,13 @@
                     return this.totalRealityShards.gte(1e48) ? this.totalRealityShards.pow(1 / 4).floor() : this.totalRealityShards.div(1e12).pow(1 / 3).floor();
                 },
                 nextTP(){
-                    return this.totalTP.gte(1e12) ? this.totalTP.add(1).pow(4) : this.totalTP.add(1).pow(3).mul(1e12);
+                    return this.totalTP.max(this.totalTranscendPoints).gte(1e12) ? this.totalTP.max(this.totalTranscendPoints).add(1).pow(4) : this.totalTP.max(this.totalTranscendPoints).add(1).pow(3).mul(1e12);
                 },
                 nextBreak(){
                     return Decimal.pow(10,this.breakCount).mul(1e12);
                 },
                 HPGain(){
-                    return Decimal.pow(this.totalLifetimePei, 1/308).div(10).mul(this.HPmult).floor();
+                    return Decimal.pow(this.totalLifetimePei, 1/308).div(10).min(Decimal.pow(this.totalLifetimePei, 1/1000).mul(1e6)).mul(this.HPmult).floor();
                 },
                 HPmult(){
                     return (this.breakCount.gte(20)?this.breakCount.mul(0.25).sub(3):N(1))
@@ -2692,15 +2900,15 @@
                 goldenPeiTimeCap(){
                     return (this.upgrades.filter(u => u.buildingId == 107 && u.id == 1)[0].unlocked ? 210 : 420) 
                     / (this.ascendU[5].level.toNumber()*0.1+1)
-                    / (this.transcendU[17].level.toNumber()*0.075+1);
+                    / (this.transcendU[17].level.toNumber()*0.05+1);
                 },
                 sugarTimeCap(){
                     return 3600 
-                    / (this.ascendU[14].level.toNumber()*0.1+1)
+                    / (this.ascendU[14].level.toNumber()*0.2+1)
                     / (this.transcendU[16].level.toNumber()*0.2+1)
                     / (this.traits[37].level.toNumber()*0.2+1)
                     / (this.breakCount.gte(800)?this.breakCount.toNumber()*0.001+1:1)
-                    * Math.max(Math.pow(1.001, this.sugar.toNumber()-1000),1);
+                    * Math.max(this.sugar.toNumber()/1000, 1);
                 }
             },
             mounted() {
@@ -2710,15 +2918,17 @@
                 const gameLoop = () => {
                     const now = Date.now();
                     const delta = (now - this.lastUpdate) / 1000;
-
                     this.peiPerClick = this.totalClick;
                     this.peiPerSecond = this.totalProduction;
                     this.peiCount = this.peiCount.add(this.totalProduction.mul(delta));
                     this.thisAscendPei = this.thisAscendPei.add(this.totalProduction.mul(delta));
                     this.totalLifetimePei = this.totalLifetimePei.add(this.totalProduction.mul(delta));
                     if(this.hypercendU[0].level.gte(1)) this.hyperCharge = this.hyperCharge.add(this.HCProduction.mul(delta));
-                    if(this.automation[9].activate) this.hypercendPoints = this.hypercendPoints.add(this.HPGain.mul(delta).mul(0.001));
-
+                    if(this.automation[9].activate) {
+                        this.hypercendPoints = this.hypercendPoints.add(this.HPGain.mul(delta).mul(0.001));
+                        this.totalHypercendPoints = this.totalHypercendPoints.add(this.HPGain.mul(delta).mul(0.001));
+                        this.maxHypercendPoints = this.maxHypercendPoints.add(this.HPGain.mul(delta).mul(0.001));
+                    }
                     this.lastUpdate = now;
                     requestAnimationFrame(gameLoop);
                 };
@@ -2739,7 +2949,11 @@
                     if(this.automation[5].activate) {this.realityShards=this.totalRealityShards.max(this.totalShards); this.totalRealityShards=this.totalRealityShards.max(this.totalShards);}
                     if(this.automation[6].activate) this.buyAllTranscendU();
                     if(this.automation[7].activate) {this.transcendPoints=this.totalTranscendPoints.max(this.totalTP); this.totalTranscendPoints=this.totalTranscendPoints.max(this.totalTP);}
-                    if(this.automation[8].activate) {if(this.totalTranscendPoints.gte(this.nextBreak)) this.breakCount=this.breakCount.add(1);}
+                    if(this.automation[8].activate) {this.breakCount = this.breakCount.max(Math.floor(this.totalTranscendPoints.div(1e11).max(1).log(10)))}
+                    if(this.automation[10].activate) this.buyMaxPeiLife();
+                    if(this.automation[11].activate) this.buyMaxTrait1();
+                    if(this.automation[12].activate) this.fosskie = this.fosskie.add(this.fosskiePerClick);
+                    if(this.automation[13].activate) this.buyMaxTrait2();
                 },100);
 
                 setInterval(() => {
@@ -2748,7 +2962,7 @@
                     this.totalPlayTime++;
                     let sugarTimer = this.sugarTimeCap;
                     if (this.playTime >= sugarTimer) {
-                        this.sugar = this.sugar.add(this.breakCount.max(1).min(10).add(this.breakCount.gte(1000)?this.breakCount.div(100):0));
+                        this.sugar = this.sugar.add(this.breakCount.max(1).min(10).add(this.breakCount.gte(1000)?this.breakCount.div(1000):0));
                         this.playTime = this.playTime - sugarTimer;
                     }
                     if(this.sugar.gte(1000) & this.breakCount.lt(1)) this.sugar=N(1000);
