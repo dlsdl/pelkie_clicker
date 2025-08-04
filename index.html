@@ -478,6 +478,7 @@
                         <span v-if="upgrade.buildingId==107 & upgrade.id==1">金佩勒出现频率翻倍，在屏幕上的持续时间翻倍</span>
                         <span v-if="upgrade.buildingId==107 & upgrade.id==2"><del>金佩勒出现频率翻倍，在屏幕上的持续时间翻倍</del>(被佩勒删除)</span>
                         <span v-if="upgrade.buildingId==107 & upgrade.id==3"><del>金佩勒效果的持续时间翻倍</del>(被佩勒删除)</span>
+                        <span v-if="upgrade.buildingId==107 & upgrade.id==4">（这个升级是为了降低时间墙而添加的）佩干产量×1.01^max(50-飞升点/20, 0)（即佩干产量乘以约1.64，随飞升点获取增多，乘数逐渐减少到1）</span>
                         <span v-if="upgrade.buildingId==108">每个建筑 {{upgrade.id+1}} 增加 1% 建筑 {{upgrade.id+2}} 的产量，每个建筑 {{upgrade.id+2}} 增加 0.1% 建筑 {{(upgrade.id)%40+3}} 的产量</span>
                         <span v-if="upgrade.buildingId==109">每个建筑 {{upgrade.id}} 增加 1% 建筑 {{upgrade.id+2}} 的产量，每个建筑 {{upgrade.id+2}} 增加 0.1% 建筑 {{(upgrade.id+1)%40+3}} 的产量</span>
                         <span v-if="upgrade.buildingId==110">释放糖块力量(叠乘)，佩干产量 ×(1+糖块*{{milkUpgradeBase[upgrade.id-1]*0.001.toFixed(3)}})</span>
@@ -755,12 +756,12 @@
             <button @click="loadGame()">导入</button>
             <button @click="hardReset()" style="color:red">硬重置</button>
             <div>
-                佩乐点点勒（pelkie clicker）-v0.3.6-作者：6左爷6<br />
+                佩乐点点勒（pelkie clicker）-v0.4.0-作者：6左爷6<br />
                 （又叫做cookie clicker NG+3）<br />
                 本游戏参考了《饼干点点乐》、《王朝之系谱》、《从细胞到奇点》、《真实割草增量》，<del>你可以点击链接游玩它们</del><br />
-                后续可能的更新：太空（第4层重置，获得香料/坚果）、暗物质（第5层重置）
-                副本1（中生代山谷，它的等级增加糖块加成）、糖粉化（副本1第1层重置）、糖浆化（1-2）、果糕/焦糖化（1-3）、
-                副本2（超越，它的等级增加牛奶加成）、炼乳化（2-1）、奶油化（2-2）、拜谢/黄油化（2-3）、
+                后续可能的更新：暗物质（第5层重置）、恒星（第6层重置）、
+                副本1（中生代山谷）第3层重置：变甜/焦糖重置、
+                副本2（超越，它的进度增加牛奶加成）、炼乳重置（2-1）、奶油重置（2-2）、变细腻/黄油重置（2-3）、
                 副本3（探索中心）、……等等
                 最终目标：到达1e9,000,000,000,000,000佩干并打败佩勒<br />
                 Pelle毁灭了你的饼干宇宙，把你的饼干变成了佩勒饼干，你无法逃离被毁灭的饼干宇宙，你在整个游戏中都会受到重大削弱。<br />
@@ -902,10 +903,12 @@
 
         <div v-if="currentTab === 16">
             <div class="divider">----------------------------------------------------------------</div>
+            变甜里程碑
         </div>
 
         <div v-if="currentTab === 17">
             <div class="divider">----------------------------------------------------------------</div>
+            炼糖厂
         </div>
 
         <div v-if="currentTab === 18" class="space">
@@ -935,23 +938,23 @@
                 <h3>太空升级树 ({{ format(nutCount) }} 坚果)</h3>
                 <div class="upgrade-node">
                     <div class="upgrade-info">
-                        <div>升级1 等级{{ getSpaceUpgrade(1).level }}/20</div>
-                        <div>每级使化石饼干的产量×2</div>
-                        <button @click="buySpaceUpgrade(1)">{{ format(getSpaceUpgrade(1).cost) }}坚果</button>
+                        <div>升级1 等级{{ spaceU[0].level }}/10</div>
+                        <div>每级使化石饼干的产量×2(当前效果×{{format(Decimal.pow(2,spaceU[0].level))}})</div>
+                        <button @click="buySpaceU(1)">{{ format(getSpaceUC(1)) }}坚果</button>
                     </div>
                     <div class="children-container">
-                        <div class="upgrade-node" :class="{unlocked: getSpaceUpgrade(2).level.gte(1) || getSpaceUpgrade(1).level.gte(1)}">
+                        <div class="upgrade-node" :class="{unlocked: spaceU[1].level.gte(1) || spaceU[0].level.gte(1)}">
                             <div class="upgrade-info">
-                                <div>升级2 等级{{ getSpaceUpgrade(2).level }}/20</div>
-                                <div>每级使觉醒点数获取×2</div>
-                                <button @click="buySpaceUpgrade(2)">{{ format(getSpaceUpgrade(2).cost) }}坚果</button>
+                                <div>升级2 等级{{ spaceU[1].level }}/10</div>
+                                <div>每级使觉醒点数获取×2(当前效果×{{format(Decimal.pow(2,spaceU[1].level))}})</div>
+                                <button @click="buySpaceU(2)">{{ format(getSpaceUC(2)) }}坚果</button>
                             </div>
                         </div>
-                        <div class="upgrade-node" :class="{unlocked: getSpaceUpgrade(3).level.gte(1) || getSpaceUpgrade(1).level.gte(1)}">
+                        <div class="upgrade-node" :class="{unlocked: spaceU[2].level.gte(1) || spaceU[0].level.gte(1)}">
                             <div class="upgrade-info">
-                                <div>升级3 等级{{ getSpaceUpgrade(3).level }}/20</div>
-                                <div>每级使觉醒充能速度×10</div>
-                                <button @click="buySpaceUpgrade(3)">{{ format(getSpaceUpgrade(3).cost) }}坚果</button>
+                                <div>升级3 等级{{ spaceU[2].level }}/10</div>
+                                <div>每级使觉醒充能速度×1000(当前效果×{{format(Decimal.pow(1000,spaceU[2].level))}})</div>
+                                <button @click="buySpaceU(3)">{{ format(getSpaceUC(3)) }}坚果</button>
                             </div> 
                         </div>
                     </div>
@@ -1128,9 +1131,9 @@
                 })
             }
             //升级1291~1299:金佩勒升级
-            for (let i = 1; i <= 10; i++) {
-                let requires = [7,27,77,9e15,9e15,9e15,9e15,9e15,9e15,9e15,]
-                let costs = [777777777, 77777777777, 77777777777777, "7e1777", "7e2777", "7e3777", "7e4777", "7e5777", "7e6777", "7e7777"];
+            for (let i = 1; i <= 9; i++) {
+                let requires = [7,27,77,0,9e15,9e15,9e15,9e15,9e15,]
+                let costs = [777777777, 77777777777, 77777777777777, "1e6", "7e2777", "7e3777", "7e4777", "7e5777", "7e6777",];
                 upgrades.push({
                     id: i,
                     buildingId: 107,
@@ -1297,9 +1300,9 @@
             }
             return automation;
         })();
-        const SPACEUPGRADES = (() => {
+        const SPACEU = (() => {
             const spaceU = [];
-            for(let i=0;i<3;i++) spaceU.push({ id: i+1, cost: N(1), maxLevel: N(10) });
+            for(let i=0;i<20;i++) spaceU.push({ id: i+1, cost: N(1), maxLevel: N(10) });
             return spaceU;
         })();
 
@@ -1523,11 +1526,10 @@
                 nutCount: N(0),
                 spaceResetCount: N(0),
                 spaceRecord: N(0),
-                spaceUpgrades: [
-                    { id: 1, cost: N(1), level: N(0), maxLevel: N(10), children: [2,3] },
-                    { id: 2, cost: N(1), level: N(0), maxLevel: N(10), children: [] },
-                    { id: 3, cost: N(1), level: N(0), maxLevel: N(10), children: [] },
-                ],
+                spaceU: SPACEU.map(u=>({
+                    ...u,
+                    level: N(0),
+                })),
 
                 unlockedMesval: false,
                 fosskie: N(0),
@@ -1726,9 +1728,7 @@
                     const randomBuilding = buildingsWithQuantity[
                         Math.floor(Math.random() * buildingsWithQuantity.length)
                     ];
-
                     this.goldenPeiEffects.randomBuildingBoost = randomBuilding.id;
-
                     this.startEffectTimer('randomBuildingBoost', () => {
                         this.goldenPeiEffects.randomBuildingBoost = null;
                     }, duration * 1000);
@@ -1807,7 +1807,7 @@
                             let building = this.buildings[i];
                             if (this.peiCount.lt(building.cost.mul(this.buildingCostMult))) return;
                             let r = 1.148698354997035;
-                            building.quantity = N(Math.floor(this.peiCount.div(this.buildingCostMult).div(building.baseCost).max(1).log(r)+1));
+                            building.quantity = N(Math.floor(this.peiCount.div(this.buildingCostMult).div(building.baseCost).mul(r).max(1).log(r)));
                             building.cost = building.baseCost.mul(Decimal.pow(r, building.quantity));
                         }
                     }
@@ -1957,12 +1957,10 @@
                     this.upgrades.forEach(u => {
                         u.unlocked = false;
                     });
-                    if(this.ascendU[4].level.gte(1)) this.buildings[0].quantity=N(10);
-                    if(this.ascendU[4].level.gte(2)) this.buildings[1].quantity=N(10);
-                    if(this.transcendU[12].level.gte(1)) this.buildings[0].quantity=N(100);
-                    if(this.transcendU[12].level.gte(1)) this.buildings[1].quantity=N(100);
-                    if(this.breakCount.gte(1)) this.buildings[0].quantity=N(1000);
-                    if(this.breakCount.gte(1)) this.buildings[1].quantity=N(1000);
+                    let b1=this.spaceResetCount.gte(1)?1e4:this.breakCount.gte(1)?1000:this.transcendU[12].level.gte(1)?100:this.ascendU[4].level.gte(1)?10:0;
+                    let b2=this.spaceResetCount.gte(1)?1e4:this.breakCount.gte(1)?1000:this.transcendU[12].level.gte(1)?100:this.ascendU[4].level.gte(2)?10:0;
+                    this.buildings[0].quantity=N(b1);
+                    this.buildings[1].quantity=N(b2);
                     for(let i=1; i<=this.ascendU[6].level.toNumber(); i++) this.upgrades[1070+i].unlocked=true;
                 },
                 buyAscendU(index) {
@@ -2014,10 +2012,9 @@
                     this.realityShards = N(1);
                     this.totalRealityShards=N(1);
                     this.ascendU.forEach(u => u.level = N(0));
-                    if(this.transcendU[12].level.gte(1)) this.buildings[0].quantity=N(100);
-                    if(this.transcendU[12].level.gte(1)) this.buildings[1].quantity=N(100);
-                    if(this.breakCount.gte(1)) this.buildings[0].quantity=N(1000);
-                    if(this.breakCount.gte(1)) this.buildings[1].quantity=N(1000);
+                    let b=this.spaceResetCount.gte(1)?1e4:this.breakCount.gte(1)?1000:this.transcendU[12].level.gte(1)?100:0;
+                    this.buildings[0].quantity=N(b);
+                    this.buildings[1].quantity=N(b);
                     this.updateCost();
                 },
                 buyTranscendU(index) {
@@ -2068,8 +2065,9 @@
                     this.transcendPoints = N(1);
                     this.totalTranscendPoints = N(1);
                     this.transcendU.forEach(u => u.level=N(0));
-                    this.buildings[0].quantity=N(1000);
-                    this.buildings[1].quantity=N(1000);
+                    let b=this.spaceResetCount.gte(1)?1e4:this.breakCount.gte(1)?1000:0;
+                    this.buildings[0].quantity=N(b);
+                    this.buildings[1].quantity=N(b);
                     this.updateCost();
                     this.milk = N(this.unlockedAchievementsCount).mul(this.breakCount.gte(2)?2:1);
                     if(this.breakCount.lte(0)) alert('你破碎了这个佩干宇宙，因此出现了4个新的选项卡。  佩勒：这次你可能早些时候就明白了，飞升轮回直到破碎，都是你自己创造的。由你自身思绪的残余所构成的事物，暗示了这一点。但是，你从未想过那会是你，对吧？');
@@ -2161,18 +2159,19 @@
                     this.totalFosskie=N(0);
                     this.resetFosskie=N(0);
                     this.spaceResetCount = this.spaceResetCount.add(1);
+                    let b=this.spaceResetCount.gte(1)?1e4:0;
+                    this.buildings[0].quantity=N(b);
+                    this.buildings[1].quantity=N(b);
                     this.updateCost();
                 },
-                buySpaceUpgrade(id) {
-                    const upgrade = this.spaceUpgrades.find(u => u.id === id);
-                    if (!upgrade || this.nutCount.lt(upgrade.cost)) return;
-                    
-                    this.nutCount = this.nutCount.sub(upgrade.cost);
+                buySpaceU(id) {
+                    const upgrade = this.spaceU.find(u => u.id === id);
+                    if (upgrade.level.gte(upgrade.maxLevel) || this.nutCount.lt(this.getSpaceUC(id))) return;
+                    this.nutCount = this.nutCount.sub(this.getSpaceUC(id));
                     upgrade.level = upgrade.level.add(1);
-                    upgrade.cost = Decimal.pow(1.5,upgrade.level).ceil(); // 简单的成本增长
                 },
-                getSpaceUpgrade(id) {
-                    return this.spaceUpgrades.find(u => u.id === id);
+                getSpaceUC(id){
+                    return Decimal.pow(2,this.spaceU[id-1].level);
                 },
 
                 //中生代山谷
@@ -2194,7 +2193,6 @@
                     for(let i=0;i<27;i++) {
                         let amount=Math.floor(this.fosskie.mul(this.calcCostMult(i)).div(this.peiLives[i].baseCost).mul(1.148698354997035).max(1).log(1.148698354997035));
                         this.peiLives[i].level = this.peiLives[i].level.max(amount);
-                        if(this.peiLives[i].auto & this.peiLives[i].level.gte(1)) this.startLifeProd(i);
                     }
                 },
                 startLifeProd(index) {        
@@ -2228,6 +2226,7 @@
                 calcLifeMult(index){
                     return Decimal.pow(1e20, this.peiLives[index].level.div(500).floor())
                     .mul(this.breakCount.gte(400)?this.breakCount.div(100).add(1):N(1))
+                    .mul(Decimal.pow(2, this.spaceU[0].level))
                     .mul(Decimal.pow(2, this.traits[index].level))
                     .mul(index%3==0?Decimal.pow(2,this.traits[27].level):index%3==1?Decimal.pow(2,this.traits[28].level):Decimal.pow(2,this.traits[29].level));
                 },
@@ -2285,7 +2284,10 @@
                     this.peiLives.forEach(pei => {
                         pei.level = N(0);
                     });
-                    for(let i=0;i<27;i++) {cancelAnimationFrame(this.peiLives[i].timer);this.peiLives[i].progress = 0;}
+                    for(let i=0;i<27;i++) {
+                        if(!this.automation[10].activate) cancelAnimationFrame(this.peiLives[i].timer);
+                        this.peiLives[i].progress = 0;
+                    }
                 },
                 honeyReset() {
                     if (this.totalFosskie.lt(1e48)) return;
@@ -2298,9 +2300,10 @@
                     this.peiLives.forEach(pei => {
                         pei.level = N(0);
                     });
-                    for(let i=0;i<27;i++) {this.traits[i].level = N(0);
+                    for(let i=0;i<27;i++) {
+                        this.traits[i].level = N(0);
                         this.traits[i].cost = Decimal.pow(3, this.traits[i].level).sub(1);
-                        cancelAnimationFrame(this.peiLives[i].timer);
+                        if(!this.automation[10].activate) cancelAnimationFrame(this.peiLives[i].timer);
                         this.peiLives[i].progress = 0;}
                 },
 
@@ -2395,7 +2398,7 @@
                         transcendU: this.transcendU.map(tu => (tu.level)),
                         hypercendU: this.hypercendU.map(hu => (hu.level)),
                         hyperChargeU: this.hyperChargeU.map(hu => (hu.unlocked)),
-                        spaceUpgrades: this.spaceUpgrades.map(u => (u.level)),
+                        spaceU: this.spaceU.map(u => (u.level)),
 
                         peiLives: this.peiLives.map(pl => (pl.level)),
                         peiLivesAuto: this.peiLives.map(pl => (pl.auto)),
@@ -2465,8 +2468,8 @@
                     this.hyperChargeU.forEach((hu, index) => {
                         hu.unlocked = !save.hyperChargeU? false:save.hyperChargeU[index] || false;
                     });
-                    this.spaceUpgrades.forEach((su, index) => {
-                        su.level = !save.spaceUpgrades? N(0):save.spaceUpgrades[index] || N(0);
+                    this.spaceU.forEach((su, index) => {
+                        su.level = !save.spaceU? N(0):save.spaceU[index] || N(0);
                     })
 
                     this.peiLives.forEach((pl, index) => {
@@ -2566,12 +2569,11 @@
                                 ...r,
                                 unlocked: false,
                             }))
-                        this.spaceUpgrades= [
-                            { id: 1, cost: N(1), level: N(0), maxLevel: N(10), children: [2,3] },
-                            { id: 2, cost: N(1), level: N(0), maxLevel: N(10), children: [] },
-                            { id: 3, cost: N(1), level: N(0), maxLevel: N(10), children: [] },
-                        ],
-
+                        this.spaceU= SPACEU.map(r => ({
+                            ...r,
+                            level: N(0),
+                        }))
+                        
                         this.peiLives= Array(27).fill().map((_,i) => ({
                             id: i+1,
                             level: N(0),       // 当前等级
@@ -2730,6 +2732,7 @@
                     .mul(this.upgrades.filter(u => u.buildingId == 106).reduce((sum, upgrade) => {
                         return upgrade.unlocked ? sum.mul(1.1) : sum;
                     }, N(1)))
+                    .mul(this.upgrades.filter(u=>u.buildingId==107 & u.id==4)[0].unlocked?Decimal.pow(1.01,Math.max(50-this.totalRealityShards.toNumber()/20,0)):1)
                     .mul(Decimal.pow(1.1,this.ascendU[1].level))
                     .mul(Decimal.pow(1.1+(this.breakCount.max(5).min(8).sub(4).mul(0.025).toNumber()),this.transcendU[0].level))
                     .mul(this.enableGolden&!this.transcendU[13].level.gte(1)?N(1):this.ascendU[8].level.add(this.transcendU[4].level).mul(0.1).add(1.4))
@@ -2881,7 +2884,8 @@
                     return (this.breakCount.gte(20)?this.breakCount.mul(0.25).sub(3):N(1))
                     .mul(this.hyperChargeU[6].unlocked?this.hyperEffect(7):1)
                     .mul(this.hyperChargeU[10].unlocked?this.hyperEffect(11):1)
-                    .mul(this.hyperChargeU[11].unlocked?this.hyperEffect(12):1);
+                    .mul(this.hyperChargeU[11].unlocked?this.hyperEffect(12):1)
+                    .mul(Decimal.pow(2,this.spaceU[1].level));
                 },
                 HCProduction(){
                     return this.hypercendU[0].level
@@ -2900,10 +2904,11 @@
                     .mul(this.hyperChargeU[8].unlocked?this.hyperEffect(9):1)
                     .mul(this.hyperChargeU[9].unlocked?this.hyperEffect(4).pow(3).mul(this.hyperEffect(8).pow(9)):1)
                     .mul(this.hyperChargeU[11].unlocked?this.hyperEffect(12).pow(15):1)
-                    .mul(this.breakCount.gte(25)?Decimal.pow(2,this.breakCount.sub(24).max(1).min(20)):1);
+                    .mul(this.breakCount.gte(25)?Decimal.pow(2,this.breakCount.sub(24).max(1).min(20)):1)
+                    .mul(Decimal.pow(1000,this.spaceU[2].level));
                 },
                 canSpaceReset(){
-                    return this.totalLifetimePei.gte(1e36525) && this.totalFosskie.gte(1e84);
+                    return this.totalLifetimePei.gte("1e36525") && this.totalFosskie.gte(1e84);
                 },
                 nutGain(){
                     return this.totalLifetimePei.pow(1/30000).mul(this.totalFosskie.max(10).log(10)/300).floor();
