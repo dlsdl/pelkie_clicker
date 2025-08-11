@@ -401,7 +401,7 @@
 
         <div class="bonus-status">
             <div title="每1个成就获得1(基础值)牛奶，购买对应升级后，基于牛奶数量提高佩干产量乘数">牛奶: {{ format(milk) }}</div>
-            <div title="每3600秒产生1(基础值)糖块，每个糖块+0.1%佩干产量，购买对应升级后，基于糖块数量提高佩干产量乘数">糖块: {{ format(sugar) }} {{this.sugar.gte(1000)&this.breakCount.lt(1)?"(已达上限)":""}}</div>
+            <div title="每3600秒产生1(基础值)糖块，每个糖块+0.1%佩干产量，购买对应升级后，基于糖块数量提高佩干产量乘数">糖块: {{ format(sugar) }}</div>
         </div>
 
         <div title="每420秒上方的♅区域会变成金色，点击♅后会随机获得一个新的效果">金佩勒效果: <span id="effectSpan"></span></div>
@@ -545,10 +545,11 @@
 
             </div>
             <div class="upgrade-item">
-                太空(需要觉醒升级5) {{currentArea==3?"（当前区域）":""}}
+                太空 {{currentArea==3?"（当前区域）":""}}
                 <button @click="currentArea = 3" :disabled="currentArea==3" v-if="this.hypercendU[5].level.gte(1) || this.spaceResetCount.gte(1)">
                     传送
                 </button>
+                <span v-else>（需要觉醒升级5，1e60觉醒点）</span>
             </div>
         </div>
 
@@ -639,7 +640,7 @@
                 <p>破碎(break)需要 {{format(nextBreak)}} 累计轮回点 ({{ format(totalTranscendPoints) }}/{{format(nextBreak)}})</p>
             </div>
             <div v-if="this.breakCount.gte(1)" class="shop">
-                <h4>破碎里程碑 (你破碎了{{ format(this.breakCount) }}次)</h4>
+                <h4>破碎里程碑 (你破碎了{{ formatInt(this.breakCount) }}次)</h4>
                 <div v-for="i in 16" class="upgrade-item" :class="{ 'unlocked': breakCount.gte(i<=8?i:i<=12?i*5-30:i*200-2200) }">
                     破碎{{i<=8?i:i<=12?i*5-30:i*200-2200}}次<br />
                     {{bmDescription[i-1]}}
@@ -685,7 +686,8 @@
         <!-- 自动化选项卡 -->
         <div v-if="currentTab === 8">
             <div class="divider">----------------------------------------------------------------</div>
-            <div v-for="upgrade in automation" :key="upgrade.id" class="upgrade-item" v-if="upgrade.id<=9 | hypercendU[4].level.gte(1)">
+            <div v-for="upgrade in automation" :key="upgrade.id" class="upgrade-item" v-if="upgrade.id<=(sweetenCount.gte(1)?18:hypercendU[4].level.gte(1)?14:9)">
+
                 {{autoDescription[upgrade.id-1]}}<br />
                 <button @click="buyAuto(upgrade.id-1)" :disabled="upgrade.unlocked">
                     解锁需要 {{format(upgrade.cost)}} 佩干
@@ -756,13 +758,12 @@
             <button @click="loadGame()">导入</button>
             <button @click="hardReset()" style="color:red">硬重置</button>
             <div>
-                佩乐点点勒（pelkie clicker）-v0.4.0-作者：6左爷6<br />
+                佩乐点点勒（pelkie clicker）-v0.4.1-作者：6左爷6<br />
                 （又叫做cookie clicker NG+3）<br />
                 本游戏参考了《饼干点点乐》、《王朝之系谱》、《从细胞到奇点》、《真实割草增量》，<del>你可以点击链接游玩它们</del><br />
                 后续可能的更新：暗物质（第5层重置）、恒星（第6层重置）、
-                副本1（中生代山谷）第3层重置：变甜/焦糖重置、
-                副本2（超越，它的进度增加牛奶加成）、炼乳重置（2-1）、奶油重置（2-2）、变细腻/黄油重置（2-3）、
-                副本3（探索中心）、……等等
+                副本2（超越，它的进度增加牛奶加成）、炼乳重置（2-1）、奶油重置（2-2）、睡眠/黄油重置（2-3）、
+                副本3（探索中心）、蛋黄重置（3-1）、蛋清重置（3-2）、？？/蛋壳重置（3-3）等等
                 最终目标：到达1e9,000,000,000,000,000佩干并打败佩勒<br />
                 Pelle毁灭了你的饼干宇宙，把你的饼干变成了佩勒饼干，你无法逃离被毁灭的饼干宇宙，你在整个游戏中都会受到重大削弱。<br />
                 削弱:<br />
@@ -771,7 +772,7 @@
                 删除老奶奶末世<br />
                 删除季节<br />
                 删除小游戏<br />
-                协同升级效果被修改<br />
+                协同升级效果被削弱<br />
                 无法用糖块升级建筑<br />
                 移除了一些飞升升级<br />
                 移除了一些成就<br />
@@ -783,8 +784,8 @@
                 糖块生长速度×24<br />
                 新增22个建筑<br />
                 一开始就有6小时80%的离线收益<br />
-                新声望层级:轮回,在1e48累计饼干后解锁<br />
-                新声望层级:破碎/觉醒,在1e192/1e308累计饼干后解锁<br />
+                糖块对建筑有被动加成<br />
+                新的声望层级和游戏内容<br />
             </div>
         </div>
 
@@ -800,7 +801,7 @@
                 <br />
                 到达1e12化石饼干后解锁“糖霜”重置，重置所有佩干生命，用糖霜升级一星特征<br />
                 到达1e48化石饼干后解锁“蜂蜜”重置，重置所有佩干生命和一星特征，用蜂蜜升级二星特征<br />
-                到达1e192化石饼干后可以变甜，重置所有佩干生命、一星、二星特征，基于变甜次数获得奖励<br />
+                太空重置一次并到达1e192化石饼干后解锁变甜重置，重置所有佩干生命、一星、二星特征，基于变甜次数获得奖励<br />
                 变甜8次且到达1e308化石饼干后，解锁“焦糖”重置，重置变甜重置的内容，用焦糖升级三星特征<br />
                 <br />
                 化石饼干：{{format(fosskie)}}<br />
@@ -810,6 +811,8 @@
                 总计糖霜数量：{{format(totalIcing)}}<br />
                 蜂蜜数量：{{format(honey)}}<br />
                 总计蜂蜜数量：{{format(totalHoney)}}<br />
+                焦糖数量：{{format(caramel)}}<br />
+                总计焦糖数量：{{format(totalCaramel)}}<br />
             </div>
         </div>
 
@@ -868,11 +871,25 @@
                 需要1e48本次重置中的化石饼干才能进行蜂蜜重置<br />
                 {{format(resetFosskie)}}/1e48
             </div>
-            <div class="shop">
-                
+            <div v-if="spaceResetCount.gte(1)">
+                <div v-if="resetFosskie.gte(nextSweeten)" class="shop">
+                <p>变甜重置将重置化石饼干、佩干生命、糖霜、一星性状、蜂蜜、二星性状<br />将变甜次数增加1</p>
+                <button @click="sweetenReset" style="padding:5px 20px">变甜重置</button>
+                </div>
+                <div v-else class="shop">
+                需要{{format(nextSweeten)}}本次重置中的化石饼干才能进行变甜重置<br />
+                {{format(resetFosskie)}}/{{format(nextSweeten)}}
+                </div>
+                <div v-if="resetFosskie.gte(1e308) & sweetenCount.gte(8)" class="shop">
+                <p>焦糖重置将重置变甜重置的内容（但保留变甜次数）<br />获取 {{format(caramelGain)}} 焦糖</p>
+                <button @click="caramelReset" style="padding:5px 20px">焦糖重置</button>
+                </div>
+                <div v-else class="shop">
+                需变甜8次和1e308本次重置中的化石饼干才能进行焦糖重置<br />
+                {{formatInt(sweetenCount)}}/8 {{format(resetFosskie)}}/1e308
+                </div>
             </div>
         </div>
-
 
 
         <div v-if="currentTab === 15">
@@ -880,6 +897,7 @@
             <div>
                 糖霜数量：{{format(icing)}}<br />
                 蜂蜜数量：{{format(honey)}}<br />
+                焦糖数量：{{format(caramel)}}<br />
                 <p>一星性状（共27种） 糖霜重置一次后可购买</p>
                 <div v-for="(t, index) in traits" :key="index" class="pei-life" v-if="index<27">
                     一星性状{{index+1}}: 每级将佩干生命{{index+1}}产量×2<br />
@@ -892,18 +910,27 @@
                     等级：{{t.level}}，效果：×{{index<36?format(Decimal.pow(2,t.level)):format(t.level.mul(0.2).add(1))}}<br />
                     <button @click="buyTrait(index)" :disabled="totalHoney.lte(0)">升级需要{{format(t.cost)}}蜂蜜</button>
                 </div>
-                <!--p>三星性状（共3种）</p>
+                <p>三星性状（共3种）</p>
                 <div v-for="(t, index) in traits" :key="index" class="pei-life" v-if="index>=39 & index<42">
                     三星性状{{index+1}}: 每级将{{index==39?"所有佩干生命产量×2":index==40?"所有佩干生命速度×2":"所有佩干生命价格÷2"}}<br />
                     等级：{{t.level}}，效果：×{{format(Decimal.pow(2,t.level))}}<br />
-                    <button @click="buyTrait(index)" disabled="caramel.lt(t.cost)">升级需要{{format(t.cost)}}焦糖</button>
-                </div-->
+                    <button @click="buyTrait(index)" :disabled="totalCaramel.lte(0)">升级需要{{format(t.cost)}}焦糖</button>
+                </div>
             </div>
         </div>
 
         <div v-if="currentTab === 16">
             <div class="divider">----------------------------------------------------------------</div>
-            变甜里程碑
+            <div v-if="this.sweetenCount.gte(1)">
+                <h4>变甜里程碑 (你变甜了{{ formatInt(this.sweetenCount) }}次)</h4>
+                <div v-for="i in 10" class="upgrade-item" :class="{ 'unlocked': sweetenCount.gte(i<=8?i:i*4-24) }">
+                    变甜{{i<=8?i:i*4-24}}次<br />
+                    {{sweetDescription[i-1]}}
+                </div>
+            </div>
+            <div v-else>
+                <p>变甜一次以解锁</p>
+            </div>
         </div>
 
         <div v-if="currentTab === 17">
@@ -927,9 +954,21 @@
                 </div>
             </div>
             <div class="upgrade-item" :class="{ 'unlocked': spaceResetCount.gte(1) }">
-                 第1次太空重置<br />
-                 每次太空重置保留1飞升点、1轮回点、1次破碎、1觉醒点，在所有重置中保留1e4建筑1和建筑2
+                 在1e36525或更多佩干进行太空重置<br />
+                 每次太空重置保留1飞升点、1轮回点、1次破碎、1觉醒点，在所有重置中保留1e4建筑1和建筑2，在中生代山谷中解锁变甜重置
             </div>
+            <div class="upgrade-item" :class="{ 'unlocked': spaceRecord.gte(1e73050) }">
+                 在1e73050或更多佩干进行太空重置<br />
+                 太空重置不再重置糖块
+            </div>
+            <div class="upgrade-item" :class="{ 'unlocked': spaceRecord.gte(109575) }">
+                 在1e109575或更多佩干进行太空重置<br />
+                 太空重置不再重置自动化
+            </div>
+            <!--div class="upgrade-item" :class="{ 'unlocked': spaceRecord.gte(1) }">
+                 在1e146100或更多佩干进行太空重置<br />
+                 太空重置后
+            </div-->
         </div>
 
         <div v-if="currentTab === 19" class="space">
@@ -960,6 +999,18 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <div v-if="currentTab === 20" class="space">
+            <div class="divider" style="color:#000080">----------------------------------------------------------------</div>
+            你有{{format(salt)}}盐块（进度{{playTime2.toFixed(1)}}/{{saltTimeCap.toFixed(1)}}）<br />
+            将化石饼干产量乘以{{format(salt.div(1000).add(1))}}<br />
+            （基于糖块数量，每秒获得{{format(sugar.div(1000))}}盐块进度）<br />
+        </div>
+
+        <div v-if="currentTab === 21" class="space">
+            <div class="divider" style="color:#000080">----------------------------------------------------------------</div>
+            
         </div>
 
     </div>
@@ -1294,8 +1345,8 @@
         })();
         const AUTOMATION = (() => {
             const automation = [];
-            const cost=[1e5,1e10,2.5e25,7.7e77,1e20,1e40,1e80,1e160,"1e320","1e640","1e10000","1e14142","1e20000","1e28284"]
-            for(let i=0;i<14;i++){
+            const cost=[1e5,1e10,2.5e25,7.7e77,1e20,1e40,1e80,1e160,"1e320","1e640","1e10000","1e14142","1e20000","1e28284","1e40000","1e56568","1e80000","1e113000","1e160000","1e226000"]
+            for(let i=0;i<18;i++){
                 automation.push({id:i+1, cost: N(cost[i]), unlocked:false, activate: false});//自动购买
             }
             return automation;
@@ -1319,7 +1370,9 @@
                 backgroundDelta: 0,
                 currentTab: 0,
                 currentArea: 1,
-                tabs: ['建筑', '升级', '成就', '传送', '飞升', '轮回', '破碎', '觉醒', '自动', '充能', '统计', '杂项', '简介', '生命', '声望', '性状', '变甜', '炼糖厂', '太空重置', '太空升级',],
+                tabs: ['建筑', '升级', '成就', '传送', '飞升', '轮回', '破碎', '觉醒', '自动', '充能', '统计', '杂项', 
+                '简介', '生命', '声望', '性状', '变甜', '炼糖厂', 
+                '太空重置', '太空升级', '盐块', '香料', '暗物质', '挑战',],
 
                 peiCount: N(0),
                 thisAscendPei: N(0),
@@ -1374,7 +1427,7 @@
                 auDescription: [
                     "神啊！（解锁飞升系统和升级）",
                     "一个残余物（佩干产量乘数+10%）",
-                    "佩勒的5个裂隙（每级解锁10种风味佩干升级，获得1e10佩干后出现）",
+                    "佩勒的5个裂隙（每级解锁10种“佩干产量乘数+x%”的升级）",
                     "6小时后更新（离线生产增加6小时）",
                     "飞升后保留10个前[该升级等级]种建筑",
                     "每级使金佩勒出现频率提升10%",
@@ -1421,8 +1474,8 @@
                     "升级1-5至1-20的乘数乘以5",
                     "糖块的生长速度增加等级*20%，最高300%",
                     "金佩勒的出现频率增加等级*5%，最高75%",
-                    "每级解锁10个新的风味饼干升级(在1e100~1e180佩干)",
-                    "每级解锁10个释放糖块力量的普通升级",
+                    "每级解锁10个新的“佩干产量乘数+x%”的升级(在1e100~1e180佩干)",
+                    "每级解锁10个释放糖块力量的普通升级（糖块升级效果上限为1000糖块）",
                 ],
 
                 breakCount: N(0),
@@ -1487,14 +1540,14 @@
                     "使神器12的效果乘以它的的1/3次方",//4e12
                     "使神器14的效果再生效一次，即变为乘以它的2/3次方",//1e14
                     "使神器14的效果再生效一次，即变为乘以它的1次方",//1e16
-                    "根据盐块(月光石)的数量，提升神器1/2/3/4/5/8/9/11/12的效果",
-                    "基于觉醒点数提升神器16的效果",
-                    "基于  数量提升神器17的效果",
-                    "神器16/17/18的效果^1.02",
-                    "基于平衡数量提升神器16/17/18的效果",
-                    "基于挑战完成数量提升神器16/17/18的效果",
-                    "基于挑战点数提升神器16/17/18的效果",
-                    "提升之前所有神器的效果(就是神器1乘数^1.5)",
+                    "根据盐块的数量，提升神器1/2/3/4/5/8/9/11/12的效果",
+                    "基于觉醒点数提升神器17的效果",
+                    "基于太空等级提升神器18的效果",
+                    "神器17/18/19的效果^1.02",
+                    "基于平衡数量提升神器17/18/19的效果",
+                    "基于挑战完成数量提升神器17/18/19的效果",
+                    "基于挑战点数提升神器17/18/19的效果",
+                    "提升之前所有神器的效果^1.01",
                 ],
 
                 automation: AUTOMATION.map(a=>({
@@ -1515,12 +1568,14 @@
                     "自动购买一星性状，它们不消耗糖霜",
                     "每0.1秒获得一次点击化石饼干收益",
                     "自动购买二星性状，它们不消耗蜂蜜",
+                    "自动购买觉醒升级",
                     "每秒自动获得0.1%判定中的糖霜",
+                    "自动购买觉醒神器",
                     "每秒自动获得0.1%判定中的蜂蜜",
-                    "自动购买觉醒升级和觉醒神器",
-                    "自动进行变甜重置，变甜不再重置任何东西",
                     "自动购买三星性状，它们不消耗焦糖",
+                    "自动进行变甜，变甜不再重置任何东西",
                     "每秒自动获得0.1%判定中的焦糖",
+                    "自动购买炼糖厂升级",
                 ],
 
                 nutCount: N(0),
@@ -1539,6 +1594,7 @@
                 totalIcing: N(0),
                 honey:N(0),
                 totalHoney:N(0),
+                sweetenCount: N(0),
                 caramel:N(0),
                 totalCaramel:N(0),
 
@@ -1573,6 +1629,18 @@
                     "将糖块生长的速度+20%",
                     "将糖块升级的效果+20%",
                 ],
+                sweetDescription:[
+                    "佩干生命的速度乘以100，每次变甜增加10%坚果获取，解锁更多自动化",
+                    "每次变甜+10%糖块获取数量",
+                    "糖霜的获取数量乘以10000",
+                    "糖块的生产速度翻倍",
+                    "佩干生命的价格除以100",
+                    "盐块的生产速度翻倍",
+                    "蜂蜜的获取数量乘以10",
+                    "解锁焦糖重置和炼糖厂升级",
+                    "每次变甜增加25%焦糖获取",
+                    "每次变甜增加100%觉醒点获取",
+                ],
                 
                 unlockedBeyond: false,
                 starkie: N(0),
@@ -1590,8 +1658,10 @@
 
                 milk: N(0),
                 sugar: N(0),
-                playTime: N(0),
-                totalPlayTime: N(0),
+                salt: N(0),
+                playTime: 0,
+                playTime2: 0,
+                totalPlayTime: 0,
                 lastUpdateTime: Date.now(),
                 // 其他数据...
             },
@@ -1601,8 +1671,8 @@
                         if(this.breakCount.lt(1)) return [0,1,2,4,5,6,10,11].includes(i);
                         else return [0,1,2,3,4,5,6,7,8,9,10,11].includes(i);
                     }
-                    if(this.currentArea == 2) return[3,11,12,13,14,15].includes(i);
-                    if(this.currentArea == 3) return[3,11,18,19].includes(i);
+                    if(this.currentArea == 2) return[3,11,12,13,14,15,16,17].includes(i);
+                    if(this.currentArea == 3) return[3,11,18,19,20,21].includes(i);
                 },
                 clickPei() {
                     if(this.currentArea==1){
@@ -1989,6 +2059,7 @@
                     });
                     this.realityShards=this.totalRealityShards;
                     this.ascend();
+                    this.updateCost();
                 },
                 transcend() {
                     const gain = this.totalTP.sub(this.totalTranscendPoints).max(0);
@@ -2043,6 +2114,7 @@
                     });
                     this.transcendPoints=this.totalTranscendPoints;
                     this.transcend();
+                    this.updateCost();
                 },
                 breakReset(){
                     this.peiCount = N(0);
@@ -2105,11 +2177,17 @@
                 buyMaxHypercendU(index){
                     for(let i=1;i<=100;i++) this.buyHypercendU(index);
                 },
+                buyAllHypercendU(){
+                    for(let i=0;i<6;i++) this.buyHypercendU(i);
+                },
                 buyHyperChargeU(index){
                     const upgrade=this.hyperChargeU[index];
                     if (this.hypercendPoints.lt(upgrade.cost) | upgrade.unlocked) return;
                     this.hypercendPoints = this.hypercendPoints.sub(upgrade.cost);
                     upgrade.unlocked=true;
+                },
+                buyAllHyperChargeU(){
+                    for(let i=0;i<16;i++) this.buyHyperChargeU(i);
                 },
                 hyperEffect(tier){
                     if(tier == 0) return this.hyperCharge.add(1).pow(2).mul(this.breakCount.gte(30)?Decimal.pow(1.25,this.breakCount.sub(29).min(91)):1);
@@ -2134,11 +2212,12 @@
                 spaceReset() {
                     if (!this.canSpaceReset) return;
                     this.nutCount = this.nutCount.add(this.nutGain);
+                    this.spaceRecord = this.spaceRecord.max(this.totalLifetimePei);
                     this.peiCount = N(0);
                     this.totalLifetimePei=N(0);
                     this.thisAscendPei = N(0);
                     this.totalClickPei=N(0);
-                    this.sugar=N(0);
+                    if(this.spaceRecord.lt("1e73050")) this.sugar=N(0);
                     this.realityShards = N(1);
                     this.totalRealityShards = N(1);
                     this.transcendPoints = N(1);
@@ -2154,7 +2233,7 @@
                     this.transcendU.forEach(tu => { tu.level = N(0); });
                     this.hypercendU.forEach(hu => { hu.level = N(0); });
                     this.hyperChargeU.forEach(hcu => { hcu.unlocked = false; })
-                    this.automation.forEach(a => {a.unlocked=false; a.activate=false;});
+                    if(this.spaceRecord.lt("1e109575")) this.automation.forEach(a => {a.unlocked=false; a.activate=false;});
                     this.fosskie=N(0);
                     this.totalFosskie=N(0);
                     this.resetFosskie=N(0);
@@ -2227,16 +2306,21 @@
                     return Decimal.pow(1e20, this.peiLives[index].level.div(500).floor())
                     .mul(this.breakCount.gte(400)?this.breakCount.div(100).add(1):N(1))
                     .mul(Decimal.pow(2, this.spaceU[0].level))
+                    .mul(this.salt.div(1000).add(1))
                     .mul(Decimal.pow(2, this.traits[index].level))
-                    .mul(index%3==0?Decimal.pow(2,this.traits[27].level):index%3==1?Decimal.pow(2,this.traits[28].level):Decimal.pow(2,this.traits[29].level));
+                    .mul(index%3==0?Decimal.pow(2,this.traits[27].level):index%3==1?Decimal.pow(2,this.traits[28].level):Decimal.pow(2,this.traits[29].level))
+                    .mul(Decimal.pow(2, this.traits[39].level));
                 },
                 calcSpeedMult(index){
                     return (this.breakCount.gte(600)?this.breakCount.div(100).add(1):N(1))
-                    .mul(index/3%3<1?Decimal.pow(2,this.traits[30].level):index/3%3<2?Decimal.pow(2,this.traits[31].level):Decimal.pow(2,this.traits[32].level));
+                    .mul(this.sweetenCount.gte(1)?100:1)
+                    .mul(index/3%3<1?Decimal.pow(2,this.traits[30].level):index/3%3<2?Decimal.pow(2,this.traits[31].level):Decimal.pow(2,this.traits[32].level))
+                    .mul(Decimal.pow(2, this.traits[40].level));
                 },
                 calcCostMult(index){
-                    return (index/9%3<1?Decimal.pow(2,this.traits[33].level):index/9%3<2?Decimal.pow(2,this.traits[34].level):Decimal.pow(2,this.traits[35].level));
-                
+                    return N(this.sweetenCount.gte(5)?100:1)
+                    .mul(index/9%3<1?Decimal.pow(2,this.traits[33].level):index/9%3<2?Decimal.pow(2,this.traits[34].level):Decimal.pow(2,this.traits[35].level))
+                    .mul(Decimal.pow(2, this.traits[41].level));
                 },
                 unlockLifeAuto(index){
                     if (this.fosskie.lt(this.peiLives[index].baseCost.mul(10))) return;
@@ -2306,7 +2390,49 @@
                         if(!this.automation[10].activate) cancelAnimationFrame(this.peiLives[i].timer);
                         this.peiLives[i].progress = 0;}
                 },
-
+                sweetenReset(){
+                    if (this.totalFosskie.lt(1e192)) return;
+                    this.sweetenCount = this.sweetenCount.add(1);
+                    this.honey = N(0);
+                    this.totalHoney = N(0);
+                    this.icing = N(0);
+                    this.totalIcing = N(0);
+                    this.fosskie = N(0);
+                    this.resetFosskie = N(0);
+                    this.peiLives.forEach(pei => {
+                        pei.level = N(0);
+                    });
+                    for(let i=0;i<27;i++) {
+                        if(!this.automation[10].activate) cancelAnimationFrame(this.peiLives[i].timer);
+                        this.peiLives[i].progress = 0;
+                    }
+                    for(let i=0;i<39;i++) {
+                        this.traits[i].level = N(0);
+                        this.traits[i].cost = Decimal.pow(3, this.traits[i].level).sub(1);
+                    }
+                },
+                caramelReset(){
+                    if (this.totalFosskie.lt(1e308)) return;
+                    this.caramel = this.caramel.add(this.caramelGain);
+                    this.totalCaramel = this.totalCaramel.add(this.caramelGain);
+                    this.honey = N(0);
+                    this.totalHoney = N(0);
+                    this.icing = N(0);
+                    this.totalIcing = N(0);
+                    this.fosskie = N(0);
+                    this.resetFosskie = N(0);
+                    this.peiLives.forEach(pei => {
+                        pei.level = N(0);
+                    });
+                    for(let i=0;i<27;i++) {
+                        if(!this.automation[10].activate) cancelAnimationFrame(this.peiLives[i].timer);
+                        this.peiLives[i].progress = 0;
+                    }
+                    for(let i=0;i<39;i++) {
+                        this.traits[i].level = N(0);
+                        this.traits[i].cost = Decimal.pow(3, this.traits[i].level).sub(1);
+                    }
+                },
                 //超越
 
 
@@ -2381,11 +2507,15 @@
                         totalIcing: this.totalIcing,
                         honey: this.honey,
                         totalHoney: this.totalHoney,
+                        sweetenCount: this.sweetenCount,
                         caramel: this.caramel,
                         totalCaramel: this.totalCaramel,
+
                         milk: this.milk,
                         sugar: this.sugar,
+                        salt: this.salt,
                         playTime: this.playTime,
+                        playTime2: this.playTime2,
                         totalPlayTime: this.totalPlayTime,
                         lastUpdateTime: Date.now(),
                         
@@ -2436,11 +2566,14 @@
                     this.totalIcing = save.totalIcing || N(0);
                     this.honey = save.honey || N(0);
                     this.totalHoney = save.totalHoney || N(0);
+                    this.sweetenCount = save.sweetenCount || N(0);
                     this.caramel = save.caramel || N(0);
                     this.totalCaramel = save.totalCaramel || N(0);
                     this.milk = save.milk || N(0);
                     this.sugar = save.sugar || N(0);
+                    this.salt = save.salt || N(0);
                     this.playTime = save.playTime || 0;
+                    this.playTime2 = save.playTime2 || 0;
                     this.totalPlayTime = save.totalPlayTime || 0;
 
                     this.buildings.forEach((b, index) => {
@@ -2618,12 +2751,15 @@
                         this.totalIcing = N(0);
                         this.honey = N(0);
                         this.totalHoney = N(0);
+                        this.sweetenCount = N(0);
                         this.caramel = N(0);
                         this.totalCaramel = N(0);
 
                         this.milk = N(0);
                         this.sugar = N(0);
+                        this.salt=N(0);
                         this.playTime = 0;
+                        this.playTime2 = 0;
                         this.totalPlayTime = 0;
                         this.lastUpdateTime= Date.now();
 
@@ -2885,7 +3021,8 @@
                     .mul(this.hyperChargeU[6].unlocked?this.hyperEffect(7):1)
                     .mul(this.hyperChargeU[10].unlocked?this.hyperEffect(11):1)
                     .mul(this.hyperChargeU[11].unlocked?this.hyperEffect(12):1)
-                    .mul(Decimal.pow(2,this.spaceU[1].level));
+                    .mul(Decimal.pow(2,this.spaceU[1].level))
+                    .mul(this.sweetenCount.gte(16)?this.sweetenCount.add(1):1);
                 },
                 HCProduction(){
                     return this.hypercendU[0].level
@@ -2911,8 +3048,11 @@
                     return this.totalLifetimePei.gte("1e36525") && this.totalFosskie.gte(1e84);
                 },
                 nutGain(){
-                    return this.totalLifetimePei.pow(1/30000).mul(this.totalFosskie.max(10).log(10)/300).floor();
+                    return (this.totalLifetimePei.pow(1/30000).mul(this.totalFosskie.max(10).log(10)/300))
+                    .mul(this.sweetenCount.mul(0.1).add(1)).floor();
                 },
+
+
                 fosskiePerSecond(){
                     return this.peiLives.reduce((sum, p, index) => {
                         return p.auto? sum.add(p.baseProd.mul(p.level).mul(this.calcLifeMult(index).mul(this.calcSpeedMult(index)).div(p.duration))) : sum;
@@ -2922,11 +3062,23 @@
                     return this.fosskiePerSecond.div(20).add(1).mul(this.traits[36].level.mul(0.2).add(1));
                 },
                 icingGain(){
-                    return this.resetFosskie.gte(1e48)? this.resetFosskie.pow(1/4).floor(): this.resetFosskie.div(1e12).pow(1/3).floor();
+                    return (this.resetFosskie.gte(1e48)? this.resetFosskie.pow(1/4).floor(): this.resetFosskie.div(1e12).pow(1/3).floor())
+                    .mul(this.sweetenCount.gte(3)?10000:1);
                 },
                 honeyGain(){
-                    return this.resetFosskie.gte(1e192)? this.resetFosskie.pow(1/16).floor(): this.resetFosskie.div(1e48).pow(1/12).floor();
+                    return (this.resetFosskie.gte(1e192)? this.resetFosskie.pow(1/16).floor(): this.resetFosskie.div(1e48).pow(1/12).floor())
+                    .mul(this.sweetenCount.gte(7)?10:1);
                 },
+                nextSweeten(){
+                    return Decimal.pow(1e16,this.sweetenCount).mul(1e192);
+                },
+                caramelMult(){
+                    return this.sweetenCount.gte(12)?this.sweetenCount.mul(0.25).add(1):1;
+                },
+                caramelGain(){
+                    return this.resetFosskie.pow(1/1000).mul(this.caramelMult).floor();
+                },
+                
                 goldenPeiTimeCap(){
                     return (this.upgrades.filter(u => u.buildingId == 107 && u.id == 1)[0].unlocked ? 210 : 420) 
                     / (this.ascendU[5].level.toNumber()*0.1+1)
@@ -2938,7 +3090,13 @@
                     / (this.transcendU[16].level.toNumber()*0.2+1)
                     / (this.traits[37].level.toNumber()*0.2+1)
                     / (this.breakCount.gte(800)?this.breakCount.toNumber()*0.001+1:1)
+                    / (this.sweetenCount.gte(4)?2:1)
                     * Math.max(this.sugar.toNumber()/1000, 1);
+                },
+                saltTimeCap(){
+                    return 1000
+                    /(this.sweetenCount.gte(6)?2:1)
+                    *(this.salt.toNumber()+1)
                 }
             },
             mounted() {
@@ -2954,14 +3112,26 @@
                     this.thisAscendPei = this.thisAscendPei.add(this.totalProduction.mul(delta));
                     this.totalLifetimePei = this.totalLifetimePei.add(this.totalProduction.mul(delta));
                     if (this.playTime >= this.sugarTimeCap) {
-                        this.sugar = this.sugar.add(this.breakCount.max(1).min(10).add(this.breakCount.gte(1000)?this.breakCount.div(1000):0));
                         this.playTime = this.playTime - this.sugarTimeCap;
+                        this.sugar = this.sugar.add(this.breakCount.max(1).min(10).add(this.breakCount.gte(1000)?this.breakCount.div(1000):0).mul(this.sweetenCount.gte(2)?this.sweetenCount.toNumber()*0.1+1:1));
+                    }
+                    if(this.playTime2 >= this.saltTimeCap) {
+                        this.playTime2 = this.playTime2 - this.saltTimeCap;
+                        this.salt = this.salt.add(1);
                     }
                     if(this.hypercendU[0].level.gte(1)) this.hyperCharge = this.hyperCharge.add(this.HCProduction.mul(delta));
                     if(this.automation[9].activate) {
                         this.hypercendPoints = this.hypercendPoints.add(this.HPGain.mul(delta).mul(0.001));
                         this.totalHypercendPoints = this.totalHypercendPoints.add(this.HPGain.mul(delta).mul(0.001));
                         this.maxHypercendPoints = this.maxHypercendPoints.add(this.HPGain.mul(delta).mul(0.001));
+                    }
+                    if(this.automation[15].activate) {
+                        this.icing=this.icing.add(this.icingGain.mul(delta).mul(0.001));
+                        this.totalIcing=this.totalIcing.add(this.icingGain.mul(delta).mul(0.001));
+                    }
+                    if(this.automation[17].activate) {
+                        this.honey=this.honey.add(this.honeyGain.mul(delta).mul(0.001));
+                        this.totalHoney=this.totalHoney.add(this.honeyGain.mul(delta).mul(0.001));
                     }
                     this.lastUpdate = now;
                     requestAnimationFrame(gameLoop);
@@ -2988,11 +3158,14 @@
                     if(this.automation[11].activate) this.buyMaxTrait1();
                     if(this.automation[12].activate) {this.fosskie = this.fosskie.add(this.fosskiePerClick);this.totalFosskie = this.totalFosskie.add(this.fosskiePerClick);this.resetFosskie = this.resetFosskie.add(this.fosskiePerClick);};
                     if(this.automation[13].activate) this.buyMaxTrait2();
-                },100);
+                    if(this.automation[14].activate) this.buyAllHypercendU();
+                    if(this.automation[16].activate) this.buyAllHyperChargeU();
+                    },100);
 
                 setInterval(() => {
                     if(this.enableGolden) this.goldenPeiTimer++
                     this.playTime++;
+                    if(this.spaceResetCount.gte(1)) this.playTime2=this.playTime2+(this.sugar.toNumber()/1000);
                     this.totalPlayTime++;
                     let t = this.goldenPeiTimeCap;
                     let l = this.upgrades.filter(u => u.buildingId == 107 && u.id == 1)[0].unlocked ? 26 : 13;
