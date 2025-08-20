@@ -7,54 +7,6 @@
     <script type="text/javascript" src="pako.js"></script>
     <script type="text/javascript" src="break_infinity.js"></script>
     <style>
-.space-reset-section {
-    background: rgba(0,0,0,0.3);
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-.space-reset-button {
-    background: #4a6cf7;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-}
-.space-reset-button:hover {
-    background: #3a5ce7;
-}
-.reset-locked {
-    color: #ff6b6b;
-}
-.reset-ready {
-    color: #4ecdc4;
-}
-.space-upgrades-tree {
-    margin-top: 20px;
-}
-.upgrade-node {
-    margin: 5px 0;
-    padding: 5px;
-    border-radius: 5px;
-    background: rgba(0,0,0,0.2);
-}
-.upgrade-node.unlocked {
-    background: rgba(78,205,196,0.2);
-}
-.children-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    margin-left: 5px;
-    padding-left: 5px;
-    border-left: 2px dashed #4ecdc4;
-}
-.upgrade-info {
-    min-width: 300px;
-}
-
         body {
             text-align: center;
             font-family: MonospaceTypewriter, monospace;
@@ -330,6 +282,58 @@
                 background: rgba(200,255,200,0.2);
             }
 
+
+        .space {
+            background-color: #001c60;
+            color:#FFE29F
+        }
+        .space-reset-section {
+    background: rgba(0,0,0,0.3);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+.space-reset-button {
+    background: #4a6cf7;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+.space-reset-button:hover {
+    background: #3a5ce7;
+}
+.reset-locked {
+    color: #ff6b6b;
+}
+.reset-ready {
+    color: #4ecdc4;
+}
+.space-upgrades-tree {
+    margin-top: 20px;
+}
+.upgrade-node {
+    margin: 5px 0;
+    padding: 5px;
+    border-radius: 5px;
+    background: rgba(0,0,0,0.2);
+}
+.upgrade-node.unlocked {
+    background: rgba(78,205,196,0.2);
+}
+.children-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-left: 5px;
+    padding-left: 5px;
+    border-left: 2px dashed #4ecdc4;
+}
+.upgrade-info {
+    min-width: 300px;
+}
                 /* 进度条现代样式 */
 .progress-bar {
   height: 16px;
@@ -355,11 +359,6 @@
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
-        .space {
-            background-color: #001c60;
-            color:#FFE29F
-        }
-
         .offline-toast {
             position: fixed;
             right: 20px;
@@ -384,6 +383,11 @@
             <div class="header-text" style="font-size: 32px;">你有 {{ format(fosskie) }} 化石饼干</div>
             <div class="header-text" style="font-size: 20px;">{{ format(fosskiePerSecond) }}/秒</div>
             <div class="header-text" style="font-size: 20px;">{{ format(fosskiePerClick) }}/点击</div>
+        </div>
+        <div class="header-fixed" v-if="currentArea==4">
+            <div class="header-text" style="font-size: 32px;">你有 {{ format(starkie) }} 星尘饼干</div>
+            <div class="header-text" style="font-size: 20px;">{{ format(starkiePerSecond) }}/秒</div>
+            <div class="header-text" style="font-size: 20px;">{{ format(starkiePerClick) }}/点击</div>
         </div>
 
         <div class="clickable" @click="clickPei" style="width: 200px; height: 200px; background-image: url('pelkie.bmp')">
@@ -531,14 +535,17 @@
             </div>
             <div class="upgrade-item">
                 中生代山谷 - {{format(fosskie)}}化石饼干 {{currentArea==2?"（当前区域）":""}}
-                <button @click="currentArea = 2" :disabled="currentArea==2" v-if="this.hypercendU[2].level.gte(1) || this.spaceResetCount.gte(1)">
+                <button @click="currentArea = 2" :disabled="currentArea==2" v-if="this.hypercendU[2].level.gte(1)">
                     传送
                 </button>
                 <span v-else>（需要觉醒升级3，1e12觉醒点）</span>
             </div>
             <div class="upgrade-item">
-                超越（需要1e16焦糖）（敬请期待）
-
+                超越 - {{format(starkie)}}星尘饼干 {{currentArea==4?"（当前区域）":""}}（需要炼糖厂升级5，1e16焦糖）（敬请期待）
+                <!--button @click="currentArea = 4" :disabled="currentArea==4" v-if="this.refineryU[4].level.gte(1)">
+                    传送
+                </button>
+                <span v-else>（需要炼糖厂升级3，1e16焦糖）</span-->
             </div>
             <div class="upgrade-item">
                 探索中心（需要1e20黄油）（敬请期待）
@@ -765,9 +772,9 @@
                 佩乐点点勒（pelkie clicker）-v0.4.2-作者：6左爷6<br />
                 （又叫做cookie clicker NG+3）<br />
                 本游戏参考了《饼干点点乐》、《王朝之系谱》、《从细胞到奇点》、《真实割草增量》，<del>你可以点击链接游玩它们</del><br />
-                后续可能的更新：暗物质（第5层重置）、恒星（第6层重置）、
-                副本2（超越，它的进度增加牛奶加成）、炼乳重置（2-1）、奶油重置（2-2）、睡眠/黄油重置（2-3）、
-                副本3（探索中心）、蛋黄重置（3-1）、蛋清重置（3-2）、？？/蛋壳重置（3-3）等等
+                后续可能的更新：香料（第5层重置）、恒星（第6层重置）、
+                副本2（超越，它的进度增加牛奶加成）、炼乳重置（2-1）、奶油重置（2-2）、梦游/黄油重置（2-3）、
+                副本3（探索中心）、蛋黄重置（3-1）、蛋清重置（3-2）、？？/？？重置（3-3）等等
                 最终目标：到达1e9,000,000,000,000,000佩干并打败佩勒<br />
                 Pelle毁灭了你的饼干宇宙，把你的饼干变成了佩勒饼干，你无法逃离被毁灭的饼干宇宙，你在整个游戏中都会受到重大削弱。<br />
                 削弱:<br />
@@ -1446,8 +1453,7 @@
                 tabs: ['建筑', '升级', '成就', '传送', '飞升', '轮回', '破碎', '觉醒', '自动', '充能', '统计', '杂项', 
                 '简介', '生命', '声望', '性状', '变甜', '炼糖厂', 
                 '太空重置', '太空升级', '盐块', '……', '香料', '蚁丘', '挑战', '巫师塔',
-                '简介', '天体', '声望', '特征', '梦游', '星座', '', '',],
-
+                '简介', '天体', '牛奶层级', '声望', '特征', '梦游', '星座', '天文研究'],
 
                 peiCount: N(0),
                 thisAscendPei: N(0),
@@ -1760,6 +1766,7 @@
                     }
                     if(this.currentArea == 2) return[3,11,12,13,14,15,16,17].includes(i);
                     if(this.currentArea == 3) return[3,11,18,19,20,21].includes(i);
+                    if(this.currentArea == 4) return[3,11,26,27,28,29].includes(i);
                 },
                 clickPei() {
                     if(this.currentArea==1){
@@ -2524,7 +2531,7 @@
                 },
                 buyRefineryU(index){
                     const upgrade=this.refineryU[index];
-                    if(this.caramel.lt(upgrade.cost)) return;
+                    if(this.caramel.lt(upgrade.cost) | upgrade.level.gte(upgrade.maxLevel)) return;
                     this.caramel = this.caramel.sub(upgrade.cost);
                     this.refineryU[index].level = this.refineryU[index].level.add(1);
                     let t=[1,1e4,1e8,1e12,1e16]
@@ -2988,6 +2995,7 @@
                     .mul(this.upgrades.filter(u=>u.buildingId==107 & u.id==4)[0].unlocked?Math.pow(1.01,Math.max(50-this.totalRealityShards.toNumber()/20,0)):1)
                     .mul(Decimal.pow(1.1,this.ascendU[1].level))
                     .mul(Decimal.pow(1.1+(this.breakCount.max(5).min(8).sub(4).mul(0.025).toNumber()),this.transcendU[0].level))
+                    .mul(Decimal.pow(256,this.spaceU[1].level))
                     .mul(this.enableGolden&!this.transcendU[13].level.gte(1)?1:this.ascendU[8].level.add(this.transcendU[4].level).mul(0.1).add(1.4))
                     .mul(this.enableClick&!this.transcendU[13].level.gte(1)?1:this.ascendU[16].level.add(this.transcendU[4].level).mul(0.1).add(1.4));
                 },
@@ -3017,7 +3025,6 @@
                     .mul(this.ascendU[10].level.mul(-0.02).add(1))
                     .mul(this.ascendU[12].level.gte(1)?0.2:1)
                     .mul(Decimal.pow(0.99,this.transcendU[3].level))
-                    .mul(Decimal.pow(256,this.spaceU[1].level));;
                 },
                 baseClick() {
                     let base = N(this.hypercendU[3].level.gte(1)?this.transcendU[5].level.toNumber()*177.8+1778:this.goldenPeiEffects.clickMultiplier);
@@ -3213,6 +3220,13 @@
                     .mul(Decimal.pow(1.071519,this.refineryU[2].level))
                     .mul(Decimal.pow(1.047129,this.refineryU[3].level))
                     .mul(Decimal.pow(1.023293,this.refineryU[4].level))
+                },
+
+                starkiePerSecond(){
+                    return N(0);
+                },
+                starkiePerClick(){
+                    return N(0);
                 },
                 
                 goldenPeiTimeCap(){
