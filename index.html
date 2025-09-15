@@ -3,6 +3,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
     <title>佩乐点点勒</title>
+    <link rel="icon" href="pelkie.bmp" type="image/x-icon">
     <script type="text/javascript" src="vue.js"></script>
     <script type="text/javascript" src="pako.js"></script>
     <script type="text/javascript" src="break_infinity.js"></script>
@@ -288,76 +289,84 @@
             color:#FFE29F
         }
         .space-reset-section {
-    background: rgba(0,0,0,0.3);
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-.space-reset-button {
-    background: #4a6cf7;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-}
-.space-reset-button:hover {
-    background: #3a5ce7;
-}
-.reset-locked {
-    color: #ff6b6b;
-}
-.reset-ready {
-    color: #4ecdc4;
-}
-.space-upgrades-tree {
-    margin-top: 20px;
-}
-.upgrade-node {
-    margin: 5px 0;
-    padding: 5px;
-    border-radius: 5px;
-    background: rgba(0,0,0,0.2);
-}
-.upgrade-node.unlocked {
-    background: rgba(78,205,196,0.2);
-}
-.children-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    margin-left: 5px;
-    padding-left: 5px;
-    border-left: 2px dashed #4ecdc4;
-}
-.upgrade-info {
-    min-width: 300px;
-}
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .space-reset-button {
+            background: #4a6cf7;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .space-reset-button:hover {
+            background: #3a5ce7;
+        }
+        .reset-locked {
+            color: #ff6b6b;
+        }
+        .reset-ready {
+            color: #4ecdc4;
+        }
+        .space-upgrades-tree {
+            margin-top: 20px;
+        }
+        .upgrade-node {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 5px;
+            background: rgba(0,0,0,0.2);
+        }
+        .upgrade-node.unlocked {
+            background: rgba(78,205,196,0.2);
+        }
+        .children-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-left: 5px;
+            padding-left: 5px;
+            border-left: 2px dashed #4ecdc4;
+        }
+        .upgrade-info {
+            min-width: 300px;
+        }
                 /* 进度条现代样式 */
-.progress-bar {
-  height: 16px;
-  background: #f0f0f0;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-  margin: 8px;
-}
-.progress-bar > div {
-  height: 100%;
-  background: linear-gradient(90deg, #4CAF50 0%, #81C784 100%);
-  border-radius: 8px;
-}
+        .progress-bar {
+            height: 16px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            margin: 8px;
+        }
+        .progress-bar > div {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50 0%, #81C784 100%);
+            border-radius: 8px;
+        }
 
-/* 佩干生命卡片样式 */
-.pei-life {
-  background: white;
-  border:#dfbf0d solid 2px;
-  border-radius: 8px;
-  padding: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
+        .pei-life {
+            background: white;
+            border:#dfbf0d solid 2px;
+            border-radius: 8px;
+            padding: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .pei-cele {
+            background: white;
+            border:#0d1bdf solid 2px;
+            border-radius: 8px;
+            padding: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
 
         .offline-toast {
             position: fixed;
@@ -389,6 +398,11 @@
             <div class="header-text" style="font-size: 20px;">{{ format(starkiePerSecond) }}/秒</div>
             <div class="header-text" style="font-size: 20px;">{{ format(starkiePerClick) }}/点击</div>
         </div>
+        <!--div class="header-fixed" v-if="currentArea==5">
+            <div class="header-text" style="font-size: 32px;">你有 {{ format(dataKie) }} 数据饼干</div>
+            <div class="header-text" style="font-size: 20px;">{{ format(dataKiePerSecond) }}/秒</div>
+            <div class="header-text" style="font-size: 20px;">{{ format(dataKiePerClick) }}/点击</div>
+        </div-->
 
         <div class="clickable" @click="clickPei" style="width: 200px; height: 200px; background-image: url('pelkie.bmp')">
             <div class="click-effects-container">
@@ -541,11 +555,11 @@
                 <span v-else>（需要觉醒升级3，1e12觉醒点）</span>
             </div>
             <div class="upgrade-item">
-                超越 - {{format(starkie)}}星尘饼干 {{currentArea==4?"（当前区域）":""}}（需要炼糖厂升级5，1e16焦糖）（敬请期待）
-                <!--button @click="currentArea = 4" :disabled="currentArea==4" v-if="this.refineryU[4].level.gte(1)">
+                超越 - {{format(starkie)}}星尘饼干 {{currentArea==4?"（当前区域）":""}}
+                <button @click="currentArea = 4" :disabled="currentArea==4" v-if="this.refineryU[4].level.gte(1)">
                     传送
                 </button>
-                <span v-else>（需要炼糖厂升级3，1e16焦糖）</span-->
+                <span v-else>（需要炼糖厂升级3，1e16焦糖）</span>
             </div>
             <div class="upgrade-item">
                 探索中心（需要1e20黄油）（敬请期待）
@@ -760,6 +774,7 @@
             <div>飞升乘数: x{{ format(ascendBonus) }}</div>
             <div>轮回乘数: x{{ format(transcendBonus) }}</div>
             <div>破碎乘数: x{{ format(breakBonus) }}</div>
+            <div>觉醒乘数: x{{ format(hypercendBonus) }}</div>
             <!-- 原有统计信息... -->
         </div>
 
@@ -769,7 +784,7 @@
             <button @click="loadGame()">导入</button>
             <button @click="hardReset()" style="color:red">硬重置</button>
             <div>
-                佩乐点点勒（pelkie clicker）-v0.4.2-作者：6左爷6<br />
+                佩乐点点勒（pelkie clicker）-v0.4.3-作者：6左爷6<br />
                 （又叫做cookie clicker NG+3）<br />
                 本游戏参考了《饼干点点乐》、《王朝之系谱》、《从细胞到奇点》、《真实割草增量》，<del>你可以点击链接游玩它们</del><br />
                 后续可能的更新：香料（第5层重置）、恒星（第6层重置）、
@@ -808,7 +823,7 @@
                 你发现了一个奇怪的骨骼化石，现在我需要您模拟一个活体标本进行研究，
                 这些生物曾经是地球上的主要生命形式，也许可以了解它们是如何走向灭亡的。
                 您可以通过传送随时返回到主界面（佩干宇宙）。 <br />
-                基于化石饼干总数，获得对所有糖块升级的加成（×(1+化石饼干/1e4)^0.25）<br />
+                基于化石饼干总数，获得对所有糖块升级的加成（×(1+化石饼干)^0.25）<br />
                 <br />
                 到达1e12化石饼干后解锁“糖霜”重置，重置所有佩干生命，用糖霜升级一星特征<br />
                 到达1e48化石饼干后解锁“蜂蜜”重置，重置所有佩干生命和一星特征，用蜂蜜升级二星特征<br />
@@ -974,7 +989,7 @@
             您不满足于寻常世界的万物法则，将目光投向银河中未解的存在，并期待那些遥远的神秘能够满足自己的好奇心。<br />
             佩勒：无数维度、幽灵以及对量子世界的操控，将所有理想简化为无穷多的点，在无数领域进行实验，以及利用物质与反物质的湮灭。
             在这里？你把自己变成了八维生物，然后你在那里停得太久，以至于你周围形成了一片星云。<br />
-            太空重置将重置佩干、升级、飞升、轮回、破碎、觉醒、糖块、化石饼干（但保留中生代山谷的其他内容），获得坚果，数量基于佩干总数和化石饼干总数
+            太空重置将重置几乎所有的之前内容（佩干、建筑、升级、飞升、轮回、破碎、觉醒、糖块、化石饼干、糖霜、蜂蜜、一星和二星性状），获得坚果，数量基于佩干总数和化石饼干总数
             (佩干^1/30000*log10(化石饼干)/300)
             <div class="space-reset-section">
                 <h4>太空重置</h4>
@@ -1073,6 +1088,100 @@
         <div v-if="currentTab === 21" class="space">
             <div class="divider" style="color:#000080">----------------------------------------------------------------</div>
             
+        </div>
+
+        <div v-if="currentTab === 22" class="space">
+            <div class="divider" style="color:#000080">----------------------------------------------------------------</div>
+            
+        </div>
+
+        <div v-if="currentTab === 23" class="space">
+            <div class="divider" style="color:#000080">----------------------------------------------------------------</div>
+            
+        </div>
+
+        <div v-if="currentTab === 24" class="space">
+            <div class="divider" style="color:#000080">----------------------------------------------------------------</div>
+            
+        </div>
+
+        <div v-if="currentTab === 25" class="space">
+            <div class="divider" style="color:#000080">----------------------------------------------------------------</div>
+            
+        </div>
+
+        <div v-if="currentTab === 26">
+            <div class="divider">----------------------------------------------------------------</div>
+            <div>
+                你解锁了超越……<br />
+                佩勒：你慢慢地探索了一切的界限，你并没有偏离既定的道路太远，除了在永恒中形成的[单星/星云/恒星]。
+                生命就像火花，由偶然的闪电点燃。在适当的条件下，它可能会发光并传播，或闷烧并熄灭。也许这种情况在其他地方发生过无数次，也许只有一次。
+                总有一天，太阳会熄灭，我们的火焰也必须熄灭吗？或者我们可以把余烬送到宇宙，送到陆地生命可以重新燃烧的地方？我想，我们可以。我们可以把余烬送到一个叫做[永恒]的地方。<br />
+                基于星尘饼干总数，获得对所有牛奶升级的加成（×(1+星尘饼干)^0.25），
+                你可以提升牛奶层级，增加每个成就提供的牛奶。<br />
+                <br />
+                到达1e12星尘饼干后解锁“奶酪”重置，重置星尘饼干和佩干天体，获得奶酪。<br />
+                到达1e48星尘饼干后解锁“奶油”重置，重置星尘饼干、佩干天体、奶酪、一星增强，获得奶油。<br />
+                第5层重置一次且到达1e192星尘饼干后解锁“梦游”重置，重置星尘饼干、佩干天体、奶酪、奶油、一星和二星增强，使梦游次数增加1。<br />
+                梦游8次并到达1e308星尘饼干后解锁“黄油”重置，重置梦游重置的内容获得黄油。<br />
+                <br />
+                <div>当前牛奶层级: {{milkLevel}}</div>
+                <div>牛奶经验值: {{format(milkExp)}}/{{format(milkExpReq)}}</div>
+                <div>当前牛奶种类：{{milkName[milkLevel.toNumber()]}}</div>
+                <div>使每个成就提供的牛奶×{{format(Decimal.pow(2,milkLevel))}}</div>
+                <br />
+                星尘饼干：{{format(totalStarkie)}}<br />
+                累计星尘饼干：{{format(totalStarkie)}}<br />
+                本次重置中的星尘饼干：{{format(resetStarkie)}}<br />
+            </div>
+        </div>
+
+        <div v-if="currentTab === 27">
+            <div class="divider">----------------------------------------------------------------</div>
+            <div>在超越中点击大佩干将获得星尘饼干</div>
+            <div>佩干天体200级前每25级产量乘以3，之后每50级产量乘以3</div>
+            <div>总计星尘饼干数量：{{format(totalStarkie)}}</div>
+            <div>它们将牛奶升级效果乘以{{format(this.totalStarkie.add(1).pow(0.25))}}</div>
+            <div class="bulk-selector">
+                购买数量: 
+                <select v-model="bulkCeleAmount">
+                    <option value="1">×1</option>
+                    <option value="10">×10</option>
+                    <option value="100">×100</option>
+                    <option value="1000">×1000</option>
+                </select>
+            </div>
+            <div v-for="(p, index) in peiCeles" :key="index" class="pei-cele">
+                佩干天体{{ p.id }} - {{p.id<=32?"天体":"星际"}}，{{typename[celetype[p.id-1]]}} - {{p.progress.toFixed(1)}}/{{p.duration.toFixed(1)}}s<br />
+                数量：{{p.level}} 基础产量：{{format(p.baseProd)}} 产量：{{format(calcCeleProd(index))}}<br />
+                产量×{{format(calcCeleMult(index))}} 速度×{{format(calcCeleSpeedMult(index))}} 价格÷{{format(calcCeleCostMult(index))}}<br />
+            <button @click="buyPeiCele(index, bulkCeleAmount)" :disabled="starkie.lt(calcCeleBulkCost(index, bulkCeleAmount))">
+                购买×{{bulkCeleAmount}} 花费 {{ format(calcCeleBulkCost(index, bulkCeleAmount)) }}
+            </button>
+            <div class="progress-bar">
+                <div :style="{ width: p.progress/p.duration*100 + '%' }"></div>
+            </div>
+            </div>
+        </div>
+
+        <div v-if="currentTab === 28">
+            <div class="divider">----------------------------------------------------------------</div>
+        </div>
+        
+        <div v-if="currentTab === 29">
+            <div class="divider">----------------------------------------------------------------</div>
+        </div>
+        <div v-if="currentTab === 30">
+            <div class="divider">----------------------------------------------------------------</div>
+        </div>
+        <div v-if="currentTab === 31">
+            <div class="divider">----------------------------------------------------------------</div>
+        </div>
+        <div v-if="currentTab === 32">
+            <div class="divider">----------------------------------------------------------------</div>
+        </div>
+        <div v-if="currentTab === 33">
+            <div class="divider">----------------------------------------------------------------</div>
         </div>
 
     </div>
@@ -1450,10 +1559,11 @@
                 backgroundDelta: 0,
                 currentTab: 0,
                 currentArea: 1,
+                
                 tabs: ['建筑', '升级', '成就', '传送', '飞升', '轮回', '破碎', '觉醒', '自动', '充能', '统计', '杂项', 
                 '简介', '生命', '声望', '性状', '变甜', '炼糖厂', 
                 '太空重置', '太空升级', '盐块', '……', '香料', '蚁丘', '挑战', '巫师塔',
-                '简介', '天体', '牛奶层级', '声望', '特征', '梦游', '星座', '天文研究'],
+                '简介', '天体', '声望', '增强', '梦游', '星座', '天文研究', '炼乳厂'],
 
                 peiCount: N(0),
                 thisAscendPei: N(0),
@@ -1735,6 +1845,7 @@
                     "解锁超越（在传送选项卡）（还没出），糖分充能×1.023每级",
                 ],
                 
+                // 佩干天体相关数据
                 unlockedBeyond: false,
                 starkie: N(0),
                 totalStarkie: N(0),
@@ -1743,8 +1854,55 @@
                 totalCheese: N(0),
                 cream: N(0),
                 totalCream: N(0),
+                dreamCount: N(0),
                 butter: N(0),
                 totalButter: N(0),
+                      
+                milkLevel: N(0),
+                milkExp: N(0),
+                milkName:["纯牛奶","巧克力奶","树莓奶","橙奶","焦糖奶","香蕉奶","酸橙奶","蓝莓牛奶","草莓奶","香草奶",
+                "蜂蜜牛奶","咖啡牛奶","茶奶","椰奶","樱桃牛奶","五香牛奶","枫糖牛奶","薄荷奶","甘草奶","玫瑰牛奶",
+                "火龙果奶","瓜奶","黑加仑奶","桃奶","榛子奶","柠檬奶","柚子奶","芒果奶","菠萝奶","荔枝奶",
+                "葡萄奶","梨奶","猕猴桃奶","木瓜奶","杨桃奶","无花果奶","蔓越莓奶","百香果奶","山竹奶","杏仁奶",
+                "核桃奶","腰果奶","栗子奶","开心果奶","茉莉奶","桂花奶","薰衣草奶","迷迭香奶","海盐奶","肉桂奶",
+                "条纹牛奶","圆点牛奶","棋盘牛奶","三角牛奶","六边形奶","分形牛奶","箭头牛奶","拼图牛奶","星辰牛奶","宇宙牛奶","终极牛奶"],
+                celetype:[0,1,1,2,1,1,3,3,3,4,
+                          2,4,2,4,2,4,5,6,6,6,
+                          6,3,5,5,5,0,7,7,7,7,
+                          0,0,8,8,8,8,9,9,9,9,
+                          10,10,10,10,11,11,11,11,12,12,
+                          12,12,13,13,13,13,14,14,14,14],
+                typename:["恒星", "类地行星", "卫星", "小行星", "气态行星", "矮行星", "彗星", "奥尔特云", "主序星", "后期恒星", "系外行星", "星云", "银河系", "星系", "超星系团"],
+                bulkCeleAmount:1,
+                peiCeles: Array(60).fill().map((_,i) => ({
+                    id: i+1,
+                    level: N(0),       // 当前等级
+                    progress: 0,       // 生产进度(秒)
+                    timer: null,
+                    duration: Math.pow(10, (i+1)/10),//生产所需时间(秒)
+                    baseCost: i==0?N(10):Decimal.pow(10,i+1+(i+1)*(i+1)/30),//基础成本
+                    baseProd: i==0?N(2):Decimal.pow(8,i+1+(i+1)*(i+1)/30).div(4),//基础产量
+                })),
+                enhans: Array(40).fill().map((_,i) => ({
+                    id: i+1,
+                    tier: i<15?1:i<30?2:i<40?3:0,
+                    level: N(0),
+                    cost: N(1),
+                })),
+                dreamDescription:[
+                    "每次梦游将佩干天体速度提高100%",
+                    "每次梦游将香料获取数量乘以2",
+                    "全局时间速度乘以10",
+                    "离线时间压缩率乘以2",
+                    "解锁星座碎片",
+                    "解锁星座碎片升级",
+                    "解锁星座碎片获取数量",
+                    "解锁黄油重置和炼奶厂升级",
+                    "每次梦游将黄油获取数量+25%",
+                    "每次梦游将焦糖获取数量+100%",
+                    "每次梦游将觉醒点获取数量+400%",
+                    "每次梦游将？？获取数量+10%",
+                ],
 
                 unlockedExplor: false,
                 logikie: N(0),
@@ -1766,7 +1924,7 @@
                     }
                     if(this.currentArea == 2) return[3,11,12,13,14,15,16,17].includes(i);
                     if(this.currentArea == 3) return[3,11,18,19,20,21].includes(i);
-                    if(this.currentArea == 4) return[3,11,26,27,28,29].includes(i);
+                    if(this.currentArea == 4) return[3,11,26,27,28,29,30,31,32,33].includes(i);
                 },
                 clickPei() {
                     if(this.currentArea==1){
@@ -1782,6 +1940,12 @@
                         this.totalFosskie = this.totalFosskie.add(this.fosskiePerClick);
                         this.resetFosskie = this.resetFosskie.add(this.fosskiePerClick);
                         this.addClickEffect(this.fosskiePerClick);
+                    }
+                    else if(this.currentArea==4){
+                        this.starkie = this.starkie.add(this.starkiePerClick);
+                        this.totalStarkie = this.totalStarkie.add(this.starkiePerClick);
+                        this.resetStarkie = this.resetStarkie.add(this.starkiePerClick);
+                        this.addClickEffect(this.starkiePerClick);
                     }
                 },
                 addClickEffect(amount) {
@@ -2235,7 +2399,6 @@
                     this.buildings[0].quantity=N(b);
                     this.buildings[1].quantity=N(b);
                     this.updateCost();
-                    this.milk = N(this.unlockedAchievementsCount).mul(this.breakCount.gte(2)?2:1);
                     if(this.breakCount.lte(0)) alert('你破碎了这个佩干宇宙，因此出现了4个新的选项卡。  佩勒：这次你可能早些时候就明白了，飞升轮回直到破碎，都是你自己创造的。由你自身思绪的残余所构成的事物，暗示了这一点。但是，你从未想过那会是你，对吧？');
                 },
                 doBreak(){
@@ -2332,6 +2495,21 @@
                     this.fosskie=N(0);
                     this.totalFosskie=N(0);
                     this.resetFosskie=N(0);
+                    this.icing=N(0);
+                    this.totalIcing=N(0);
+                    this.honey=N(0);
+                    this.totalHoney=N(0);
+                    this.peiLives.forEach(pei => {
+                        pei.level = N(0);
+                    });
+                    for(let i=0;i<27;i++) {
+                        if(!this.automation[10].activate) cancelAnimationFrame(this.peiLives[i].timer);
+                        this.peiLives[i].progress = 0;
+                    }
+                    for(let i=0;i<39;i++) {
+                        this.traits[i].level = N(0);
+                        this.traits[i].cost = Decimal.pow(3, this.traits[i].level).sub(1);
+                    }
                     this.spaceResetCount = this.spaceResetCount.add(1);
                     let b=this.spaceResetCount.gte(1)?1e4:0;
                     this.buildings[0].quantity=N(b);
@@ -2541,13 +2719,72 @@
                     for(let i=0;i<100;i++) this.buyRefineryU(index);
                 },
 
-
                 //超越
-
-
+                calcCeleBulkCost(index, amount) {
+                    const pei = this.peiCeles[index];
+                    const r = 1.148698354997035;
+                    const a1 = pei.baseCost.mul(Decimal.pow(r, pei.level));
+                    if (amount === 1) return a1.div(this.calcCeleCostMult(index));
+                    return a1.mul(Decimal.pow(r, amount).sub(1)).div(r - 1).div(this.calcCeleCostMult(index));
+                },
+                buyPeiCele(index, amount) {
+                    const cost = this.calcCeleBulkCost(index, amount);
+                    if (this.starkie.gte(cost)) {
+                        this.starkie = this.starkie.sub(cost);
+                        this.peiCeles[index].level = this.peiCeles[index].level.add(amount);
+                        this.startCeleProd(index);
+                    }
+                },
+                buyMaxPeiCele(){
+                    for(let i=0;i<60;i++) {
+                        let amount=Math.floor(this.starkie.mul(this.calcCeleCostMult(i)).div(this.peiCeles[i].baseCost).mul(1.148698354997035).max(1).log(1.148698354997035));
+                        this.peiCeles[i].level = this.peiCeles[i].level.max(amount);
+                    }
+                },
+                startCeleProd(index) {        
+                    let last =Date.now();
+                    const updateProgress = () => {
+                        let now = Date.now();
+                        
+                        const delta = (now - last) / 1000;
+                        this.peiCeles[index].progress += delta * this.calcCeleSpeedMult(index).toNumber();
+                        
+                        if (this.peiCeles[index].progress >= this.peiCeles[index].duration) {
+                            this.starkie = this.starkie.add(this.calcCeleProd(index).mul(Math.floor(this.peiCeles[index].progress/this.peiCeles[index].duration)));
+                            this.totalStarkie = this.totalStarkie.add(this.calcCeleProd(index));
+                            this.resetStarkie = this.resetStarkie.add(this.calcCeleProd(index));
+                            this.milkExp = this.milkExp.add(this.calcCeleProd(index));
+                            if(this.milkExp.gte(this.milkExpReq)){
+                                this.milkLevel = this.milkLevel.add(1);
+                            }
+                            this.peiCeles[index].progress = this.peiCeles[index].progress % this.peiCeles[index].duration;
+                            cancelAnimationFrame(this.peiCeles[index].timer);
+                            this.startCeleProd(index);
+                        } else {
+                            this.peiCeles[index].timer = requestAnimationFrame(updateProgress);
+                        }
+                        last = now;
+                    };
+                    updateProgress();
+                },
+                calcCeleProd(index){
+                    return this.peiCeles[index].level.mul(this.peiCeles[index].baseProd).mul(this.calcCeleMult(index));
+                },
+                calcCeleCost(index){
+                    return Decimal.pow(1.148698354997035,this.peiCeles[index].level).mul(this.peiCeles[index].baseCost);
+                },
+                calcCeleMult(index){
+                    return (this.peiCeles[index].level.lte(200)?Decimal.pow(3, this.peiCeles[index].level.div(25).floor()):Decimal.pow(3, this.peiCeles[index].level.add(200).div(50).floor()));
+                },
+                calcCeleSpeedMult(index){
+                    return N(1);
+                },
+                calcCeleCostMult(index){
+                    return N(1);
+                },
                 //探索中心
 
-
+                
                 //杂项
                 format(decimal) {
                     let e = decimal.exponent.toFixed(0);
@@ -2586,6 +2823,10 @@
                 saveData() {
                 // 1. 获取原始数据
                     return{
+                        milkLevel: this.milkLevel,
+                        milkExperience: this.milkExperience,
+                        stardust: this.stardust,
+                        celestials: this.celestials,
                         peiCount: this.peiCount,
                         thisAscendPei: this.thisAscendPei,
                         totalLifetimePei: this.totalLifetimePei,
@@ -2621,6 +2862,12 @@
                         totalCaramel: this.totalCaramel,
                         sugarCharge: this.sugarCharge,
 
+                        milkLevel: this.milkLevel,
+                        milkExp: this.milkExp,
+                        starkie: this.starkie,
+                        totalStarkie: this.totalStarkie,
+                        resetStarkie: this.resetStarkie,
+
                         milk: this.milk,
                         sugar: this.sugar,
                         salt: this.salt,
@@ -2645,6 +2892,7 @@
                         traits: this.traits.map(t => (t.level)),
                         refineryU: this.refineryU.map(ru => (ru.level)),
 
+                        peiCeles: this.peiCeles.map(ce => (ce.level)),
                     }
                 },
                 loadData(save){
@@ -2690,6 +2938,12 @@
                     this.playTime2 = save.playTime2 || 0;
                     this.totalPlayTime = save.totalPlayTime || 0;
 
+                    this.milkLevel = save.milkLevel || N(0);
+                    this.milkExp = save.milkExp || N(0);
+                    this.starkie = save.starkie || N(0);
+                    this.totalStarkie = save.totalStarkie || N(0);
+                    this.resetStarkie = save.resetStarkie || N(0);
+
                     this.buildings.forEach((b, index) => {
                         b.quantity = !save.buildings? N(0): save.buildings[index] || N(0);
                     });
@@ -2728,6 +2982,10 @@
                     })
                     this.refineryU.forEach((ru, index) => {
                         ru.level = !save.refineryU? N(0):save.refineryU[index] || N(0);
+                    })
+
+                    this.peiCeles.forEach((ce, index) => {
+                        ce.level = !save.peiCeles? N(0):save.peiCeles[index] || N(0);
                     })
 
                     this.updateCost();
@@ -2828,7 +3086,6 @@
                             id: i+1,
                             level: N(0),       // 当前等级
                             progress: 0,       // 生产进度(秒)
-                            auto: false,       // 自动生产
                             timer: null,
                             duration: Math.pow(10, i/10+0.4),//生产所需时间(秒)
                             baseCost: N(12).pow(i+1),//基础成本
@@ -2841,6 +3098,11 @@
                             cost: N(1)
                         })),
                         this.refineryU=REFINERYU.map(r => ({
+                            ...r,
+                            level: N(0),
+                        })),
+
+                        this.peiCeles=PEICEL.map(r => ({
                             ...r,
                             level: N(0),
                         })),
@@ -2877,6 +3139,12 @@
                         this.totalCaramel = N(0);
                         this.sugarCharge=N(0);
 
+                        this.milkLevel = N(0);
+                        this.milkExp = N(0);
+                        this.starkie = N(0);
+                        this.totalStarkie = N(0);
+                        this.resetStarkie = N(0);
+
                         this.milk = N(0);
                         this.sugar = N(0);
                         this.salt=N(0);
@@ -2907,6 +3175,10 @@
                         this.fosskie = this.fosskie.add(fosskieproduction);
                         this.totalFosskie = this.totalFosskie.add(fosskieproduction);
                         this.resetFosskie = this.resetFosskie.add(fosskieproduction);
+                        const starkieproduction = this.starkiePerSecond.mul(offlineSeconds*0.8);
+                        this.starkie = this.starkie.add(starkieproduction);
+                        this.totalStarkie = this.totalStarkie.add(starkieproduction);
+                        this.resetStarkie = this.resetStarkie.add(starkieproduction);
                         this.playTime = this.playTime + offlineSeconds;
                         this.totalPlayTime = this.totalPlayTime + offlineSeconds;
                         // 显示离线通知
@@ -2944,11 +3216,12 @@
                     }
                     let t=[1,1e6,1e12,1e18,1e24,1e60]
                     for(let i=0;i<6;i++) this.hypercendU[i].cost=Decimal.pow(1.148698354997035,this.hypercendU[i].level).mul(t[i]);
-                    this.milk = N(this.unlockedAchievementsCount).mul(this.breakCount.gte(3)?2:1);
+                    this.milk = N(this.unlockedAchievementsCount).mul(this.breakCount.gte(3)?2:1).mul(Decimal.pow(2,this.milkLevel));
                     for(let i=0;i<27;i++) if(this.peiLives[i].auto & this.peiLives[i].level.gte(1)) this.startLifeProd(i);
                     for(let i=0;i<42;i++) this.traits[i].cost = Decimal.pow(3, this.traits[i].level).sub(1);
                     let u=[1,1e4,1e8,1e12,1e16]
                     for(let i=0;i<5;i++) this.refineryU[i].cost = Decimal.pow(1.148698354997035, this.refineryU[i].level).mul(u[i]);
+                    for(let i=0;i<60;i++) if(this.peiCeles[i].level.gte(1)) this.startCeleProd(i);
                 },
                 // 其他方法...
             },
@@ -2980,6 +3253,7 @@
                 },
                 milkUpgradeMult(){
                     return this.transcendU[9].level.mul(0.1).add(1)
+                    .mul(this.totalStarkie.add(1).pow(0.25));
                 },
                 upgradeBonus(){
                     return this.upgrades.filter(u => u.buildingId == 105).reduce((sum, upgrade) => {
@@ -3223,10 +3497,15 @@
                 },
 
                 starkiePerSecond(){
-                    return N(0);
+                    return this.peiCeles.reduce((sum, p, index) => {
+                        return sum.add(p.baseProd.mul(p.level).mul(this.calcCeleMult(index).mul(this.calcCeleSpeedMult(index)).div(p.duration)));
+                    }, N(0));
                 },
                 starkiePerClick(){
-                    return N(0);
+                    return this.starkiePerSecond.div(20).add(1);
+                },
+                milkExpReq(){
+                    return this.milkLevel.lt(60)?Decimal.pow(1000,this.milkLevel.toNumber()+1):N("e9e15");
                 },
                 
                 goldenPeiTimeCap(){
@@ -3328,6 +3607,8 @@
                         }, 1000*l);
                         this.goldenPeiTimer = 0;
                     }
+                    this.milk = N(this.unlockedAchievementsCount).mul(this.breakCount.gte(3)?2:1).mul(Decimal.pow(2,this.milkLevel));
+                            
                 }, 1000);
 
                 setInterval(() => {
