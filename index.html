@@ -430,14 +430,14 @@
                  class="tab clickable"
                  :class="{ 'active-tab': currentTab === index }"
                  @click="currentTab = index">
-                {{ tab }}
+                {{ t(`t${index}_0`) }}
             </div>
         </div>
 
         <!-- 建筑选项卡 -->
         <div v-if="currentTab === 0">
             <div class="bulk-selector">
-                购买数量:
+                {{ t('t0_1') }}
                 <select v-model="bulkAmount">
                     <option value="1">×1</option>
                     <option value="10">×10</option>
@@ -447,19 +447,19 @@
                     <option value="100000">×100000</option>
                     <option value="1000000">×1000000</option>
                 </select>
-                <button @click="buyAllBuilding" v-show="ascensionCount.gte(1)">一键购买</button>
+                <button @click="buyAllBuilding" v-show="ascensionCount.gte(1)">{{ t('t0_2') }}</button>
             </div>
             <div class="building-grid">
                 <div class="divider">----------------------------------------------------------------</div>
                 <div v-for="(building, index) in buildings" :key="index" class="building">
-                    &nbsp;&nbsp;建筑{{ building.id + 1 }}&nbsp;&nbsp;<br />
-                    &nbsp;&nbsp;数量:{{ formatInt(building.quantity) }}&nbsp;&nbsp;<br />
-                    &nbsp;&nbsp;基础佩干/秒:{{ format(building.baseProd) }}&nbsp;&nbsp;<br />
-                    &nbsp;&nbsp;佩干/秒:{{ format(building.production) }}&nbsp;&nbsp;
+                    &nbsp;&nbsp;{{ t('t0_3') }}{{ building.id + 1 }}&nbsp;&nbsp;<br />
+                    &nbsp;&nbsp;{{ t('t0_4') }}{{ formatInt(building.quantity) }}&nbsp;&nbsp;<br />
+                    &nbsp;&nbsp;{{ t('t0_5') }}{{ format(building.baseProd) }}&nbsp;&nbsp;<br />
+                    &nbsp;&nbsp;{{ t('t0_6') }}{{ format(building.production) }}&nbsp;&nbsp;
                     <button @click="buyBuilding(index)"
                             :disabled="peiCount.lt(calcBulkCost(index))">
-                        购买 ×{{ bulkAmount }}<br />
-                        花费 {{ format(calcBulkCost(index)) }} 佩干
+                        {{ t('t0_7') }}{{ bulkAmount }}<br />
+                        {{ t('t0_8') }} {{ format(calcBulkCost(index)) }} {{ t('t0_9') }}
                     </button>
                 </div>
             </div>
@@ -467,11 +467,11 @@
 
         <!-- 升级选项卡 -->
         <div v-if="currentTab === 1">
-            <div style="font-size:24px">升级 ({{ unlockedUpgradesCount }}/{{ upgrades.length }})</div>
+            <div style="font-size:24px">{{ t('t1_1') }} ({{ unlockedUpgradesCount }}/{{ upgrades.length }})</div>
             <div class="bulk-selector">
-                <button @click="upgShowType = 1">显示未购买</button>
-                <button @click="upgShowType = 2">显示已购买</button>
-                <button @click="buyAllUpgrades" v-show="ascensionCount.gte(1)">一键购买</button>
+                <button @click="upgShowType = 1">{{ t('t1_2') }}</button>
+                <button @click="upgShowType = 2">{{ t('t1_3') }}</button>
+                <button @click="buyAllUpgrades" v-show="ascensionCount.gte(1)">{{ t('t1_4') }}</button>
             </div>
             <div class="upgrade-grid">
                 <div class="divider">----------------------------------------------------------------</div>
@@ -480,30 +480,30 @@
                      v-if="showUpgrade(upgrade)"
                      class="upgrade">
                     <div>
-                        升级{{ upgrade.buildingId }}-{{ upgrade.id }}
-                        <span v-if="upgrade.buildingId==1 & upgrade.id<4">点击和建筑 1 生产的佩干×2 </span>
-                        <span v-if="upgrade.buildingId==1 & upgrade.id==4">每个建筑使点击和建筑 1 生产的佩干 +1 </span>
-                        <span v-if="upgrade.buildingId==1 & upgrade.id>4 & upgrade.id<=20">升级 1-4 的效果 ×20 </span>
-                        <span v-if="upgrade.buildingId<100 & upgrade.buildingId>1 & upgrade.id<=20">建筑 {{upgrade.buildingId}} 的产量 ×2 </span>
-                        <span v-if="upgrade.buildingId<100 & upgrade.id>20">建筑 {{upgrade.buildingId}} 的产量 ×{{format(Decimal.pow(buildings[upgrade.buildingId-1].baseCost,0.1).mul(upgrade.buildingId==1?1:1e3))}}，从 {{(upgrade.id-20)*(upgrade.id-19)*1000}} 个建筑 {{upgrade.buildingId}} 开始，每100个建筑 {{upgrade.buildingId}} 使它的产量 ×2 </span>   
-                        <span v-if="upgrade.buildingId==101">点击获得的佩干 +1% <del>每秒生产的佩干</del></span>
-                        <span v-if="upgrade.buildingId==102">释放牛奶力量(叠乘)，佩干产量 ×(1+牛奶*{{milkUpgradeBase[upgrade.id-1]*0.001.toFixed(3)}})</span>
-                        <span v-if="upgrade.buildingId==103">建筑 2 的产量 ×2, 建筑 {{upgrade.id+2}} 的产量 +1% 每拥有 {{upgrade.id}} 个建筑 2 </span>
-                        <span v-if="upgrade.buildingId==104 & upgrade.id<6">每个累计的飞升点使佩干产量 +{{Math.max(5,upgrade.id*25-25)}}%</span>
-                        <span v-if="upgrade.buildingId==104 & upgrade.id>=6">佩干产量乘数 +{{Math.pow(10,upgrade.id-6)}}%</span>
-                        <span v-if="upgrade.buildingId==105">佩干产量乘数 +{{Math.floor((upgrade.id-1)/10)+1}}%</span>
-                        <span v-if="upgrade.buildingId==106">佩干产量乘数 +10% (需要每个建筑数量{{upgrade.required}})</span>
-                        <span v-if="upgrade.buildingId==107 & upgrade.id==1">金佩勒出现频率翻倍，在屏幕上的持续时间翻倍</span>
-                        <span v-if="upgrade.buildingId==107 & upgrade.id==2"><del>金佩勒出现频率翻倍，在屏幕上的持续时间翻倍</del>(被佩勒删除)</span>
-                        <span v-if="upgrade.buildingId==107 & upgrade.id==3"><del>金佩勒效果的持续时间翻倍</del>(被佩勒删除)</span>
-                        <span v-if="upgrade.buildingId==107 & upgrade.id==4">（这个升级是为了降低时间墙而添加的）佩干产量×1.01^max(50-飞升点/20, 0)（即佩干产量乘以约1.64，随飞升点获取增多，乘数逐渐减少到1）</span>
-                        <span v-if="upgrade.buildingId==108">每个建筑 {{upgrade.id+1}} 增加 1% 建筑 {{upgrade.id+2}} 的产量，每个建筑 {{upgrade.id+2}} 增加 0.1% 建筑 {{(upgrade.id)%40+3}} 的产量</span>
-                        <span v-if="upgrade.buildingId==109">每个建筑 {{upgrade.id}} 增加 1% 建筑 {{upgrade.id+2}} 的产量，每个建筑 {{upgrade.id+2}} 增加 0.1% 建筑 {{(upgrade.id+1)%40+3}} 的产量</span>
-                        <span v-if="upgrade.buildingId==110">释放糖块力量(叠乘)，佩干产量 ×(1+糖块*{{milkUpgradeBase[upgrade.id-1]*0.001.toFixed(3)}})</span>
+                        {{ t('t1_5') }}{{ upgrade.buildingId }}-{{ upgrade.id }}
+                        <span v-if="upgrade.buildingId==1 & upgrade.id<4">{{ t('t1_6') }}</span>
+                        <span v-if="upgrade.buildingId==1 & upgrade.id==4">{{ t('t1_7') }}</span>
+                        <span v-if="upgrade.buildingId==1 & upgrade.id>4 & upgrade.id<=20">{{ t('t1_8') }}</span>
+                        <span v-if="upgrade.buildingId<100 & upgrade.buildingId>1 & upgrade.id<=20">{{ t('t1_9') }}{{upgrade.buildingId}}{{ t('t1_10') }}</span>
+                        <span v-if="upgrade.buildingId<100 & upgrade.id>20">{{ t('t1_9') }}{{upgrade.buildingId}}{{ t('t1_11') }}{{format(Decimal.pow(buildings[upgrade.buildingId-1].baseCost,0.1).mul(upgrade.buildingId==1?1:1e3))}}{{ t('t1_12') }}{{(upgrade.id-20)*(upgrade.id-19)*1000}}{{ t('t1_13') }}{{upgrade.buildingId}}{{ t('t1_14') }}{{upgrade.buildingId}}{{ t('t1_15') }}</span>   
+                        <span v-if="upgrade.buildingId==101">{{ t('t1_16') }}</span>
+                        <span v-if="upgrade.buildingId==102">{{ t('t1_17') }}{{milkUpgradeBase[upgrade.id-1]*0.001.toFixed(3)}}{{ t('t1_18') }}</span>
+                        <span v-if="upgrade.buildingId==103">{{ t('t1_19') }}{{upgrade.id+2}}{{ t('t1_20') }}{{upgrade.id}}{{ t('t1_21') }}</span>
+                        <span v-if="upgrade.buildingId==104 & upgrade.id<6">{{ t('t1_22') }}{{Math.max(5,upgrade.id*25-25)}}{{ t('t1_23') }}</span>
+                        <span v-if="upgrade.buildingId==104 & upgrade.id>=6">{{ t('t1_24') }}{{Math.pow(10,upgrade.id-6)}}{{ t('t1_25') }}</span>
+                        <span v-if="upgrade.buildingId==105">{{ t('t1_26') }}{{Math.floor((upgrade.id-1)/10)+1}}{{ t('t1_23') }}</span>
+                        <span v-if="upgrade.buildingId==106">{{ t('t1_26') }}10{{ t('t1_27') }}{{upgrade.required}}{{ t('t1_28') }}</span>
+                        <span v-if="upgrade.buildingId==107 & upgrade.id==1">{{ t('t1_29') }}</span>
+                        <span v-if="upgrade.buildingId==107 & upgrade.id==2">{{ t('t1_30') }}</span>
+                        <span v-if="upgrade.buildingId==107 & upgrade.id==3">{{ t('t1_31') }}</span>
+                        <span v-if="upgrade.buildingId==107 & upgrade.id==4">{{ t('t1_32') }}</span>
+                        <span v-if="upgrade.buildingId==108">{{ t('t1_33') }}{{upgrade.id+1}}{{ t('t1_34') }}{{upgrade.id+2}}{{ t('t1_35') }}{{upgrade.id+2}}{{ t('t1_36') }}{{(upgrade.id)%40+3}}{{ t('t1_37') }}</span>
+                        <span v-if="upgrade.buildingId==109">{{ t('t1_38') }}{{upgrade.id}}{{ t('t1_39') }}{{upgrade.id+2}}{{ t('t1_40') }}{{upgrade.id+2}}{{ t('t1_41') }}{{(upgrade.id+1)%40+3}}{{ t('t1_42') }}</span>
+                        <span v-if="upgrade.buildingId==110">{{ t('t1_43') }}{{milkUpgradeBase[upgrade.id-1]*0.001.toFixed(3)}}{{ t('t1_44') }}</span>
                     </div>
                     <button @click="buyUpgrade(upgrade.id, upgrade.buildingId)"
                             :disabled="!canBuyUpgrade(upgrade)">
-                        {{ format(upgrade.cost.mul(upgradeCostMult)) }} 佩干
+                        {{ format(upgrade.cost.mul(upgradeCostMult)) }} {{ t('t1_45') }}
                     </button>
                 </div>
             </div>
@@ -511,11 +511,11 @@
 
         <!-- 成就选项卡 -->
         <div v-if="currentTab === 2">
-            <div style="font-size:24px">成就 ({{ unlockedAchievementsCount }}/{{ achievements.length }})</div>
+            <div style="font-size:24px">{{ t('t2_1') }} ({{ unlockedAchievementsCount }}/{{ achievements.length }})</div>
             <div class="bulk-selector">
-                <button @click="achShowType = 1">显示全部</button>
-                <button @click="achShowType = 2">显示已完成</button>
-                <button @click="achShowType = 3">显示未完成</button>
+                <button @click="achShowType = 1">{{ t('t2_2') }}</button>
+                <button @click="achShowType = 2">{{ t('t2_3') }}</button>
+                <button @click="achShowType = 3">{{ t('t2_4') }}</button>
             </div>
             <div class="achievement-grid">
                 <div class="divider">----------------------------------------------------------------</div>
@@ -524,14 +524,14 @@
                 class="achievement" :class="{ 'unlocked': achievement.unlocked }"
                 v-if="achShowType==1 || (achShowType==2 && achievement.unlocked) || (achShowType==3 && !achievement.unlocked)">
                     <div class="achievement-info">
-                        {{ achievement.unlocked ? '√' : '×' }} 成就{{ achievement.buildingId }}-{{ achievement.id }}
-                        <span v-if="achievement.buildingId<100">拥有 {{formatInt(achievement.required)}} 个建筑 {{achievement.buildingId}}</span>
-                        <span v-if="achievement.buildingId==101">累计获得 {{format(achievement.required)}} 个佩干</span>
-                        <span v-if="achievement.buildingId==102">每秒生产 {{format(achievement.required)}} 个佩干</span>
-                        <span v-if="achievement.buildingId==103">点击获得 {{format(achievement.required)}} 个佩干</span>
-                        <span v-if="achievement.buildingId==104">累计获得 {{format(achievement.required)}} 个飞升点</span>
-                        <span v-if="achievement.buildingId==105">累计获得 {{format(achievement.required)}} 个轮回点</span>
-                        <span v-if="achievement.buildingId==106">累计获得 {{format(achievement.required)}} 个觉醒点</span>
+                        {{ achievement.unlocked ? '√' : '×' }} {{ t('t2_5') }}{{ achievement.buildingId }}-{{ achievement.id }}
+                        <span v-if="achievement.buildingId<100">{{ t('t2_6') }}{{formatInt(achievement.required)}}{{ t('t2_7') }}{{achievement.buildingId}}</span>
+                        <span v-if="achievement.buildingId==101">{{ t('t2_8') }}{{format(achievement.required)}}{{ t('t2_9') }}</span>
+                        <span v-if="achievement.buildingId==102">{{ t('t2_10') }}{{format(achievement.required)}}{{ t('t2_11') }}</span>
+                        <span v-if="achievement.buildingId==103">{{ t('t2_12') }}{{format(achievement.required)}}{{ t('t2_13') }}</span>
+                        <span v-if="achievement.buildingId==104">{{ t('t2_14') }}{{format(achievement.required)}}{{ t('t2_15') }}</span>
+                        <span v-if="achievement.buildingId==105">{{ t('t2_16') }}{{format(achievement.required)}}{{ t('t2_17') }}</span>
+                        <span v-if="achievement.buildingId==106">{{ t('t2_18') }}{{format(achievement.required)}}{{ t('t2_19') }}</span>
                     </div>
                 </div>
             </div>
@@ -540,40 +540,40 @@
         <!--传送门选项卡-->
         <div v-if="currentTab === 3">
             <div class="divider">----------------------------------------------------------------</div>
-            <div>点击传送进入其他区域，区域中的选项卡将发生变化，但不会重置任何资源</div>
+            <div>{{ t('t3_1') }}</div>
             <div class="upgrade-item">
-                佩干宇宙 - {{format(peiCount)}}佩干 {{currentArea==1?"（当前区域）":""}}
+                {{ t('t3_2') }} - {{format(peiCount)}}佩干 {{currentArea==1?"（当前区域）":""}}
                 <button @click="currentArea = 1" :disabled="currentArea==1">
-                    传送
+                    {{ t('t3_5') }}
                 </button>
             </div>
             <div class="upgrade-item">
-                中生代山谷 - {{format(fosskie)}}化石饼干 {{currentArea==2?"（当前区域）":""}}
+                {{ t('t3_6') }} - {{format(fosskie)}}化石饼干 {{currentArea==2?"（当前区域）":""}}
                 <button @click="currentArea = 2" :disabled="currentArea==2" v-if="this.hypercendU[2].level.gte(1)">
-                    传送
+                    {{ t('t3_5') }}
                 </button>
                 <span v-else>（需要觉醒升级3，1e12觉醒点）</span>
             </div>
             <div class="upgrade-item">
-                超越 - {{format(starkie)}}星尘饼干 {{currentArea==4?"（当前区域）":""}}
+                {{ t('t3_9') }} - {{format(starkie)}}星尘饼干 {{currentArea==4?"（当前区域）":""}}
                 <button @click="currentArea = 4" :disabled="currentArea==4" v-if="this.refineryU[2].level.gte(1)">
-                    传送
+                    {{ t('t3_5') }}
                 </button>
                 <span v-else>（需要炼糖厂升级3，1e12焦糖）</span>
             </div>
             <div class="upgrade-item">
-                探索中心（敬请期待）
+                {{ t('t3_12') }}
 
             </div>
             <div class="upgrade-item">
-                太空 {{currentArea==3?"（当前区域）":""}}
+                {{ t('t3_13') }} {{currentArea==3?"（当前区域）":""}}
                 <button @click="currentArea = 3" :disabled="currentArea==3" v-if="this.hypercendU[5].level.gte(1) || this.spaceResetCount.gte(1)">
-                    传送
+                    {{ t('t3_5') }}
                 </button>
                 <span v-else>（需要觉醒升级6，1e114觉醒点）</span>
             </div>
             <div class="upgrade-item">
-                恒星（敬请期待）
+                {{ t('t3_15') }}
 
             </div>
         </div>
@@ -582,35 +582,35 @@
         <div v-if="currentTab === 4">
             <div class="divider">----------------------------------------------------------------</div>
             <div v-if="canAscend">
-                <p>飞升将重置佩干、建筑和升级，获取 {{ format(this.totalShards.sub(this.totalRealityShards).max(0)) }} 飞升点 (下一个在 {{format(nextShards)}} 佩干)</p>
-                <button @click="ascend" style="padding:5px 20px" :disabled="this.totalShards.sub(this.totalRealityShards).lte(0)">飞升!</button>
+                <p>{{ t('t4_1') }}{{ format(this.totalShards.sub(this.totalRealityShards).max(0)) }}{{ t('t4_2') }}{{format(nextShards)}}{{ t('t4_3') }}</p>
+                <button @click="ascend" style="padding:5px 20px" :disabled="this.totalShards.sub(this.totalRealityShards).lte(0)">{{ t('t4_4') }}</button>
             </div>
             <div v-else>
-                <p>飞升(ascend)需要 1e12 累计佩干 ({{ format(totalLifetimePei) }}/1e12)</p>
+                <p>{{ t('t4_5') }}{{ format(totalLifetimePei) }}{{ t('t4_6') }}</p>
             </div>
             <div v-if="this.ascensionCount.gte(1)" class="shop">
-                <h4>飞升升级 (你有 {{ format(realityShards) }}/{{format(totalRealityShards)}} 飞升点)</h4>
+                <h4>{{ t('t4_7') }}{{ format(realityShards) }}{{ t('t4_8') }}{{format(totalRealityShards)}}{{ t('t4_9') }}</h4>
                 <div class="bulk-selector">
-                    <button @click="buyAllAscendU" v-show="ascensionCount.gte(1)">一键购买</button>
-                    <button @click="refundAscendU">回退</button>
+                    <button @click="buyAllAscendU" v-show="ascensionCount.gte(1)">{{ t('t4_10') }}</button>
+                    <button @click="refundAscendU">{{ t('t4_11') }}</button>
                 </div>
                 <div v-for="upgrade in ascendU" :key="upgrade.id" class="upgrade-item">
                     {{auDescription[upgrade.id-1]}}<br />
-                    等级 {{ formatInt(upgrade.level) }}/{{ formatInt(upgrade.maxLevel) }}
+                    {{ t('t4_12') }}{{ formatInt(upgrade.level) }}{{ t('t4_13') }}{{ formatInt(upgrade.maxLevel) }}
                     <button @click="buyAscendU(upgrade.id-1)"
                             :disabled="realityShards.lt(upgrade.cost) || upgrade.level.gte(upgrade.maxLevel)">
-                        {{ format(upgrade.cost) }} 飞升点
+                        {{ format(upgrade.cost) }}{{ t('t4_14') }}
                     </button>
                     <button v-show="ascendU[8].level.gte(1) & upgrade.id==9" @click="switchGolden">
-                        金佩勒：{{enableGolden?"启用":"禁用"}}
+                        {{ t('t4_15') }}{{enableGolden?t('t4_16'):t('t4_17')}}
                     </button>
                     <button v-show="ascendU[16].level.gte(1) & upgrade.id==17" @click="switchClick">
-                        点击：{{enableClick?"启用":"禁用"}}
+                        {{ t('t4_18') }}{{enableClick?t('t4_16'):t('t4_17')}}
                     </button>
                 </div>
             </div>
             <div v-else class="shop">
-                <p>飞升一次以解锁</p>
+                <p>{{ t('t4_19') }}</p>
             </div>
         </div>
 
@@ -618,39 +618,39 @@
         <div v-if="currentTab === 5">
             <div class="divider">----------------------------------------------------------------</div>
             <div v-if="canTranscend">
-                <p>轮回将重置佩干、建筑、升级、飞升点和飞升升级，获取 {{ format(this.totalTP.sub(this.totalTranscendPoints).max(0)) }} 轮回点(下一个在 {{format(nextTP)}} 飞升点)</p>
-                <button @click="transcend" style="padding:5px 20px" :disabled="this.totalTP.sub(this.totalTranscendPoints).lte(0)">轮回!</button>
+                <p>{{ t('t5_1') }}{{ format(this.totalTP.sub(this.totalTranscendPoints).max(0)) }}{{ t('t5_2') }}{{format(nextTP)}}{{ t('t5_3') }}</p>
+                <button @click="transcend" style="padding:5px 20px" :disabled="this.totalTP.sub(this.totalTranscendPoints).lte(0)">{{ t('t5_4') }}</button>
             </div>
             <div v-else>
-                <p>轮回(transcend)需要 1e12 累计飞升点 ({{ format(totalRealityShards) }}/1e12)</p>
+                <p>{{ t('t5_5') }}{{ format(totalRealityShards) }}{{ t('t5_6') }}</p>
             </div>
             <div v-if="this.transcensionCount.gte(1)" class="shop">
-                <div>你的总计轮回点数使佩干产量乘以{{format(transcendBonus)}}</div>
-                <h4>轮回神器 (你有{{ format(transcendPoints) }}/{{ format(totalTranscendPoints) }} 轮回点)</h4>
+                <div>{{ t('t5_7') }}{{format(transcendBonus)}}</div>
+                <h4>{{ t('t5_8') }}{{ format(transcendPoints) }}{{ t('t5_9') }}{{ format(totalTranscendPoints) }}{{ t('t5_10') }}</h4>
                 <div class="bulk-selector">
-                    <button @click="buyAllTranscendU" v-show="breakCount.gte(1)">一键购买</button>
-                    <button @click="refundTranscendU">回退</button>
+                    <button @click="buyAllTranscendU" v-show="breakCount.gte(1)">{{ t('t5_11') }}</button>
+                    <button @click="refundTranscendU">{{ t('t5_12') }}</button>
                 </div>
                 <div v-for="upgrade in transcendU" :key="upgrade.id" class="upgrade-item" v-if="upgrade.id<=12">
                     {{tuDescription[upgrade.id-1]}}<br />
-                    等级 {{ formatInt(upgrade.level) }}/9,990
+                    {{ t('t5_13') }}{{ formatInt(upgrade.level) }}{{ t('t5_14') }}
                     <button @click="buyTranscendU(upgrade.id-1)" 
                             :disabled="transcendPoints.lt(upgrade.cost)">
-                        {{ format(upgrade.cost) }} 轮回点
+                        {{ format(upgrade.cost) }}{{ t('t5_15') }}
                     </button>
                 </div>
-                <p>普通轮回升级</p>
+                <p>{{ t('t5_16') }}</p>
                 <div v-for="upgrade in transcendU" :key="upgrade.id" class="upgrade-item" v-if="upgrade.id>=13">
                     {{tuDescription[upgrade.id-1]}}<br />
-                    等级 {{ formatInt(upgrade.level) }}/{{upgrade.maxLevel}}
+                    {{ t('t5_13') }}{{ formatInt(upgrade.level) }}{{ t('t5_17') }}{{upgrade.maxLevel}}
                     <button @click="buyTranscendU(upgrade.id-1)" 
                             :disabled="transcendPoints.lt(upgrade.cost) | upgrade.level.gte(upgrade.maxLevel)">
-                        {{ format(upgrade.cost) }} 轮回点
+                        {{ format(upgrade.cost) }}{{ t('t5_15') }}
                     </button>
                 </div>
             </div>
             <div v-else class="shop">
-                <p>轮回一次以解锁</p>
+                <p>{{ t('t5_18') }}</p>
             </div>
         </div>
 
@@ -658,21 +658,21 @@
         <div v-if="currentTab === 6">
             <div class="divider">----------------------------------------------------------------</div>
             <div v-if=canBreak>
-                <p>破碎将重置佩干、建筑、升级、飞升点、飞升升级、轮回点、轮回神器和升级，增加1次破碎次数</p>
-                <button @click="doBreak" style="padding:5px 20px">破碎!</button>
+                <p>{{ t('t6_1') }}</p>
+                <button @click="doBreak" style="padding:5px 20px">{{ t('t6_2') }}</button>
             </div>
             <div v-else>
-                <p>破碎(break)需要 {{format(nextBreak)}} 累计轮回点 ({{ format(totalTranscendPoints) }}/{{format(nextBreak)}})</p>
+                <p>{{ t('t6_3') }}{{format(nextBreak)}}{{ t('t6_4') }}{{ format(totalTranscendPoints) }}{{ t('t6_5') }}{{format(nextBreak)}}{{ t('t6_6') }}</p>
             </div>
             <div v-if="this.breakCount.gte(1)" class="shop">
-                <h4>破碎里程碑 (你破碎了{{ formatInt(this.breakCount) }}次)</h4>
+                <h4>{{ t('t6_7') }}{{ formatInt(this.breakCount) }}{{ t('t6_8') }}</h4>
                 <div v-for="i in 16" class="upgrade-item" :class="{ 'unlocked': breakCount.gte(i<=8?i:i<=12?i*8-56:i*250-3000) }">
-                    破碎{{i<=8?i:i<=12?i*8-56:i*250-3000}}次<br />
+                    {{ t('t6_9') }}{{i<=8?i:i<=12?i*8-56:i*250-3000}}{{ t('t6_10') }}
                     {{bmDescription[i-1]}}
                 </div>
             </div>
             <div v-else class="shop">
-                <p>破碎一次以解锁</p>
+                <p>{{ t('t6_11') }}</p>
             </div>
         </div>
 
@@ -680,45 +680,45 @@
         <div v-if="currentTab === 7">
             <div class="divider">----------------------------------------------------------------</div>
             <div v-if="canHypercend">
-                <p>觉醒将重置破碎重置的内容（但保留破碎次数），获取 {{format(this.HPGain)}} 觉醒点</p>
-                <button @click="hypercend" style="padding:5px 20px">觉醒!</button>
+                <p>{{ t('t7_1') }}{{format(this.HPGain)}}{{ t('t7_2') }}</p>
+                <button @click="hypercend" style="padding:5px 20px">{{ t('t7_3') }}</button>
             </div>
             <div v-else>
-                <p>觉醒(hypercend)需要 8 次破碎 ({{ formatInt(breakCount) }}/8) 和 1e308 佩干 ({{ format(totalLifetimePei) }}/1e308)</p>
+                <p>{{ t('t7_4') }}{{ formatInt(breakCount) }}{{ t('t7_5') }}{{ format(totalLifetimePei) }}{{ t('t7_6') }}</p>
             </div>
             <div v-if="this.hypercendCount.gte(1)" class="shop">
                 <div>
-                    你有{{format(this.hypercendPoints)}}觉醒点，{{format(this.totalHypercendPoints)}}累计觉醒点，{{format(this.maxHypercendPoints)}}最高觉醒点
+                    {{ t('t7_7') }}{{format(this.hypercendPoints)}}{{ t('t7_8') }}{{format(this.totalHypercendPoints)}}{{ t('t7_9') }}{{format(this.maxHypercendPoints)}}{{ t('t7_10') }}
                 </div>
-                <h4>觉醒升级</h4> 
+                <h4>{{ t('t7_11') }}</h4> 
                 <div v-for="upgrade in hypercendU" :key="upgrade.id" class="upgrade-item">
                     {{huDescription[upgrade.id-1]}}<br />
-                    等级 {{ formatInt(upgrade.level) }}/{{ upgrade.maxLevel }}
+                    {{ t('t7_12') }}{{ formatInt(upgrade.level) }}{{ t('t7_13') }}{{ upgrade.maxLevel }}
                     <button @click="buyHypercendU(upgrade.id-1)"
                             :disabled="hypercendPoints.lt(upgrade.cost) | upgrade.level.gte(upgrade.maxLevel)">
-                        {{ format(upgrade.cost) }} 觉醒点
+                        {{ format(upgrade.cost) }}{{ t('t7_14') }}
                     </button>
                     <button @click="buyMaxHypercendU(upgrade.id-1)">
-                        购买最大
+                        {{ t('t7_15') }}
                     </button>
                 </div>
             </div>
             <div v-else class="shop">
-                <p>觉醒一次以解锁</p>
+                <p>{{ t('t7_16') }}</p>
             </div>
         </div>
 
         <!-- 自动化选项卡 -->
         <div v-if="currentTab === 8">
             <div class="divider">----------------------------------------------------------------</div>
-            <h4>自动化升级</h4>
+            <h4>{{ t('t8_1') }}</h4>
             <div v-for="upgrade in automation" :key="upgrade.id" class="upgrade-item" v-if="upgrade.id<=(nobreakRecord.gte('1e25000')?24:sweetenCount.gte(1)?18:hypercendU[4].level.gte(1)?14:9)">
                 {{autoDescription[upgrade.id-1]}}<br />
                 <button @click="buyAuto(upgrade.id-1)" :disabled="upgrade.unlocked">
-                    解锁需要 {{format(upgrade.cost)}} 佩干
+                    {{ t('t8_2') }}{{format(upgrade.cost)}}{{ t('t8_3') }}
                 </button>
                 <button @click="toggleAuto(upgrade.id-1)" :disabled="!upgrade.unlocked">
-                    {{upgrade.activate?"开启":"关闭"}}
+                    {{upgrade.activate?t('t8_4'):t('t8_5')}}
                 </button>
             </div>
         </div>
@@ -727,118 +727,117 @@
         <div v-if="currentTab === 9">
             <div class="divider">----------------------------------------------------------------</div>
             <div v-if="hypercendU[0].level.gte(1)">
-                你有 {{format(hyperCharge)}} 觉醒充能 (+{{format(HCProduction)}}/s)，它将你的佩干产量提高 {{format(hyperEffect(0))}} 倍。<br />
-                <h4>觉醒神器</h4>
+                {{ t('t9_1') }}{{format(hyperCharge)}}{{ t('t9_2') }}{{format(HCProduction)}}{{ t('t9_3') }}{{format(hyperEffect(0))}}{{ t('t9_4') }}<br />
+                <h4>{{ t('t9_5') }}</h4>
                 <div v-for="upgrade in hyperChargeU" :key="upgrade.id" class="upgrade-item" v-if="upgrade.id<=(refineryU[2].level.gte(1)?20:16)">
-                    觉醒神器{{upgrade.id}}：{{hcDescription[upgrade.id-1]}}<br />
-                    当前效果：×{{format(hyperEffect(upgrade.id))}}<br />
+                    {{ t('t9_6') }}{{upgrade.id}}{{ t('t9_7') }}{{hcDescription[upgrade.id-1]}}<br />
+                    {{ t('t9_8') }}{{format(hyperEffect(upgrade.id))}}<br />
                     <button @click="buyHyperChargeU(upgrade.id-1)" 
                             :disabled="hypercendPoints.lt(upgrade.cost)">
-                        {{upgrade.unlocked?"已解锁":"解锁需要"+format(upgrade.cost)+"觉醒点"}}
+                        {{upgrade.unlocked?t('t9_9'):t('t9_10')+format(upgrade.cost)+t('t9_11')}}<br />
                     </button>
                 </div>
             </div>
             <div v-else>
-                需要购买觉醒升级1
+                {{ t('t9_12') }}
             </div>
         </div>
 
         <!-- 统计选项卡 -->
         <div v-if="currentTab === 10">
-            <h3>统计:</h3>
-            <div>当前佩干: {{format(peiCount)}}</div>
-            <div>本次飞升中的佩干: {{format(thisAscendPei)}}</div>
-            <div>累计佩干: {{format(totalLifetimePei)}}</div>
-            <div>佩干每秒: {{format(peiPerSecond)}}</div>
-            <div>点击获得的佩干: {{format(totalClickPei)}}</div>
-            <div>佩干每次点击: {{format(peiPerClick)}}</div>
-            <div>金佩勒点击数: {{goldenPeiClick}}</div>
-            <div>飞升次数: {{format(ascensionCount)}}</div>
-            <div>当前飞升点: {{format(realityShards)}}</div>
-            <div>累计飞升点: {{format(totalRealityShards)}}</div>
-            <div>轮回次数: {{format(transcensionCount)}}</div>
-            <div>当前轮回点: {{format(transcendPoints)}}</div>
-            <div>累计轮回点: {{format(totalTranscendPoints)}}</div>
-            <div>觉醒次数: {{format(hypercendCount)}}</div>
-            <div>当前觉醒点: {{format(hypercendPoints)}}</div>
-            <div>累计觉醒点: {{format(totalHypercendPoints)}}</div>
-            <div>金佩勒计时：{{Math.floor(this.goldenPeiTimer)}}/{{this.goldenPeiTimeCap.toFixed(0)}}</div>
-            <div>糖块计时: {{ Math.floor(playTime) }}/{{this.sugarTimeCap.toFixed(0)}}</div>
-            <div>牛奶乘数: x{{ format(milkBonus) }}</div>
-            <div>糖块乘数: x{{ format(sugarBonus) }}</div>
-            <div>升级乘数: x{{ format(upgradeBonus) }}</div>
-            <div>飞升乘数: x{{ format(ascendBonus) }}</div>
-            <div>轮回乘数: x{{ format(transcendBonus) }}</div>
-            <div>破碎乘数: x{{ format(breakBonus) }}</div>
-            <div>觉醒乘数: x{{ format(hypercendBonus) }}</div>
+            <h3>{{ t('t10_1') }}</h3>
+            <div>{{ t('t10_2') }} {{format(peiCount)}}</div>
+            <div>{{ t('t10_3') }} {{format(thisAscendPei)}}</div>
+            <div>{{ t('t10_4') }} {{format(totalLifetimePei)}}</div>
+            <div>{{ t('t10_5') }} {{format(peiPerSecond)}}</div>
+            <div>{{ t('t10_6') }} {{format(totalClickPei)}}</div>
+            <div>{{ t('t10_7') }} {{format(peiPerClick)}}</div>
+            <div>{{ t('t10_8') }} {{goldenPeiClick}}</div>
+            <div>{{ t('t10_9') }} {{format(ascensionCount)}}</div>
+            <div>{{ t('t10_10') }} {{format(realityShards)}}</div>
+            <div>{{ t('t10_11') }} {{format(totalRealityShards)}}</div>
+            <div>{{ t('t10_12') }} {{format(transcensionCount)}}</div>
+            <div>{{ t('t10_13') }} {{format(transcendPoints)}}</div>
+            <div>{{ t('t10_14') }} {{format(totalTranscendPoints)}}</div>
+            <div>{{ t('t10_15') }} {{format(hypercendCount)}}</div>
+            <div>{{ t('t10_16') }} {{format(hypercendPoints)}}</div>
+            <div>{{ t('t10_17') }} {{format(totalHypercendPoints)}}</div>
+            <div>{{ t('t10_18') }} {{Math.floor(this.goldenPeiTimer)}}{{ t('t10_19') }}{{this.goldenPeiTimeCap.toFixed(0)}}</div>
+            <div>{{ t('t10_20') }} {{ Math.floor(playTime) }}{{ t('t10_19') }}{{this.sugarTimeCap.toFixed(0)}}</div>
+            <div>{{ t('t10_21') }} {{ format(milkBonus) }}</div>
+            <div>{{ t('t10_22') }} {{ format(sugarBonus) }}</div>
+            <div>{{ t('t10_23') }} {{ format(upgradeBonus) }}</div>
+            <div>{{ t('t10_24') }} {{ format(ascendBonus) }}</div>
+            <div>{{ t('t10_25') }} {{ format(transcendBonus) }}</div>
+            <div>{{ t('t10_26') }} {{ format(breakBonus) }}</div>
+            <div>{{ t('t10_27') }} {{ format(hypercendBonus) }}</div>
             <!-- 原有统计信息... -->
         </div>
 
         <!-- 杂项选项卡 -->
         <div v-if="currentTab === 11">
-            <button @click="saveGame()">导出</button>
-            <button @click="loadGame()">导入</button>
-            <button @click="hardReset()" style="color:red">硬重置</button>
+            <button @click="saveGame()">{{ t('t11_0') }}</button>
+            <button @click="loadGame()">{{ t('t11_1') }}</button>
+            <button @click="hardReset()" style="color:red">{{ t('t11_2') }}</button>
+            <button @click="toggleLanguage()">{{ t('t11_35') }}</button>
             <div>
-                佩乐点点勒（pelkie clicker）-v0.5.0-作者：6左爷6<br />
-                （又叫做cookie clicker NG+3）<br />
-                本游戏参考了《饼干点点乐》、《王朝之系谱》、《从细胞到奇点》、《真实割草增量》，<del>你可以点击链接游玩它们</del><br />
-                后续可能的更新：香料（第5层重置）、恒星（第6层重置）、
-                副本2（超越，它的进度增加牛奶加成）、炼乳重置（2-1）、奶油重置（2-2）、梦游/黄油重置（2-3）、
-                副本3（探索中心）、？？重置（3-1）、？？重置（3-2）、？？/？？重置（3-3）等等
-                最终目标：到达1e9,000,000,000,000,000佩干并打败佩勒<br /><br />
-                游戏说明：<br />
-                糖块：每3600秒产生1(基础值)糖块，糖块有被动加成（相当于用糖块轮流给每个建筑升级但升级价格总为1），购买对应升级后，基于糖块数量提高佩干产量乘数<br />
-                牛奶：每获得1个成就，获得1(基础值)牛奶，购买对应升级后，基于牛奶数量提高佩干产量乘数，部分升级、里程碑或其他机制会增加每个成就提供的牛奶数量<br />
-                金佩勒：每420秒上方的♅区域会变成金色，点击♅后会随机获得一个效果：获得15佩干产量(25%)，佩干产量×6持续66秒(16.7%)，点击产量×666持续13秒(16.7%)，随机建筑产量+10%(11.1%)，佩干产量×15持续630秒(8.3%)，点击产量×1111持续8秒(8.3%)，建筑价格-50%持续5秒(5.6%)，升级价格-50%持续5秒(5.6%)，获得1个糖块(2.7%)<br /><br />
-                Pelle毁灭了你的饼干宇宙，把你的饼干变成了佩勒饼干，你无法逃离被毁灭的饼干宇宙，你在整个游戏中都会受到重大削弱。<br />
-                削弱:<br />
-                风味饼干升级被删除（天堂升级和建筑数量相关的除外）<br />
-                删除研究中心<br />
-                删除老奶奶末世<br />
-                删除季节<br />
-                删除小游戏<br />
-                协同升级效果被削弱<br />
-                无法用糖块升级建筑<br />
-                移除了一些飞升升级<br />
-                移除了一些成就<br />
-                金饼干效果中的"7"变成"6"<br />
-                升级和效果中的一些文字被删除<br />
-                天堂碎片在1e12后公式变为饼干^1/4<br />
-                增强:<br />
-                声望等级效果x100<br />
-                糖块生长速度×24<br />
-                新增22个建筑<br />
-                一开始就有6小时80%的离线收益<br />
-                糖块对建筑有被动加成<br />
-                新的声望层级和游戏内容<br />
+                {{ t('t11_3') }}<br />
+                {{ t('t11_4') }}<br />
+                {{ t('t11_5') }}<br />
+                {{ t('t11_6') }}
+                {{ t('t11_7') }}
+                {{ t('t11_8') }}
+                {{ t('t11_9') }}<br /><br />
+                {{ t('t11_10') }}<br />
+                {{ t('t11_11') }}<br />
+                {{ t('t11_12') }}<br />
+                {{ t('t11_13') }}<br /><br />
+                {{ t('t11_14') }}<br />
+                {{ t('t11_15') }}<br />
+                {{ t('t11_16') }}<br />
+                {{ t('t11_17') }}<br />
+                {{ t('t11_18') }}<br />
+                {{ t('t11_19') }}<br />
+                {{ t('t11_20') }}<br />
+                {{ t('t11_21') }}<br />
+                {{ t('t11_22') }}<br />
+                {{ t('t11_23') }}<br />
+                {{ t('t11_24') }}<br />
+                {{ t('t11_25') }}<br />
+                {{ t('t11_26') }}<br />
+                {{ t('t11_27') }}<br />
+                {{ t('t11_28') }}<br />
+                {{ t('t11_29') }}<br />
+                {{ t('t11_30') }}<br />
+                {{ t('t11_31') }}<br />
+                {{ t('t11_32') }}<br />
+                {{ t('t11_33') }}<br />
+                {{ t('t11_34') }}<br />
             </div>
         </div>
 
         <div v-if="currentTab === 12">
             <div>
-                解锁了中生代山谷…… 
-                佩勒：为了实现你的 [命运/使命/目标]，我们为什么不回忆一下呢？
-                毕竟，你一定喜欢 [错误/上帝/毁灭者] 荣耀的故事。<br />
-                你发现了一个奇怪的骨骼化石，现在我需要您模拟一个活体标本进行研究，
-                这些生物曾经是地球上的主要生命形式，也许可以了解它们是如何走向灭亡的。
-                您可以通过传送随时返回到主界面（佩干宇宙）。 <br />
-                基于化石饼干总数，获得对所有糖块升级的加成（×(1+化石饼干)^0.25）<br />
+                {{ t('t12_1') }} 
+                {{ t('t12_2') }}<br />
+                {{ t('t12_3') }}
+                {{ t('t12_4') }}<br />
+                {{ t('t12_5') }}<br />
                 <br />
-                到达1e12化石饼干后解锁“糖霜”重置，重置所有佩干生命，用糖霜升级一星特征<br />
-                到达1e48化石饼干后解锁“蜂蜜”重置，重置所有佩干生命和一星特征，用蜂蜜升级二星特征<br />
-                太空重置一次并到达1e192化石饼干后解锁变甜重置，重置所有佩干生命、一星、二星特征，基于变甜次数获得奖励<br />
-                变甜8次且到达1e308化石饼干后，解锁“焦糖”重置，重置变甜重置的内容，用焦糖升级三星特征<br />
+                {{ t('t12_6') }}<br />
+                {{ t('t12_7') }}<br />
+                {{ t('t12_8') }}<br />
+                {{ t('t12_9') }}<br />
                 <br />
-                化石饼干：{{format(fosskie)}}<br />
-                化石饼干总数：{{format(totalFosskie)}}<br />
-                本次重置中的化石饼干：{{format(resetFosskie)}}<br />
-                糖霜数量：{{format(icing)}}<br />
-                总计糖霜数量：{{format(totalIcing)}}<br />
-                蜂蜜数量：{{format(honey)}}<br />
-                总计蜂蜜数量：{{format(totalHoney)}}<br />
-                焦糖数量：{{format(caramel)}}<br />
-                总计焦糖数量：{{format(totalCaramel)}}<br />
+                {{ t('t12_10') }} {{format(fosskie)}}<br />
+                {{ t('t12_11') }} {{format(totalFosskie)}}<br />
+                {{ t('t12_12') }} {{format(resetFosskie)}}<br />
+                {{ t('t12_13') }} {{format(icing)}}<br />
+                {{ t('t12_14') }} {{format(totalIcing)}}<br />
+                {{ t('t12_15') }} {{format(honey)}}<br />
+                {{ t('t12_16') }} {{format(totalHoney)}}<br />
+                {{ t('t12_17') }} {{format(caramel)}}<br />
+                {{ t('t12_18') }} {{format(totalCaramel)}}<br />
             </div>
         </div>
 
@@ -900,36 +899,36 @@
         <div v-if="currentTab === 14">
             <div class="divider">----------------------------------------------------------------</div>
                 <div v-if="resetFosskie.gte(1e12)">
-                <p>糖霜重置将重置化石饼干和佩干生命（但保留自动生产）<br />获取 {{format(icingGain)}} 糖霜</p>
-                <button @click="icingReset" style="padding:5px 20px">糖霜重置</button>
+                <p>{{ t('t14_1') }} {{format(icingGain)}} {{ t('t14_3') }}</p>
+                <button @click="icingReset" style="padding:5px 20px">{{ t('t14_4') }}</button>
                 </div>
                 <div v-else>
-                需要1e12本次重置中的化石饼干才能进行糖霜重置<br />
+                {{ t('t14_5') }}<br />
                 {{format(resetFosskie)}}/1e12
                 </div>
                 <div v-if="resetFosskie.gte(1e48)" class="shop">
-                <p>蜂蜜重置将重置化石饼干、佩干生命、糖霜、一星性状<br />获取 {{format(honeyGain)}} 蜂蜜</p>
-                <button @click="honeyReset" style="padding:5px 20px">蜂蜜重置</button>
+                <p>{{ t('t14_6') }} {{format(honeyGain)}} {{ t('t14_8') }}</p>
+                <button @click="honeyReset" style="padding:5px 20px">{{ t('t14_9') }}</button>
                 </div>
                 <div v-else class="shop">
-                需要1e48本次重置中的化石饼干才能进行蜂蜜重置<br />
+                {{ t('t14_10') }}<br />
                 {{format(resetFosskie)}}/1e48
                 </div>
                 <div v-if="spaceResetCount.gte(1)">
                 <div v-if="resetFosskie.gte(nextSweeten)" class="shop">
-                <p>变甜重置将重置化石饼干、佩干生命、糖霜、一星性状、蜂蜜、二星性状<br />将变甜次数增加1</p>
-                <button @click="sweetenReset" style="padding:5px 20px">变甜重置</button>
+                <p>{{ t('t14_11') }}</p>
+                <button @click="sweetenReset" style="padding:5px 20px">{{ t('t14_13') }}</button>
                 </div>
                 <div v-else class="shop">
-                需要{{format(nextSweeten)}}本次重置中的化石饼干才能进行变甜重置<br />
+                {{ t('t14_14') }}{{format(nextSweeten)}}{{ t('t14_15') }}<br />
                 {{format(resetFosskie)}}/{{format(nextSweeten)}}
                 </div>
                 <div v-if="resetFosskie.gte(1e308) & sweetenCount.gte(8)" class="shop">
-                <p>焦糖重置将重置变甜重置的内容（但保留变甜次数）<br />获取 {{format(caramelGain)}} 焦糖</p>
-                <button @click="caramelReset" style="padding:5px 20px">焦糖重置</button>
+                <p>{{ t('t14_16') }} {{format(caramelGain)}} {{ t('t14_18') }}</p>
+                <button @click="caramelReset" style="padding:5px 20px">{{ t('t14_19') }}</button>
                 </div>
                 <div v-else class="shop">
-                需变甜8次和1e308本次重置中的化石饼干才能进行焦糖重置<br />
+                {{ t('t14_20') }}<br />
                 {{formatInt(sweetenCount)}}/8 {{format(resetFosskie)}}/1e308
                 </div>
             </div>
@@ -939,26 +938,26 @@
         <div v-if="currentTab === 15">
             <div class="divider">----------------------------------------------------------------</div>
             <div>
-                糖霜数量：{{format(icing)}}<br />
-                蜂蜜数量：{{format(honey)}}<br />
-                焦糖数量：{{format(caramel)}}<br />
-                <p>一星性状（共27种） 糖霜重置一次后可购买</p>
+                {{ t('t12_13') }} {{format(icing)}}<br />
+                {{ t('t12_15') }} {{format(honey)}}<br />
+                {{ t('t12_17') }} {{format(caramel)}}<br />
+                <p>{{ t('t15_1') }}</p>
                 <div v-for="(t, index) in traits" :key="index" class="pei-life" v-if="index<27">
-                    一星性状{{index+1}}: 每级将佩干生命{{index+1}}产量×2<br />
-                    等级：{{t.level}}，效果：×{{format(Decimal.pow(2,t.level))}}<br />
-                    <button @click="buyTrait(index)" :disabled="totalIcing.lte(0)">升级需要{{format(t.cost)}}糖霜</button>
+                    {{ t('t15_2') }}{{index+1}}: {{ t('t15_3') }}{{index+1}}{{ t('t15_4') }}<br />
+                    {{ t('t15_5') }}：{{t.level}}，{{ t('t15_6') }}：×{{format(Decimal.pow(2,t.level))}}<br />
+                    <button @click="buyTrait(index)" :disabled="totalIcing.lte(0)">{{ t('t15_7') }}{{format(t.cost)}}{{ t('t15_8') }}</button>
                 </div>
-                <p>二星性状（共12种） 蜂蜜重置一次后可购买</p>
+                <p>{{ t('t15_9') }}</p>
                 <div v-for="(t, index) in traits" :key="index" class="pei-life" v-if="index>=27 & index<39">
-                    二星性状{{index+1}}: 每级{{traitDescription[index-27]}}<br />
-                    等级：{{t.level}}，效果：×{{index<36?format(Decimal.pow(2,t.level)):format(t.level.mul(0.2).add(1))}}<br />
-                    <button @click="buyTrait(index)" :disabled="totalHoney.lte(0)">升级需要{{format(t.cost)}}蜂蜜</button>
+                    {{ t('t15_10') }}{{index+1}}: {{ t('t15_11') }}{{traitDescription[index-27]}}<br />
+                    {{ t('t15_5') }}：{{t.level}}，{{ t('t15_6') }}：×{{index<36?format(Decimal.pow(2,t.level)):format(t.level.mul(0.2).add(1))}}<br />
+                    <button @click="buyTrait(index)" :disabled="totalHoney.lte(0)">{{ t('t15_7') }}{{format(t.cost)}}{{ t('t15_12') }}</button>
                 </div>
-                <p>三星性状（共3种）</p>
+                <p>{{ t('t15_13') }}</p>
                 <div v-for="(t, index) in traits" :key="index" class="pei-life" v-if="index>=39 & index<42">
-                    三星性状{{index+1}}: 每级将{{index==39?"所有佩干生命产量×2":index==40?"所有佩干生命速度×2":"所有佩干生命价格÷2"}}<br />
-                    等级：{{t.level}}，效果：×{{format(Decimal.pow(2,t.level))}}<br />
-                    <button @click="buyTrait(index)" :disabled="totalCaramel.lte(0)">升级需要{{format(t.cost)}}焦糖</button>
+                    {{ t('t15_14') }}{{index+1}}: {{ t('t15_15') }}{{index==39?"所有佩干生命产量×2":index==40?"所有佩干生命速度×2":"所有佩干生命价格÷2"}}<br />
+                    {{ t('t15_5') }}：{{t.level}}，{{ t('t15_6') }}：×{{format(Decimal.pow(2,t.level))}}<br />
+                    <button @click="buyTrait(index)" :disabled="totalCaramel.lte(0)">{{ t('t15_7') }}{{format(t.cost)}}{{ t('t15_16') }}</button>
                 </div>
             </div>
         </div>
@@ -966,38 +965,38 @@
         <div v-if="currentTab === 16">
             <div class="divider">----------------------------------------------------------------</div>
             <div v-if="this.sweetenCount.gte(1)">
-                <h4>变甜里程碑 (你变甜了{{ formatInt(this.sweetenCount) }}次)</h4>
+                <h4>{{ t('t16_1') }} ({{ t('t16_2') }}{{ formatInt(this.sweetenCount) }}{{ t('t16_3') }})</h4>
                 <div v-for="i in 12" class="upgrade-item" :class="{ 'unlocked': sweetenCount.gte(i<=8?i:i*4-24) }">
-                    变甜{{i<=8?i:i*4-24}}次<br />
+                    {{ t('t16_4') }}{{i<=8?i:i*4-24}}{{ t('t16_3') }}<br />
                     {{sweetDescription[i-1]}}
                 </div>
             </div>
             <div v-else>
-                <p>变甜一次以解锁</p>
+                <p>{{ t('t16_5') }}</p>
             </div>
         </div>
 
         <div v-if="currentTab === 17">
             <div class="divider">----------------------------------------------------------------</div>
             <div v-if="this.totalCaramel.gte(1)">
-                <h4>炼糖厂升级</h4> 
+                <h4>{{ t('t17_1') }}</h4> 
                 <div v-if="refineryU[0].level.gte(1)">
-                    你有{{format(sugarCharge)}}糖分充能(+{{format(SCproduction)}}/s)，将化石饼干产量乘以{{format(sugarCharge.add(1))}}<br /><br />
+                    {{ t('t17_2') }}{{format(sugarCharge)}}{{ t('t17_3') }}(+{{format(SCproduction)}}/s){{ t('t17_4') }}{{format(sugarCharge.add(1))}}<br /><br />
                 </div>
                 <div v-for="upgrade in refineryU" :key="upgrade.id" class="upgrade-item">
                     {{reDescription[upgrade.id-1]}}<br />
-                    等级 {{ formatInt(upgrade.level) }}/{{ upgrade.maxLevel }}
+                    {{ t('t17_5') }} {{ formatInt(upgrade.level) }}/{{ upgrade.maxLevel }}
                     <button @click="buyRefineryU(upgrade.id-1)"
                             :disabled="caramel.lt(upgrade.cost) | upgrade.level.gte(upgrade.maxLevel)">
-                        {{ format(upgrade.cost) }} 焦糖
+                        {{ format(upgrade.cost) }} {{ t('t17_6') }}
                     </button>
                     <button @click="buyMaxRefineryU(upgrade.id-1)">
-                        购买最大
+                        {{ t('t17_7') }}
                     </button>
                 </div>
             </div>
             <div v-else>
-                <p>焦糖重置一次以解锁</p>
+                <p>{{ t('t17_8') }}</p>
             </div>
         </div>
 
@@ -1800,6 +1799,740 @@
                 '简介', '生命', '声望', '性状', '变甜', '炼糖厂', 
                 '太空重置', '太空升级', '盐块', '高级成就', '香料', '蚁丘', '挑战', '巫师塔',
                 '简介', '天体', '声望', '增强', '梦游', '星座', '天文研究', '炼乳厂'],
+                
+                currentLanguage: 'zh',
+                texts: {
+                    zh: {
+                        t0_0: '建筑',
+                        t0_1: '购买数量:',
+                        t0_2: '一键购买',
+                        t0_3: '建筑',
+                        t0_4: '数量:',
+                        t0_5: '基础佩干/秒:',
+                        t0_6: '佩干/秒:',
+                        t0_7: '购买 ×',
+                        t0_8: '花费',
+                        t0_9: '佩干',
+                        t1_0: '升级',
+                        t1_1: '升级',
+                        t1_2: '显示未购买',
+                        t1_3: '显示已购买',
+                        t1_4: '一键购买',
+                        t1_5: '升级',
+                        t1_6: '点击和建筑 1 生产的佩干×2 ',
+                        t1_7: '每个建筑使点击和建筑 1 生产的佩干 +1 ',
+                        t1_8: '升级 1-4 的效果 ×20 ',
+                        t1_9: '建筑 ',
+                        t1_10: ' 的产量 ×2 ',
+                        t1_11: ' 的产量 ×',
+                        t1_12: '，从 ',
+                        t1_13: ' 个建筑 ',
+                        t1_14: ' 开始，每100个建筑 ',
+                        t1_15: ' 使它的产量 ×2 ',
+                        t1_16: '点击获得的佩干 +1% <del>每秒生产的佩干</del>',
+                        t1_17: '释放牛奶力量(叠乘)，佩干产量 ×(1+牛奶*',
+                        t1_18: ')',
+                        t1_19: '建筑 2 的产量 ×2, 建筑 ',
+                        t1_20: ' 的产量 +1% 每拥有 ',
+                        t1_21: ' 个建筑 2 ',
+                        t1_22: '每个累计的飞升点使佩干产量 +',
+                        t1_23: '%',
+                        t1_24: '佩干产量乘数 +',
+                        t1_25: '%',
+                        t1_26: '佩干产量乘数 +',
+                        t1_27: '% (需要每个建筑数量',
+                        t1_28: ')',
+                        t1_29: '金佩勒出现频率翻倍，在屏幕上的持续时间翻倍',
+                        t1_30: '<del>金佩勒出现频率翻倍，在屏幕上的持续时间翻倍</del>(被佩勒删除)',
+                        t1_31: '<del>金佩勒效果的持续时间翻倍</del>(被佩勒删除)',
+                        t1_32: '（这个升级是为了降低时间墙而添加的）佩干产量×1.01^max(50-飞升点/20, 0)（即佩干产量乘以约1.64，随飞升点获取增多，乘数逐渐减少到1）',
+                        t1_33: '每个建筑 ',
+                        t1_34: ' 增加 1% 建筑 ',
+                        t1_35: ' 的产量，每个建筑 ',
+                        t1_36: ' 增加 0.1% 建筑 ',
+                        t1_37: ' 的产量',
+                        t1_38: '每个建筑 ',
+                        t1_39: ' 增加 1% 建筑 ',
+                        t1_40: ' 的产量，每个建筑 ',
+                        t1_41: ' 增加 0.1% 建筑 ',
+                        t1_42: ' 的产量',
+                        t1_43: '释放糖块力量(叠乘)，佩干产量 ×(1+糖块*',
+                        t1_44: ')',
+                        t1_45: '佩干',
+                        t2_0: '成就',
+                        t2_1: '成就',
+                        t2_2: '显示全部',
+                        t2_3: '显示已完成',
+                        t2_4: '显示未完成',
+                        t2_5: '成就',
+                        t2_6: '拥有 ',
+                        t2_7: ' 个建筑 ',
+                        t2_8: '累计获得 ',
+                        t2_9: ' 个佩干',
+                        t2_10: '每秒生产 ',
+                        t2_11: ' 个佩干',
+                        t2_12: '点击获得 ',
+                        t2_13: ' 个佩干',
+                        t2_14: '累计获得 ',
+                        t2_15: ' 个飞升点',
+                        t2_16: '累计获得 ',
+                        t2_17: ' 个轮回点',
+                        t2_18: '累计获得 ',
+                        t2_19: ' 个觉醒点',
+                        t3_0: '传送',
+                        t3_1: '点击传送进入其他区域，区域中的选项卡将发生变化，但不会重置任何资源',
+                        t3_2: '佩干宇宙',
+                        t3_3: '佩干',
+                        t3_4: '（当前区域）',
+                        t3_5: '传送',
+                        t3_6: '中生代山谷',
+                        t3_7: '化石饼干',
+                        t3_8: '（需要觉醒升级3，1e12觉醒点）',
+                        t3_9: '超越',
+                        t3_10: '星尘饼干',
+                        t3_11: '（需要炼糖厂升级3，1e12焦糖）',
+                        t3_12: '探索中心（敬请期待）',
+                        t3_13: '太空',
+                        t3_14: '（需要觉醒升级6，1e114觉醒点）',
+                        t3_15: '恒星（敬请期待）',
+                        t4_0: '飞升',
+                        t4_1: '飞升将重置佩干、建筑和升级，获取 ',
+                        t4_2: ' 飞升点 (下一个在 ',
+                        t4_3: ' 佩干)',
+                        t4_4: '飞升!',
+                        t4_5: '飞升(ascend)需要 1e12 累计佩干 (',
+                        t4_6: '/1e12)',
+                        t4_7: '飞升升级 (你有 ',
+                        t4_8: '/',
+                        t4_9: ' 飞升点)',
+                        t4_10: '一键购买',
+                        t4_11: '回退',
+                        t4_12: '等级 ',
+                        t4_13: '/',
+                        t4_14: ' 飞升点',
+                        t4_15: '金佩勒：',
+                        t4_16: '启用',
+                        t4_17: '禁用',
+                        t4_18: '点击：',
+                        t4_19: '飞升一次以解锁',
+                        t5_0: '轮回',
+                        t5_1: '轮回将重置佩干、建筑、升级、飞升点和飞升升级，获取 ',
+                        t5_2: ' 轮回点(下一个在 ',
+                        t5_3: ' 飞升点)',
+                        t5_4: '轮回!',
+                        t5_5: '轮回(transcend)需要 1e12 累计飞升点 (',
+                        t5_6: '/1e12)',
+                        t5_7: '你的总计轮回点数使佩干产量乘以',
+                        t5_8: '轮回神器 (你有 ',
+                        t5_9: '/',
+                        t5_10: ' 轮回点)',
+                        t5_11: '一键购买',
+                        t5_12: '回退',
+                        t5_13: '等级 ',
+                        t5_14: '/9,990',
+                        t5_15: ' 轮回点',
+                        t5_16: '普通轮回升级',
+                        t5_17: '/',
+                        t5_18: '轮回一次以解锁',
+                        t6_0: '破碎',
+                        t6_1: '破碎将重置佩干、建筑、升级、飞升点、飞升升级、轮回点、轮回神器和升级，增加1次破碎次数',
+                        t6_2: '破碎!',
+                        t6_3: '破碎(break)需要 ',
+                        t6_4: ' 累计轮回点 (',
+                        t6_5: '/',
+                        t6_6: ')',
+                        t6_7: '破碎里程碑 (你破碎了',
+                        t6_8: '次)',
+                        t6_9: '破碎',
+                        t6_10: '次<br />',
+                        t6_11: '破碎一次以解锁',
+                        t7_0: '觉醒',
+                        t7_1: '觉醒将重置破碎重置的内容（但保留破碎次数），获取 ',
+                        t7_2: ' 觉醒点',
+                        t7_3: '觉醒!',
+                        t7_4: '觉醒(hypercend)需要 8 次破碎 (',
+                        t7_5: '/8) 和 1e308 佩干 (',
+                        t7_6: '/1e308)',
+                        t7_7: '你有',
+                        t7_8: '觉醒点，',
+                        t7_9: '累计觉醒点，',
+                        t7_10: '最高觉醒点',
+                        t7_11: '觉醒升级',
+                        t7_12: '等级 ',
+                        t7_13: '/',
+                        t7_14: ' 觉醒点',
+                        t7_15: '购买最大',
+                        t7_16: '觉醒一次以解锁',
+                        t8_0: '自动',
+                        t8_1: '自动化升级',
+                        t8_2: '解锁需要 ',
+                        t8_3: ' 佩干',
+                        t8_4: '开启',
+                        t8_5: '关闭',
+                        t9_0: '充能',
+                        t9_1: '你有 ',
+                        t9_2: ' 觉醒充能 (+',
+                        t9_3: '/s)，它将你的佩干产量提高 ',
+                        t9_4: ' 倍。',
+                        t9_5: '觉醒神器',
+                        t9_6: '觉醒神器',
+                        t9_7: '：',
+                        t9_8: '当前效果：×',
+                        t9_9: '已解锁',
+                        t9_10: '解锁需要',
+                        t9_11: '觉醒点',
+                        t9_12: '需要购买觉醒升级1',
+                        t10_0: '统计',
+                        t10_1: '统计:',
+                        t10_2: '当前佩干:',
+                        t10_3: '本次飞升中的佩干:',
+                        t10_4: '累计佩干:',
+                        t10_5: '佩干每秒:',
+                        t10_6: '点击获得的佩干:',
+                        t10_7: '佩干每次点击:',
+                        t10_8: '金佩勒点击数:',
+                        t10_9: '飞升次数:',
+                        t10_10: '当前飞升点:',
+                        t10_11: '累计飞升点:',
+                        t10_12: '轮回次数:',
+                        t10_13: '当前轮回点:',
+                        t10_14: '累计轮回点:',
+                        t10_15: '觉醒次数:',
+                        t10_16: '当前觉醒点:',
+                        t10_17: '累计觉醒点:',
+                        t10_18: '金佩勒计时：',
+                        t10_19: '/',
+                        t10_20: '糖块计时:',
+                        t10_21: '牛奶乘数: x',
+                        t10_22: '糖块乘数: x',
+                        t10_23: '升级乘数: x',
+                        t10_24: '飞升乘数: x',
+                        t10_25: '轮回乘数: x',
+                        t10_26: '破碎乘数: x',
+                        t10_27: '觉醒乘数: x',
+                        t11_0: '导出',
+                        t11_1: '导入',
+                        t11_2: '硬重置',
+                        t11_3: '佩乐点点勒（pelkie clicker）-v0.5.0-作者：6左爷6',
+                        t11_4: '（又叫做cookie clicker NG+3）',
+                        t11_5: '本游戏参考了《饼干点点乐》、《王朝之系谱》、《从细胞到奇点》、《真实割草增量》，<del>你可以点击链接游玩它们</del>',
+                        t11_6: '后续可能的更新：香料（第5层重置）、恒星（第6层重置）、',
+                        t11_7: '副本2（超越，它的进度增加牛奶加成）、炼乳重置（2-1）、奶油重置（2-2）、梦游/黄油重置（2-3）、',
+                        t11_8: '副本3（探索中心）、？？重置（3-1）、？？重置（3-2）、？？/？？重置（3-3）等等',
+                        t11_9: '最终目标：到达1e9,000,000,000,000,000佩干并打败佩勒',
+                        t11_10: '游戏说明：',
+                        t11_11: '糖块：每3600秒产生1(基础值)糖块，糖块有被动加成（相当于用糖块轮流给每个建筑升级但升级价格总为1），购买对应升级后，基于糖块数量提高佩干产量乘数',
+                        t11_12: '牛奶：每获得1个成就，获得1(基础值)牛奶，购买对应升级后，基于牛奶数量提高佩干产量乘数，部分升级、里程碑或其他机制会增加每个成就提供的牛奶数量',
+                        t11_13: '金佩勒：每420秒上方的♅区域会变成金色，点击♅后会随机获得一个效果：获得15佩干产量(25%)，佩干产量×6持续66秒(16.7%)，点击产量×666持续13秒(16.7%)，随机建筑产量+10%(11.1%)，佩干产量×15持续630秒(8.3%)，点击产量×1111持续8秒(8.3%)，建筑价格-50%持续5秒(5.6%)，升级价格-50%持续5秒(5.6%)，获得1个糖块(2.7%)',
+                        t11_14: 'Pelle毁灭了你的饼干宇宙，把你的饼干变成了佩勒饼干，你无法逃离被毁灭的饼干宇宙，你在整个游戏中都会受到重大削弱。',
+                        t11_15: '削弱:',
+                        t11_16: '风味饼干升级被删除（天堂升级和建筑数量相关的除外）',
+                        t11_17: '删除研究中心',
+                        t11_18: '删除老奶奶末世',
+                        t11_19: '删除季节',
+                        t11_20: '删除小游戏',
+                        t11_21: '协同升级效果被削弱',
+                        t11_22: '无法用糖块升级建筑',
+                        t11_23: '移除了一些飞升升级',
+                        t11_24: '移除了一些成就',
+                        t11_25: '金饼干效果中的"7"变成"6"',
+                        t11_26: '升级和效果中的一些文字被删除',
+                        t11_27: '天堂碎片在1e12后公式变为饼干^1/4',
+                        t11_28: '增强:',
+                        t11_29: '声望等级效果x100',
+                        t11_30: '糖块生长速度×24',
+                        t11_31: '新增22个建筑',
+                        t11_32: '一开始就有6小时80%的离线收益',
+                        t11_33: '糖块对建筑有被动加成',
+                        t11_34: '新的声望层级和游戏内容',
+                        t11_35: '切换到英文',
+                        t12_0: '简介',
+                        t12_1: '解锁了中生代山谷……',
+                        t12_2: '佩勒：为了实现你的 [命运/使命/目标]，我们为什么不回忆一下呢？毕竟，你一定喜欢 [错误/上帝/毁灭者] 荣耀的故事。',
+                        t12_3: '你发现了一个奇怪的骨骼化石，现在我需要您模拟一个活体标本进行研究，这些生物曾经是地球上的主要生命形式，也许可以了解它们是如何走向灭亡的。',
+                        t12_4: '您可以通过传送随时返回到主界面（佩干宇宙）。',
+                        t12_5: '基于化石饼干总数，获得对所有糖块升级的加成（×(1+化石饼干)^0.25）',
+                        t12_6: '到达1e12化石饼干后解锁"糖霜"重置，重置所有佩干生命，用糖霜升级一星特征',
+                        t12_7: '到达1e48化石饼干后解锁"蜂蜜"重置，重置所有佩干生命和一星特征，用蜂蜜升级二星特征',
+                        t12_8: '太空重置一次并到达1e192化石饼干后解锁变甜重置，重置所有佩干生命、一星、二星特征，基于变甜次数获得奖励',
+                        t12_9: '变甜8次且到达1e308化石饼干后，解锁"焦糖"重置，重置变甜重置的内容，用焦糖升级三星特征',
+                        t12_10: '化石饼干：',
+                        t12_11: '化石饼干总数：',
+                        t12_12: '本次重置中的化石饼干：',
+                        t12_13: '糖霜数量：',
+                        t12_14: '总计糖霜数量：',
+                        t12_15: '蜂蜜数量：',
+                        t12_16: '总计蜂蜜数量：',
+                        t12_17: '焦糖数量：',
+                        t12_18: '总计焦糖数量：',
+                        t13_0: '生命',
+                        t13_1: '在中生代山谷中点击大佩干将获得化石饼干',
+                        t13_2: '佩干生命每500级产量乘以1e20',
+                        t13_3: '总计化石饼干数量：',
+                        t13_4: '它们将糖块升级效果乘以',
+                        t13_5: '购买数量',
+                        t13_6: '佩干生命',
+                        t13_7: '草食',
+                        t13_8: '肉食',
+                        t13_9: '杂食',
+                        t13_10: '水生',
+                        t13_11: '陆生',
+                        t13_12: '两栖',
+                        t13_13: '小型',
+                        t13_14: '中型',
+                        t13_15: '大型',
+                        t13_16: '数量',
+                        t13_17: '基础产量',
+                        t13_18: '产量',
+                        t13_19: '产量',
+                        t13_20: '速度',
+                        t13_21: '价格',
+                        t13_22: '购买',
+                        t13_23: '花费',
+                        t13_24: '解锁自动生产',
+                        t13_25: '已解锁',
+                        t13_26: '自动生产',
+                        t13_27: '开始',
+                        t13_28: '生产',
+                        t13_29: '进化的终极形态',
+                        t14_0: '声望',
+                        t14_1: '糖霜重置将重置化石饼干和佩干生命（但保留自动生产）',
+                        t14_2: '获取',
+                        t14_3: '糖霜',
+                        t14_4: '糖霜重置',
+                        t14_5: '需要1e12本次重置中的化石饼干才能进行糖霜重置',
+                        t14_6: '蜂蜜重置将重置化石饼干、佩干生命、糖霜、一星性状',
+                        t14_7: '获取',
+                        t14_8: '蜂蜜',
+                        t14_9: '蜂蜜重置',
+                        t14_10: '需要1e48本次重置中的化石饼干才能进行蜂蜜重置',
+                        t14_11: '变甜重置将重置化石饼干、佩干生命、糖霜、一星性状、蜂蜜、二星性状',
+                        t14_12: '将变甜次数增加1',
+                        t14_13: '变甜重置',
+                        t14_14: '需要',
+                        t14_15: '本次重置中的化石饼干才能进行变甜重置',
+                        t14_16: '焦糖重置将重置变甜重置的内容（但保留变甜次数）',
+                        t14_17: '获取',
+                        t14_18: '焦糖',
+                        t14_19: '焦糖重置',
+                        t14_20: '需变甜8次和1e308本次重置中的化石饼干才能进行焦糖重置',
+                        t15_0: '性状',
+                        t15_1: '一星性状（共27种） 糖霜重置一次后可购买',
+                        t15_2: '一星性状',
+                        t15_3: '每级将佩干生命',
+                        t15_4: '产量×2',
+                        t15_5: '等级',
+                        t15_6: '效果',
+                        t15_7: '升级需要',
+                        t15_8: '糖霜',
+                        t15_9: '二星性状（共12种） 蜂蜜重置一次后可购买',
+                        t15_10: '二星性状',
+                        t15_11: '每级',
+                        t15_12: '蜂蜜',
+                        t15_13: '三星性状（共3种）',
+                        t15_14: '三星性状',
+                        t15_15: '每级将',
+                        t15_16: '焦糖',
+                        t16_0: '变甜',
+                        t16_1: '变甜里程碑',
+                        t16_2: '你变甜了',
+                        t16_3: '次',
+                        t16_4: '变甜',
+                        t16_5: '变甜一次以解锁',
+                        t17_0: '炼糖厂',
+                        t17_1: '炼糖厂升级',
+                        t17_2: '你有',
+                        t17_3: '糖分充能',
+                        t17_4: '，将化石饼干产量乘以',
+                        t17_5: '等级',
+                        t17_6: '焦糖',
+                        t17_7: '购买最大',
+                        t17_8: '焦糖重置一次以解锁',
+                        t18_0: '太空重置',
+                        t19_0: '太空升级',
+                        t20_0: '盐块',
+                        t21_0: '高级成就',
+                        t22_0: '香料',
+                        t23_0: '蚁丘',
+                        t24_0: '挑战',
+                        t25_0: '巫师塔',
+                        t26_0: '简介',
+                        t27_0: '天体',
+                        t28_0: '声望',
+                        t29_0: '增强'
+                    },
+                    en: {
+                        t0_0: 'Buildings',
+                        t0_1: 'Buy Amount:',
+                        t0_2: 'Buy All',
+                        t0_3: 'Building',
+                        t0_4: 'Quantity:',
+                        t0_5: 'Base Pelkie/sec:',
+                        t0_6: 'Pelkie/sec:',
+                        t0_7: 'Buy ×',
+                        t0_8: 'Cost',
+                        t0_9: 'Pelkie',
+                        t1_0: 'Upgrades',
+                        t1_1: 'Upgrades',
+                        t1_2: 'Show Unbought',
+                        t1_3: 'Show Bought',
+                        t1_4: 'Buy All',
+                        t1_5: 'Upgrade',
+                        t1_6: 'Click and Building 1 Pelkie production ×2 ',
+                        t1_7: 'Each building increases click and Building 1 Pelkie production by +1 ',
+                        t1_8: 'Effect of Upgrade 1-4 ×20 ',
+                        t1_9: 'Building ',
+                        t1_10: ' production ×2 ',
+                        t1_11: ' production ×',
+                        t1_12: ', starting from ',
+                        t1_13: ' Building ',
+                        t1_14: ', every 100 Building ',
+                        t1_15: ' increases its production ×2 ',
+                        t1_16: 'Click Pelkie +1% <del>Pelkie per second</del>',
+                        t1_17: 'Release Milk Power (multiplicative), Pelkie production ×(1+Milk*',
+                        t1_18: ')',
+                        t1_19: 'Building 2 production ×2, Building ',
+                        t1_20: ' production +1% per ',
+                        t1_21: ' Building 2 ',
+                        t1_22: 'Each cumulative ascension point increases Pelkie production by +',
+                        t1_23: '%',
+                        t1_24: 'Pelkie production multiplier +',
+                        t1_25: '%',
+                        t1_26: 'Pelkie production multiplier +',
+                        t1_27: '% (requires each building quantity ',
+                        t1_28: ')',
+                        t1_29: 'Golden Pelle appearance frequency doubled, duration on screen doubled',
+                        t1_30: '<del>Golden Pelle appearance frequency doubled, duration on screen doubled</del>(removed by Pelle)',
+                        t1_31: '<del>Golden Pelle effect duration doubled</del>(removed by Pelle)',
+                        t1_32: '(This upgrade is added to reduce time walls) Pelkie production ×1.01^max(50-ascension points/20, 0) (i.e., Pelkie production multiplied by approximately 1.64, multiplier gradually decreases to 1 as ascension points increase)',
+                        t1_33: 'Each Building ',
+                        t1_34: ' increases Building ',
+                        t1_35: ' production by 1%, each Building ',
+                        t1_36: ' increases Building ',
+                        t1_37: ' production by 0.1%',
+                        t1_38: 'Each Building ',
+                        t1_39: ' increases Building ',
+                        t1_40: ' production by 1%, each Building ',
+                        t1_41: ' increases Building ',
+                        t1_42: ' production by 0.1%',
+                        t1_43: 'Release Sugar Power (multiplicative), Pelkie production ×(1+Sugar*',
+                        t1_44: ')',
+                        t1_45: 'Pelkie',
+                        t2_0: 'Achievements',
+                        t2_1: 'Achievements',
+                        t2_2: 'Show All',
+                        t2_3: 'Show Completed',
+                        t2_4: 'Show Incomplete',
+                        t2_5: 'Achievement',
+                        t2_6: 'Have ',
+                        t2_7: ' Building ',
+                        t2_8: 'Accumulate ',
+                        t2_9: ' Pelkie',
+                        t2_10: 'Produce ',
+                        t2_11: ' Pelkie per second',
+                        t2_12: 'Earn ',
+                        t2_13: ' Pelkie per click',
+                        t2_14: 'Accumulate ',
+                        t2_15: ' Ascension Points',
+                        t2_16: 'Accumulate ',
+                        t2_17: ' Transcendence Points',
+                        t2_18: 'Accumulate ',
+                        t2_19: ' Hypercend Points',
+                        t3_0: 'Teleport',
+                        t3_1: 'Click to teleport to other areas, the tabs in the area will change, but no resources will be reset',
+                        t3_2: 'Pelkie Universe',
+                        t3_3: 'Pelkie',
+                        t3_4: '(Current Area)',
+                        t3_5: 'Teleport',
+                        t3_6: 'Mesozoic Valley',
+                        t3_7: 'Fossil Cookies',
+                        t3_8: '(Requires Hypercend Upgrade 3, 1e12 Hypercend Points)',
+                        t3_9: 'Transcendence',
+                        t3_10: 'Stardust Cookies',
+                        t3_11: '(Requires Refinery Upgrade 3, 1e12 Caramel)',
+                        t3_12: 'Exploration Center (Coming Soon)',
+                        t3_13: 'Space',
+                        t3_14: '(Requires Hypercend Upgrade 6, 1e114 Hypercend Points)',
+                        t3_15: 'Stars (Coming Soon)',
+                        t4_0: 'Ascend',
+                        t4_1: 'Ascension will reset Pelkie, buildings, and upgrades, gaining ',
+                        t4_2: ' Ascension Points (next at ',
+                        t4_3: ' Pelkie)',
+                        t4_4: 'Ascend!',
+                        t4_5: 'Ascension(ascend) requires 1e12 total Pelkie (',
+                        t4_6: '/1e12)',
+                        t4_7: 'Ascension Upgrades (You have ',
+                        t4_8: '/',
+                        t4_9: ' Ascension Points)',
+                        t4_10: 'Buy All',
+                        t4_11: 'Refund',
+                        t4_12: 'Level ',
+                        t4_13: '/',
+                        t4_14: ' Ascension Points',
+                        t4_15: 'Golden Pelle: ',
+                        t4_16: 'Enabled',
+                        t4_17: 'Disabled',
+                        t4_18: 'Click: ',
+                        t4_19: 'Ascend once to unlock',
+                        t5_0: 'Transcend',
+                        t5_1: 'Transcendence will reset Pelkie, buildings, upgrades, ascension points, and ascension upgrades, gaining ',
+                        t5_2: ' Transcendence Points (next at ',
+                        t5_3: ' Ascension Points)',
+                        t5_4: 'Transcend!',
+                        t5_5: 'Transcendence(transcend) requires 1e12 total ascension points (',
+                        t5_6: '/1e12)',
+                        t5_7: 'Your total transcendence points multiply Pelkie production by',
+                        t5_8: 'Transcendence Artifacts (You have ',
+                        t5_9: '/',
+                        t5_10: ' Transcendence Points)',
+                        t5_11: 'Buy All',
+                        t5_12: 'Refund',
+                        t5_13: 'Level ',
+                        t5_14: '/9,990',
+                        t5_15: ' Transcendence Points',
+                        t5_16: 'Normal Transcendence Upgrades',
+                        t5_17: '/',
+                        t5_18: 'Transcend once to unlock',
+                        t6_0: 'Break',
+                        t6_1: 'Breaking will reset Pelkie, buildings, upgrades, ascension points, ascension upgrades, transcendence points, transcendence artifacts, and upgrades, increasing break count by 1',
+                        t6_2: 'Break!',
+                        t6_3: 'Breaking(break) requires ',
+                        t6_4: ' total transcendence points (',
+                        t6_5: '/',
+                        t6_6: ')',
+                        t6_7: 'Breaking Milestones (You have broken ',
+                        t6_8: ' times)',
+                        t6_9: 'Break ',
+                        t6_10: ' times<br />',
+                        t6_11: 'Break once to unlock',
+                        t7_0: 'Hypercend',
+                        t7_1: 'Hypercend will reset break reset content (but keep break count), gain ',
+                        t7_2: ' hypercend points',
+                        t7_3: 'Hypercend!',
+                        t7_4: 'Hypercend(hypercend) requires 8 breaks (',
+                        t7_5: '/8) and 1e308 total Pelkie Biscuits (',
+                        t7_6: '/1e308)',
+                        t7_7: 'You have',
+                        t7_8: ' hypercend points, ',
+                        t7_9: 'total hypercend points, ',
+                        t7_10: 'max hypercend points',
+                        t7_11: 'Hypercend Upgrades',
+                        t7_12: 'Level ',
+                        t7_13: '/',
+                        t7_14: ' hypercend points',
+                        t7_15: 'Buy Max',
+                        t7_16: 'Hypercend once to unlock',
+                        t8_0: 'Automation',
+                        t8_1: 'Automation Upgrades',
+                        t8_2: 'Unlock requires ',
+                        t8_3: ' Pelkie Biscuits',
+                        t8_4: 'Enable',
+                        t8_5: 'Disable',
+                        t9_0: 'Charge',
+                        t9_1: 'You have ',
+                        t9_2: ' hyper charge (+',
+                        t9_3: '/s), it increases your Pelkie Biscuit production by ',
+                        t9_4: ' times.',
+                        t9_5: 'Hyper Artifacts',
+                        t9_6: 'Hyper Artifact',
+                        t9_7: ': ',
+                        t9_8: 'Current Effect: ×',
+                        t9_9: 'Unlocked',
+                        t9_10: 'Unlock requires',
+                        t9_11: 'hypercend points',
+                        t9_12: 'Need to buy Hypercend Upgrade 1',
+                        t10_0: 'Stats',
+                        t10_1: 'Stats:',
+                        t10_2: 'Current Pelkie:',
+                        t10_3: 'Pelkie in this ascension:',
+                        t10_4: 'Total lifetime Pelkie:',
+                        t10_5: 'Pelkie per second:',
+                        t10_6: 'Pelkie from clicks:',
+                        t10_7: 'Pelkie per click:',
+                        t10_8: 'Golden Pelle clicks:',
+                        t10_9: 'Ascension count:',
+                        t10_10: 'Current ascension points:',
+                        t10_11: 'Total ascension points:',
+                        t10_12: 'Transcendence count:',
+                        t10_13: 'Current transcendence points:',
+                        t10_14: 'Total transcendence points:',
+                        t10_15: 'Hypercend count:',
+                        t10_16: 'Current hypercend points:',
+                        t10_17: 'Total hypercend points:',
+                        t10_18: 'Golden Pelle timer:',
+                        t10_19: '/',
+                        t10_20: 'Sugar timer:',
+                        t10_21: 'Milk multiplier: x',
+                        t10_22: 'Sugar multiplier: x',
+                        t10_23: 'Upgrade multiplier: x',
+                        t10_24: 'Ascension multiplier: x',
+                        t10_25: 'Transcendence multiplier: x',
+                        t10_26: 'Break multiplier: x',
+                        t10_27: 'Hypercend multiplier: x',
+                        t11_0: 'Export',
+                        t11_1: 'Import',
+                        t11_2: 'Hard Reset',
+                        t11_3: 'Pelkie Clicker-v0.5.0-Author: 6左爷6',
+                        t11_4: '(Also known as cookie clicker NG+3)',
+                        t11_5: 'This game references Cookie Clicker, Dynasty Lineage, From Cell to Singularity, Real Mowing Incremental, <del>You can click the links to play them</del>',
+                        t11_6: 'Possible future updates: Spices (Layer 5 Reset), Stars (Layer 6 Reset),',
+                        t11_7: 'Copy 2 (Transcendence, its progress increases milk bonus), Condensed Milk Reset (2-1), Cream Reset (2-2), Sleepwalking/Butter Reset (2-3),',
+                        t11_8: 'Copy 3 (Exploration Center), ?? Reset (3-1), ?? Reset (3-2), ??/?? Reset (3-3), etc.',
+                        t11_9: 'Final goal: Reach 1e9,000,000,000,000,000 Pelkie Biscuits and defeat Pelle',
+                        t11_10: 'Game Instructions:',
+                        t11_11: 'Sugar: Produces 1 (base value) sugar every 3600 seconds, sugar has passive bonuses (equivalent to using sugar to upgrade each building in turn but with upgrade cost always 1), after purchasing corresponding upgrades, increase Pelkie Biscuit production multiplier based on sugar quantity',
+                        t11_12: 'Milk: Get 1 (base value) milk for each achievement, after purchasing corresponding upgrades, increase Pelkie Biscuit production multiplier based on milk quantity, some upgrades, milestones or other mechanisms will increase the milk provided by each achievement',
+                        t11_13: 'Golden Pelle: Every 420 seconds, the ♅ area above turns golden, clicking ♅ will randomly get one effect: Gain 15 Pelkie Biscuit production (25%), Pelkie Biscuit production ×6 for 66 seconds (16.7%), Click production ×666 for 13 seconds (16.7%), Random building production +10% (11.1%), Pelkie Biscuit production ×15 for 630 seconds (8.3%), Click production ×1111 for 8 seconds (8.3%), Building price -50% for 5 seconds (5.6%), Upgrade price -50% for 5 seconds (5.6%), Gain 1 sugar (2.7%)',
+                        t11_14: 'Pelle destroyed your cookie universe, turned your cookies into Pelle cookies, you cannot escape the destroyed cookie universe, you will suffer major nerfs throughout the game.',
+                        t11_15: 'Nerfs:',
+                        t11_16: 'Flavor cookie upgrades are removed (except for heaven upgrades and building quantity related ones)',
+                        t11_17: 'Remove research center',
+                        t11_18: 'Remove grandma apocalypse',
+                        t11_19: 'Remove seasons',
+                        t11_20: 'Remove mini-games',
+                        t11_21: 'Synergy upgrade effects are weakened',
+                        t11_22: 'Cannot upgrade buildings with sugar',
+                        t11_23: 'Removed some ascension upgrades',
+                        t11_24: 'Removed some achievements',
+                        t11_25: 'The "7" in golden cookie effects becomes "6"',
+                        t11_26: 'Some texts in upgrades and effects are removed',
+                        t11_27: 'Heavenly chips formula becomes cookies^1/4 after 1e12',
+                        t11_28: 'Buffs:',
+                        t11_29: 'Reputation level effect x100',
+                        t11_30: 'Sugar growth rate ×24',
+                        t11_31: 'Added 22 new buildings',
+                        t12_0: 'Introduction',
+                        t12_1: 'Unlocked Mesozoic Valley...',
+                        t12_2: 'Pelle: To fulfill your [destiny/mission/goal], why don\'t we take a trip down memory lane? After all, you must love the story of [error/god/destroyer]\'s glory.',
+                        t12_3: 'You found a strange bone fossil, now I need you to simulate a living specimen for research. These creatures were once the dominant life forms on Earth, maybe we can understand how they went extinct.',
+                        t12_4: 'You can teleport back to the main interface (Pelkie Universe) at any time.',
+                        t12_5: 'Based on total fossil biscuits, gain bonus to all sugar upgrades (×(1+fossil biscuits)^0.25)',
+                        t12_6: 'Reach 1e12 fossil biscuits to unlock "Icing" reset, reset all Pelkie Lives, use icing to upgrade 1-star traits',
+                        t12_7: 'Reach 1e48 fossil biscuits to unlock "Honey" reset, reset all Pelkie Lives and 1-star traits, use honey to upgrade 2-star traits',
+                        t12_8: 'Space reset once and reach 1e192 fossil biscuits to unlock Sweeten reset, reset all Pelkie Lives, 1-star traits, 2-star traits, gain bonuses based on sweeten count',
+                        t12_9: 'Sweeten 8 times and reach 1e308 fossil biscuits to unlock "Caramel" reset, reset sweeten reset content, use caramel to upgrade 3-star traits',
+                        t12_10: 'Fossil Biscuits: ',
+                        t12_11: 'Total Fossil Biscuits: ',
+                        t12_12: 'Fossil Biscuits in this reset: ',
+                        t12_13: 'Icing Quantity: ',
+                        t12_14: 'Total Icing Quantity: ',
+                        t12_15: 'Honey Quantity: ',
+                        t12_16: 'Total Honey Quantity: ',
+                        t12_17: 'Caramel Quantity: ',
+                        t12_18: 'Total Caramel Quantity: ',
+                        t13_0: 'Life',
+                        t13_1: 'Clicking the big Pelkie in Mesozoic Valley will give you fossil biscuits',
+                        t13_2: 'Pelkie Life production multiplied by 1e20 every 500 levels',
+                        t13_3: 'Total Fossil Biscuits: ',
+                        t13_4: 'They multiply sugar upgrade effects by',
+                        t13_5: 'Buy Amount',
+                        t13_6: 'Pelkie Life',
+                        t13_7: 'Herbivorous',
+                        t13_8: 'Carnivorous',
+                        t13_9: 'Omnivorous',
+                        t13_10: 'Aquatic',
+                        t13_11: 'Terrestrial',
+                        t13_12: 'Amphibious',
+                        t13_13: 'Small',
+                        t13_14: 'Medium',
+                        t13_15: 'Large',
+                        t13_16: 'Quantity',
+                        t13_17: 'Base Production',
+                        t13_18: 'Production',
+                        t13_19: 'Production',
+                        t13_20: 'Speed',
+                        t13_21: 'Price',
+                        t13_22: 'Buy',
+                        t13_23: 'Cost',
+                        t13_24: 'Unlock Auto-Production',
+                        t13_25: 'Unlocked',
+                        t13_26: 'Auto-Production',
+                        t13_27: 'Start',
+                        t13_28: 'Production',
+                        t13_29: 'Ultimate Evolutionary Form',
+                        t14_0: 'Reputation',
+                        t14_1: 'Icing reset will reset fossil biscuits and Pelkie Lives (but keep auto-production)<br />Gain',
+                        t14_2: 'Icing',
+                        t14_3: 'Icing',
+                        t14_4: 'Icing Reset',
+                        t14_5: 'Need 1e12 fossil biscuits in this reset for Icing reset',
+                        t14_6: 'Honey reset will reset fossil biscuits, Pelkie Lives, icing, 1-star traits<br />Gain',
+                        t14_7: 'Honey',
+                        t14_8: 'Honey',
+                        t14_9: 'Honey Reset',
+                        t14_10: 'Need 1e48 fossil biscuits in this reset for Honey reset',
+                        t14_11: 'Sweeten reset will reset fossil biscuits, Pelkie Lives, icing, 1-star traits, honey, 2-star traits<br />Increase sweeten count by 1',
+                        t14_12: '',
+                        t14_13: 'Sweeten Reset',
+                        t14_14: 'Need',
+                        t14_15: 'fossil biscuits in this reset for Sweeten reset',
+                        t14_16: 'Caramel reset will reset sweeten reset content (but keep sweeten count)<br />Gain',
+                        t14_17: 'Caramel',
+                        t14_18: 'Caramel',
+                        t14_19: 'Caramel Reset',
+                        t14_20: 'Need 8 sweetens and 1e308 fossil biscuits in this reset for Caramel reset',
+                        t15_0: 'Traits',
+                        t15_1: '1-star traits (27 total) Available after 1 icing reset',
+                        t15_2: '1-star trait',
+                        t15_3: 'Each level multiplies Pelkie Life',
+                        t15_4: 'production ×2',
+                        t15_5: 'Level',
+                        t15_6: 'Effect',
+                        t15_7: 'Upgrade requires',
+                        t15_8: 'icing',
+                        t15_9: '2-star traits (12 total) Available after 1 honey reset',
+                        t15_10: '2-star trait',
+                        t15_11: 'Each level',
+                        t15_12: 'honey',
+                        t15_13: '3-star traits (3 total)',
+                        t15_14: '3-star trait',
+                        t15_15: 'Each level',
+                        t15_16: 'caramel',
+                        t16_0: 'Sweeten',
+                        t16_1: 'Sweeten Milestones',
+                        t16_2: 'You have sweetened',
+                        t16_3: 'times',
+                        t16_4: 'Sweeten',
+                        t16_5: 'Sweeten once to unlock',
+                        t17_0: 'Refinery',
+                        t17_1: 'Refinery Upgrades',
+                        t17_2: 'You have',
+                        t17_3: ' sugar charge',
+                        t17_4: ', multiply fossil biscuit production by',
+                        t17_5: 'Level',
+                        t17_6: ' caramel',
+                        t17_7: 'Buy Max',
+                        t17_8: 'Caramel reset once to unlock',
+                        t18_0: 'Space Reset',
+                        t19_0: 'Space Upgrades',
+                        t20_0: 'Salt',
+                        t21_0: 'Advanced Achievements',
+                        t22_0: 'Spices',
+                        t23_0: 'Anthill',
+                        t11_32: 'Start with 6 hours of 80% offline production',
+                        t11_33: 'Sugar has passive bonuses to buildings',
+                        t11_34: 'New reputation levels and game content',
+                        t11_35: 'Switch to Chinese',
+                        t12_0: 'Intro',
+                        t13_0: 'Life',
+                        t14_0: 'Reputation',
+                        t15_0: 'Traits',
+                        t16_0: 'Sweeten',
+                        t17_0: 'Refinery',
+                        t18_0: 'Space Reset',
+                        t19_0: 'Space Upgrades',
+                        t20_0: 'Salt',
+                        t21_0: 'Advanced Achievements',
+                        t22_0: 'Spices',
+                        t23_0: 'Anthill',
+                        t24_0: 'Challenges',
+                        t25_0: 'Wizard Tower',
+                        t26_0: 'Intro',
+                        t27_0: 'Celestial Bodies',
+                        t28_0: 'Reputation',
+                        t29_0: 'Enhancements'
+                    }
+                },
 
                 peiCount: N(0),
                 thisAscendPei: N(0),
@@ -2186,6 +2919,12 @@
                 // 其他数据...
             },
             methods: {
+                t(textKey) {
+                    return this.texts[this.currentLanguage][textKey] || textKey;
+                },
+                toggleLanguage() {
+                    this.currentLanguage = this.currentLanguage === 'zh' ? 'en' : 'zh';
+                },
                 showTab(i) {
                     if(this.currentArea == 1){
                         if(this.breakCount.lt(1)) return [0,1,2,4,5,6,10,11].includes(i);
@@ -3196,7 +3935,7 @@
                     .mul(Decimal.pow(2, this.traits[39].level))
                     .mul(this.refineryU[0].level.gte(1)?this.sugarCharge.add(1):1)
                     .mul(Decimal.pow(this.milkLevel.mul(0.01).add(1),this.milk))
-                    .mul(this.calculateSpiceBonus());
+                    .mul(this.calculateSpiceBonus().max(1));
                 },
                 calcSpeedMult(index){
                     if(index==27) return Decimal.pow(2,this.traits[30].level)
@@ -3411,7 +4150,7 @@
                     return (this.peiCeles[index].level.lte(200)?Decimal.pow(3, this.peiCeles[index].level.div(25).floor()):Decimal.pow(3, this.peiCeles[index].level.add(200).div(50).floor()))
                     .mul(Decimal.pow(2, this.enhans[index % 14].level))
                     .mul(this.refineryU[3].level.gte(1)?this.sweetenCount.add(1):1)
-                    .mul(this.calculateSpiceBonus());
+                    .mul(this.calculateSpiceBonus().max(1));
                 },
                 calcCeleSpeedMult(index){
                     return Decimal.pow(2, this.enhans[this.celetype[index]+15].level);
@@ -4168,7 +4907,7 @@
                     .mul(this.enableGolden&!this.transcendU[13].level.gte(1)?1:this.ascendU[8].level.add(this.transcendU[4].level).mul(0.1).add(1.4))
                     .mul(this.enableClick&!this.transcendU[13].level.gte(1)?1:this.ascendU[16].level.add(this.transcendU[4].level).mul(0.1).add(1.4))
                     .mul(Decimal.pow(this.milkLevel.mul(0.01).add(1),this.milk))
-                    .mul(this.calculateSpiceBonus());
+                    .mul(this.calculateSpiceBonus().max(1));
                 },
                 ascendBonus(){
                     return this.upgrades.filter(u => u.buildingId == 104 & u.id<=5).reduce((sum, upgrade, i) => {
