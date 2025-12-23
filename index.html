@@ -542,39 +542,38 @@
             <div class="divider">----------------------------------------------------------------</div>
             <div>{{ t('t3_1') }}</div>
             <div class="upgrade-item">
-                {{ t('t3_2') }} - {{format(peiCount)}}佩干 {{currentArea==1?"（当前区域）":""}}
+                {{ t('t3_2') }} - {{format(peiCount)}} {{ t('t3_3') }} {{currentArea==1?t('t3_4'):""}}
                 <button @click="currentArea = 1" :disabled="currentArea==1">
                     {{ t('t3_5') }}
                 </button>
             </div>
             <div class="upgrade-item">
-                {{ t('t3_6') }} - {{format(fosskie)}}化石饼干 {{currentArea==2?"（当前区域）":""}}
+                {{ t('t3_6') }} - {{format(fosskie)}} {{ t('t3_7') }} {{currentArea==2?t('t3_4'):""}}
                 <button @click="currentArea = 2" :disabled="currentArea==2" v-if="this.hypercendU[2].level.gte(1)">
                     {{ t('t3_5') }}
                 </button>
-                <span v-else>（需要觉醒升级3，1e12觉醒点）</span>
+                <span v-else>{{t('t3_8')}}</span>
             </div>
             <div class="upgrade-item">
-                {{ t('t3_9') }} - {{format(starkie)}}星尘饼干 {{currentArea==4?"（当前区域）":""}}
+                {{ t('t3_9') }} - {{format(starkie)}} {{ t('t3_10') }} {{currentArea==4?t('t3_4'):""}}
                 <button @click="currentArea = 4" :disabled="currentArea==4" v-if="this.refineryU[2].level.gte(1)">
                     {{ t('t3_5') }}
                 </button>
-                <span v-else>（需要炼糖厂升级3，1e12焦糖）</span>
+                <span v-else>{{t('t3_11')}}</span>
             </div>
             <div class="upgrade-item">
                 {{ t('t3_12') }}
 
             </div>
             <div class="upgrade-item">
-                {{ t('t3_13') }} {{currentArea==3?"（当前区域）":""}}
+                {{ t('t3_13') }} {{currentArea==3?t('t3_4'):""}}
                 <button @click="currentArea = 3" :disabled="currentArea==3" v-if="this.hypercendU[5].level.gte(1) || this.spaceResetCount.gte(1)">
                     {{ t('t3_5') }}
                 </button>
-                <span v-else>（需要觉醒升级6，1e114觉醒点）</span>
+                <span v-else>{{t('t3_14')}}</span>
             </div>
             <div class="upgrade-item">
                 {{ t('t3_15') }}
-
             </div>
         </div>
 
@@ -2164,7 +2163,6 @@
                         t31_0: '星座',
                         t32_0: '天文研究',
                         t33_0: '炼乳厂',
-                        t29_0: '增强'
                     },
                     en: {
                         t0_0: 'Buildings',
@@ -2406,6 +2404,10 @@
                         t11_29: 'Prestige level effect x100',
                         t11_30: 'Sugar lump growth rate ×24',
                         t11_31: 'Added 22 new buildings',
+                        t11_32: 'Start with 6 hours of 80% offline production',
+                        t11_33: 'Sugar has passive bonuses to buildings',
+                        t11_34: 'New reputation levels and game content',
+                        t11_35: 'Switch to Chinese',
                         t12_0: 'Introduction',
                         t12_1: 'Unlocked Mesozoic Valley...',
                         t12_2: 'Pelle: To fulfill your [destiny/mission/goal], why don\'t we take a trip down memory lane? After all, you must love the story of [error/god/destroyer]\'s glory.',
@@ -2524,10 +2526,7 @@
                         t31_0: 'Constellation',
                         t32_0: 'Astroresearch',
                         t33_0: 'Condensery',
-                        t11_32: 'Start with 6 hours of 80% offline production',
-                        t11_33: 'Sugar has passive bonuses to buildings',
-                        t11_34: 'New reputation levels and game content',
-                        t11_35: 'Switch to Chinese',
+
                     }
                 },
 
@@ -3647,8 +3646,8 @@
                 
                 // 计算香料加成
                 calculateSpiceBonus() {
-                    const totalSpice = this.cinnamon.add(this.vanilla);
-                    return totalSpice.add(1).pow(2).mul(this.calculateAntBonus()).mul(this.calculateChallengeBonus());
+                    const totalSpice = (this.cinnamon.add(1)).mul(this.vanilla.add(1)).sub(1).mul(10).add(1);
+                    return totalSpice.mul(this.calculateAntBonus()).mul(this.calculateChallengeBonus());
                 },
                 
                 // 肉桂重置
@@ -3789,7 +3788,7 @@
                 calculateAntBonus() {
                     const drivenAntsBonus = this.antsDriven.add(1);
                     const notDrivenAntsPenalty = N(10).div(this.antsNotDriven.add(100).log(10)+8);
-                    return drivenAntsBonus.pow(notDrivenAntsPenalty).pow(0.5).mul(this.cinnamon);
+                    return drivenAntsBonus.pow(notDrivenAntsPenalty).pow(0.5);
                 },
                 
                 // 更新蚁丘等级
@@ -3856,7 +3855,7 @@
                 
                 // 计算挑战加成
                 calculateChallengeBonus() {
-                    return this.vanilla.mul(this.totalChallengeCompletions.pow(2)).add(1);
+                    return this.totalChallengeCompletions.pow(2).add(1);
                 },
                 
                 // 检查当前是否有挑战活动
@@ -3889,14 +3888,13 @@
                     let last =Date.now();
                     const updateProgress = () => {
                         let now = Date.now();
-                        
                         const delta = (now - last) / 1000;
-                        this.peiLives[index].progress += delta * this.calcSpeedMult(index).toNumber();
-                        
+                        this.peiLives[index].progress += delta * (this.calcSpeedMult(index).gte(1e100)?1e100:this.calcSpeedMult(index).toNumber());
+                        let ovf=this.calcSpeedMult(index).div(1e100).max(1);
                         if (this.peiLives[index].progress >= this.peiLives[index].duration) {
-                            this.fosskie = this.fosskie.add(this.calcLifeProd(index).mul(Math.floor(this.peiLives[index].progress/this.peiLives[index].duration)));
-                            this.totalFosskie = this.totalFosskie.add(this.calcLifeProd(index));
-                            this.resetFosskie = this.resetFosskie.add(this.calcLifeProd(index));
+                            this.fosskie = this.fosskie.add(this.calcLifeProd(index).mul(Math.floor(this.peiLives[index].progress/this.peiLives[index].duration)).mul(ovf));
+                            this.totalFosskie = this.totalFosskie.add(this.calcLifeProd(index).mul(Math.floor(this.peiLives[index].progress/this.peiLives[index].duration)).mul(ovf));
+                            this.resetFosskie = this.resetFosskie.add(this.calcLifeProd(index).mul(Math.floor(this.peiLives[index].progress/this.peiLives[index].duration)).mul(ovf));
                             this.peiLives[index].progress = this.peiLives[index].progress % this.peiLives[index].duration;
                             cancelAnimationFrame(this.peiLives[index].timer);
                             if(this.peiLives[index].auto) this.startLifeProd(index);
