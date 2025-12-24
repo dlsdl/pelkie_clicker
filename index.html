@@ -666,7 +666,7 @@
             <div v-if="this.breakCount.gte(1)" class="shop">
                 <h4>{{ t('t6_7') }}{{ formatInt(this.breakCount) }}{{ t('t6_8') }}</h4>
                 <div v-for="i in 16" class="upgrade-item" :class="{ 'unlocked': breakCount.gte(i<=8?i:i<=12?i*8-56:i*250-3000) }">
-                    {{ t('t6_9') }}{{i<=8?i:i<=12?i*8-56:i*250-3000}}{{ t('t6_10') }}
+                    {{ t('t6_9') }}{{i<=8?i:i<=12?i*8-56:i*250-3000}}{{ t('t6_10') }}<br />
                     {{bmDescription[i-1]}}
                 </div>
             </div>
@@ -846,7 +846,7 @@
             <div>{{ t('t13_1') }}</div>
             <div>{{ t('t13_2') }}</div>
             <div>{{ t('t13_3') }}{{format(totalFosskie)}}</div>
-            <div>{{ t('t13_4') }}{{format(this.totalFosskie.add(1).pow(0.25))}}</div>
+            <div>{{ t('t13_4') }}{{format(this.totalFosskie.div(65536).add(1).pow(0.25))}}</div>
             <div class="bulk-selector">
                 {{ t('t13_5') }}:
                 <select v-model="bulkLifeAmount">
@@ -1008,22 +1008,22 @@
             获得坚果，数量基于佩干总数和化石饼干总数:10^(sqrt(log10佩干*log10化石饼干)/1280)
             <div class="space-reset-section">
                 <h4>太空重置</h4>
-                <p v-if="!canSpaceReset" class="reset-locked">需要 {{format(this.totalLifetimePei)}}/1e25,000 佩干<br /> {{format(this.totalFosskie)}}/1e66 化石饼干</p>
+                <p v-if="!canSpaceReset" class="reset-locked">需要 {{format(this.totalLifetimePei)}}/1e20,000 佩干<br /> {{format(this.totalFosskie)}}/1e60 化石饼干</p>
                 <div v-else class="reset-ready">
                     <p>当前可获得坚果: {{ format(nutGain) }}</p>
                     <button @click="spaceReset" class="space-reset-button">执行太空重置</button>
                 </div>
             </div>
             <div class="upgrade-item" :class="{ 'unlocked': spaceResetCount.gte(1) }">
-                 在1e25,000或更多佩干进行太空重置<br />
+                 在1e20,000或更多佩干进行太空重置<br />
                  每次太空重置保留1飞升点、1轮回点、1次破碎、1觉醒点，在所有重置中保留1e4建筑1和建筑2，在中生代山谷中解锁变甜重置
             </div>
-            <div class="upgrade-item" :class="{ 'unlocked': spaceRecord.gte('1e50000') }">
-                 在1e50,000或更多佩干进行太空重置<br />
+            <div class="upgrade-item" :class="{ 'unlocked': spaceRecord.gte('1e40000') }">
+                 在1e40,000或更多佩干进行太空重置<br />
                  太空重置不再重置糖块
             </div>
-            <div class="upgrade-item" :class="{ 'unlocked': spaceRecord.gte('1e75000') }">
-                 在1e75,000或更多佩干进行太空重置<br />
+            <div class="upgrade-item" :class="{ 'unlocked': spaceRecord.gte('1e60000') }">
+                 在1e60,000或更多佩干进行太空重置<br />
                  太空重置不再重置自动化
             </div>
             <div class="upgrade-item" :class="{ 'unlocked': spaceRecord.gte('1e100000') }">
@@ -1892,14 +1892,14 @@
                         t3_11: '（需要炼糖厂升级3，1e12焦糖）',
                         t3_12: '探索中心（敬请期待）',
                         t3_13: '太空',
-                        t3_14: '（需要觉醒升级6，1e114觉醒点）',
+                        t3_14: '（需要觉醒升级6，1e100觉醒点）',
                         t3_15: '恒星（敬请期待）',
                         t4_0: '飞升',
                         t4_1: '飞升将重置佩干、建筑和升级，获取 ',
                         t4_2: ' 飞升点 (下一个在 ',
                         t4_3: ' 佩干)',
                         t4_4: '飞升!',
-                        t4_5: '飞升(ascend)需要 1e12 累计佩干 (',
+                        t4_5: '飞升(ascend)需要 1.000e12 累计佩干 (',
                         t4_6: '/1e12)',
                         t4_7: '飞升升级 (你有 ',
                         t4_8: '/',
@@ -1919,7 +1919,7 @@
                         t5_2: ' 轮回点(下一个在 ',
                         t5_3: ' 飞升点)',
                         t5_4: '轮回!',
-                        t5_5: '轮回(transcend)需要 1e12 累计飞升点 (',
+                        t5_5: '轮回(transcend)需要 1.000e12 累计飞升点 (',
                         t5_6: '/1e12)',
                         t5_7: '你的总计轮回点数使佩干产量乘以',
                         t5_8: '轮回神器 (你有 ',
@@ -1943,7 +1943,7 @@
                         t6_7: '破碎里程碑 (你破碎了',
                         t6_8: '次)',
                         t6_9: '破碎',
-                        t6_10: '次<br />',
+                        t6_10: '次',
                         t6_11: '破碎一次以解锁',
                         t7_0: '觉醒',
                         t7_1: '觉醒将重置破碎重置的内容（但保留破碎次数），获取 ',
@@ -2128,7 +2128,7 @@
                         t15_10: '二星性状',
                         t15_11: '每级',
                         t15_12: '蜂蜜',
-                        t15_13: '三星性状（共3种）',
+                        t15_13: '三星性状（共3种） 焦糖重置一次后可购买',
                         t15_14: '三星性状',
                         t15_15: '每级将',
                         t15_16: '焦糖',
@@ -2255,14 +2255,14 @@
                         t3_11: '(Requires Refinery Upgrade 3, 1e12 Caramel)',
                         t3_12: 'Exploration Center (Coming Soon)',
                         t3_13: 'Space',
-                        t3_14: '(Requires Hypercend Upgrade 6, 1e114 Hypercension Points)',
+                        t3_14: '(Requires Hypercend Upgrade 6, 1e100 Hypercension Points)',
                         t3_15: 'Stars (Coming Soon)',
                         t4_0: 'Ascend',
                         t4_1: 'Ascension will reset Pelkie, buildings, and upgrades, gaining ',
                         t4_2: ' Ascension Points (next at ',
                         t4_3: ' Pelkies)',
                         t4_4: 'Ascend!',
-                        t4_5: 'Ascension requires 1e12 total Pelkies (',
+                        t4_5: 'Ascension requires 1.000e12 total Pelkies (',
                         t4_6: '/1e12)',
                         t4_7: 'Ascension Upgrades (You have ',
                         t4_8: '/',
@@ -2282,7 +2282,7 @@
                         t5_2: ' Transcension Points (next at ',
                         t5_3: ' Ascension Points)',
                         t5_4: 'Transcend!',
-                        t5_5: 'Transcension requires 1e12 total ascension points (',
+                        t5_5: 'Transcension requires 1.000e12 total ascension points (',
                         t5_6: '/1e12)',
                         t5_7: 'Your total transcension points multiply Pelkie production by',
                         t5_8: 'Transcension Artifacts (You have ',
@@ -2306,7 +2306,7 @@
                         t6_7: 'Breaking Milestones (You have broken ',
                         t6_8: ' times)',
                         t6_9: 'Break ',
-                        t6_10: ' times<br />',
+                        t6_10: ' times',
                         t6_11: 'Break once to unlock',
                         t7_0: 'Hypercend',
                         t7_1: 'Hypercend will reset break reset content (but keep break count), gain ',
@@ -4810,10 +4810,10 @@
                         this.playTime2 = this.playTime2 + offlineSeconds;
                         this.totalPlayTime = this.totalPlayTime + offlineSeconds;
                         // 显示离线通知
-                        this.showOfflineNotification(offlineSeconds, production);
+                        this.showOfflineNotification(offlineSeconds, production, fosskieproduction, starkieproduction);
                     }
                 },
-                showOfflineNotification(seconds, amount) {
+                showOfflineNotification(seconds, a, b, c) {
                     const hours = Math.floor(seconds / 3600);
                     const mins = Math.floor((seconds % 3600) / 60);
                     const secs = Math.floor(seconds % 60);
@@ -4821,15 +4821,16 @@
                     toast.className = 'offline-toast';
                     toast.innerHTML = `
                 <p>你离线了 ${hours}h${mins}m${secs}s</p>
-                <p>离线产量: ${this.format(amount.div(seconds))}</p>
-                <p>效率: 80%, 时长上限: ${this.ascendU[3].level.toNumber()*6+6}h</p>
-                <p>获得 ${this.format(amount)} 佩干</p>
-                <p>糖块计时器增加了 ${seconds} 秒</p>
-            `;
+                <p>离线效率: 80%, 时长上限: ${this.ascendU[3].level.toNumber()*6+6}h</p>
+                <p>获得 ${this.format(a)} 佩干</p>
+                <p>获得了 ${seconds.toFixed(0)} 糖块计时</p>`
+                + (this.hypercendU[2].level.gt(0)? `获得了 ${this.format(b)} 化石饼干`:``)
+                + (this.refineryU[2].level.gt(0)? `获得了 ${this.format(c)} 星尘饼干`:``);
                     document.body.appendChild(toast);
                     setTimeout(() => toast.remove(), 5000);
                 },
                 updateCost(){
+                    //佩干区域
                     for(let i=0;i<42;i++) this.buildings[i].cost = this.buildings[i].baseCost.mul(new Decimal(1.148698354997035).pow(this.buildings[i].quantity));
                     let a0=[1,3,5,7,50,77,100,777,999,9000,99999,222222,399999,1.5e7,1e8,2e8,1e9,1.92e9,9e9,1e10];
                     let p=[0,1334,10,0,0,0,100,0,0,0,0,2e6,0,0,0,2e8,0,0,0,0];
@@ -4842,14 +4843,17 @@
                     for(let i=0;i<20;i++){
                         this.transcendU[i].cost=Decimal.pow(s[i],this.transcendU[i].level).mul(r[i]);
                     }
-                    let t=[1,1e6,1e12,1e18,1e24,1e114]
+                    let t=[1,1e6,1e12,1e18,1e24,1e100]
                     for(let i=0;i<6;i++) this.hypercendU[i].cost=Decimal.pow(1.148698354997035,this.hypercendU[i].level).mul(t[i]);
+                    //中生代山谷区域
                     for(let i=0;i<27;i++) if(this.peiLives[i].auto & this.peiLives[i].level.gte(1)) this.startLifeProd(i);
                     for(let i=0;i<42;i++) this.traits[i].cost = Decimal.pow(3, this.traits[i].level).sub(1);
                     let u=[1,1e6,1e12,1e18,1e24]
                     for(let i=0;i<5;i++) this.refineryU[i].cost = Decimal.pow(1.148698354997035, this.refineryU[i].level).mul(u[i]);
+                    //超越区域
                     for(let i=0;i<56;i++) if(this.peiCeles[i].level.gte(1)) this.startCeleProd(i);
                     for(let i=0;i<40;i++) this.enhans[i].cost = Decimal.pow(4, this.enhans[i].level).sub(1);
+                    
                     this.milk=this.milkCount;
                 },
                 // 其他方法...
@@ -4857,18 +4861,17 @@
             computed: {
                 // 带升级加成的总生产量
                 sugarBonus(){
-                    return this.sugar.mul(0.001).mul(this.sugarUpgradeMult).add(1)
-                    .mul(this.upgrades.filter(u => u.buildingId == 110).reduce((prod, upgrade, i) => {
+                    return this.upgrades.filter(u => u.buildingId == 110).reduce((prod, upgrade, i) => {
                         let factor = N(milkUpgradeBase[upgrade.id-1]*0.001);
                         return upgrade.unlocked ? prod.mul(factor.mul(this.sugar.min(1000)).mul(this.sugarUpgradeMult).add(1)) : prod;
-                    }, N(1)))
-                    .mul([2,3,4,5,6,7,8,9,10].reduce((prod,i)=>{
+                    }, N(1))
+                    .mul([1,2,3,4,5,6,7,8,9,10].reduce((prod,i)=>{
                         return this.ascendU[15].level.gte(i)?prod.mul(this.sugar.min(1000).mul(0.001*i).mul(this.sugarUpgradeMult).add(1)):prod;
                     },N(1)))
                 },
                 sugarUpgradeMult(){
                     return this.transcendU[8].level.mul(0.1).add(1)
-                    .mul(this.totalFosskie.add(1).pow(0.25))
+                    .mul(this.totalFosskie.div(65536).add(1).pow(0.25))
                     .mul(this.traits[38].level.mul(0.2).add(1));
                 },
                 milkBonus(){
@@ -4882,7 +4885,7 @@
                 },
                 milkUpgradeMult(){
                     return this.transcendU[9].level.mul(0.1).add(1)
-                    .mul(this.totalStarkie.add(1).pow(0.25));
+                    .mul(this.totalStarkie.div(65536).add(1).pow(0.25));
                 },
                 upgradeBonus(){
                     return this.upgrades.filter(u => u.buildingId == 105).reduce((sum, upgrade) => {
@@ -4952,9 +4955,9 @@
                     .mul(this.hypercendU[3].level.gte(1)?this.transcendU[5].level.toNumber()*2.2+22:this.goldenPeiEffects.buildingMultiplier);
                 },
                 baseProduction() {
-                    if(this.buildings[41].quantity.gt(3e4)) return this.buildings[41].quantity.mul(this.buildings[41].baseProd).mul(this.buildingMult(41)).mul(40);
+                    //if(this.buildings[41].quantity.gt(3e4)) return this.buildings[41].quantity.mul(this.buildings[41].baseProd).mul(this.buildingMult(41)).mul(40);
                     let base = this.buildings.reduce((sum, building, index) => {
-                        building.production = building.quantity.mul(building.baseProd).mul(this.buildingMult(index))
+                        building.production = building.quantity.mul(building.baseProd).mul(this.buildingMult(index)).mul(this.sugar.add(41.001).sub(index).div(42).floor().div(100).add(1))
                         return sum.add(building.production);
                     }, N(0));
                     return base;
@@ -5051,10 +5054,10 @@
                     .mul(Decimal.pow(4,this.spaceU[9].level));
                 },
                 canSpaceReset(){
-                    return this.totalLifetimePei.gte("1e25000") && this.totalFosskie.gte(1e66);
+                    return this.totalLifetimePei.gte("1e20000") && this.totalFosskie.gte(1e60);
                 },
                 nutGain(){
-                    return Decimal.pow(10, Math.sqrt(this.totalLifetimePei.add(10).log(10) * this.totalFosskie.add(10).log(10))/1280)
+                    return Decimal.pow(10, Math.sqrt(this.totalLifetimePei.add(10).log(10) * this.totalFosskie.add(10).log(10))/1500)
                     .mul(this.sweetenCount.mul(0.05).add(1)).floor();
                 },
 
@@ -5130,7 +5133,7 @@
                     .mul(Decimal.pow(1.071519,this.refineryU[2].level))
                     .mul(Decimal.pow(1.047129,this.refineryU[3].level))
                     .mul(Decimal.pow(1.023293,this.refineryU[4].level))
-                    .mul(Decimal.pow(2,this.spaceU[8].level));
+                    ;
                 },
                 
                 goldenPeiTimeCap(){
