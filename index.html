@@ -4627,6 +4627,7 @@
 
                         peiCeles: this.peiCeles.map(ce => (ce.level)),
                         enhans: this.enhans.map(e => (e.level)),
+                        astroResearch: this.astroResearch.map(ar => (ar.level)),
                         condenseryU: this.condenseryU.map(u => (u.level)),
                     }
                 },
@@ -4770,6 +4771,9 @@
                     })
                     this.enhans.forEach((e, index) => {
                         e.level = !save.enhans? N(0):save.enhans[index] || N(0);
+                    })
+                    this.astroResearch.forEach((ar, index) => {
+                        ar.level = !save.astroResearch? N(0):save.astroResearch[index] || N(0);
                     })
                     this.condenseryU.forEach((cu, index) => {
                         cu.level = !save.condenseryU? N(0):save.condenseryU[index] || N(0);
@@ -5043,8 +5047,8 @@
                 <p>离线效率: 80%, 时长上限: ${this.ascendU[3].level.toNumber()*6+6}h</p>
                 <p>获得了 ${seconds.toFixed(0)} 糖块计时</p>
                 <p>获得 ${this.format(a)} 佩干</p>`
-                + (this.hypercendU[2].level.gt(0)? `获得了 ${this.format(b)} 化石饼干`:``)
-                + (this.refineryU[2].level.gt(0)? `获得了 ${this.format(c)} 星尘饼干`:``);
+                + (this.hypercendU[2].level.gt(0)? `<p>获得了 ${this.format(b)} 化石饼干</p>`:``)
+                + (this.refineryU[2].level.gt(0)? `<p>获得了 ${this.format(c)} 星尘饼干</p>`:``);
                     document.body.appendChild(toast);
                     setTimeout(() => toast.remove(), 5000);
                 },
