@@ -1457,7 +1457,7 @@
             <div class="divider">----------------------------------------------------------------</div>
             <div v-if="this.dreamCount.gte(1)">
                 <h4>梦游里程碑 (你梦游了{{ formatInt(this.dreamCount) }}次)</h4>
-                <div v-for="i in 12" class="upgrade-item" :class="{ 'unlocked': dreamCount.gte(i<=8?i:i*4-24) }">
+                <div v-for="i in 8" class="upgrade-item" :class="{ 'unlocked': dreamCount.gte(i<=8?i:i*4-24) }">
                     梦游{{i<=8?i:i*4-24}}次<br />
                     {{dreamDescription[i-1]}}
                 </div>
