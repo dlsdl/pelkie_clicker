@@ -1798,7 +1798,7 @@ function getDefaultData() {
             timer: null,
             duration: Math.pow(10, (i + 5) / 10),
             baseCost: Decimal.pow(10, 1 + i + i * (i + 1) / 20),
-            baseProd: Decimal.pow(8, 1 + i + i * (i + 1) / 20).div(4),
+            baseProd: Decimal.pow(6.4, 1 + i + i * (i + 1) / 20),
         })),
         enhans: Array(40).fill().map((_, i) => ({
             id: i + 1,
@@ -3397,7 +3397,7 @@ export default {
             return Decimal.pow(1.148698354997035,this.peiCeles[index].level).mul(this.peiCeles[index].baseCost);
         },
         calcCeleMult(index){
-            return (this.peiCeles[index].level.lte(200)?Decimal.pow(3, this.peiCeles[index].level.div(25).floor()):Decimal.pow(3, this.peiCeles[index].level.add(200).div(50).floor()))
+            return Decimal.pow(N(3).add(this.dreamCount.min(7)), this.peiCeles[index].level.div(25).floor())
             .mul(Decimal.pow(2, this.enhans[index % 14].level))
             .mul(Decimal.pow(2, this.enhans[30].level))
             .mul(this.refineryU[3].level.gte(1)?this.sweetenCount.mul(0.1).add(1):1)
