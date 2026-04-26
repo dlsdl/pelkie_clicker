@@ -642,7 +642,7 @@
                 <button @click="spaceReset" class="space-reset-button">{{ t('t18_10') }}</button>
             </div>
         </div>
-        <div v-for="m in SPACE_MILESTONES" :key="m.text1" class="upgrade-item" :class="{ 'unlocked': spaceMilestoneUnlocked(m) }">
+        <div v-for="m in spaceMilestones" :key="m.text1" class="upgrade-item" :class="{ 'unlocked': spaceMilestoneUnlocked(m) }">
                 {{ t(m.text1) }}<br />
                 {{ t(m.text2) }}<template v-if="m.extra === 'hyperArtifact12'">(×{{format(N(this.totalLifetimePei.add(10).log(10)).pow(1/6))}})</template><template v-if="m.extra === 'nuts'">(×{{format(this.nutCount.div(1e12).add(1).pow(2))}})</template>
         </div>
@@ -792,7 +792,7 @@
                 <h4>{{ t('t22_11') }}</h4>
                 <div>{{ t('t22_12') }}</div>
             </div>
-            <div v-for="m in SPICE_MILESTONES" :key="m.text1" class="upgrade-item" :class="{ 'unlocked': spiceMilestoneUnlocked(m) }">
+            <div v-for="m in spiceMilestones" :key="m.text1" class="upgrade-item" :class="{ 'unlocked': spiceMilestoneUnlocked(m) }">
                 {{ t(m.text1) }}<br />
                 {{ t(m.text2) }}
             </div>
@@ -1798,7 +1798,7 @@ function getDefaultData() {
             timer: null,
             duration: Math.pow(10, (i + 5) / 10),
             baseCost: Decimal.pow(10, 1 + i + i * (i + 1) / 20),
-            baseProd: Decimal.pow(6.4, 1 + i + i * (i + 1) / 20),
+            baseProd: Decimal.pow(7, 1 + i + i * (i + 1) / 20).div(3.5),
         })),
         enhans: Array(40).fill().map((_, i) => ({
             id: i + 1,
@@ -1979,7 +1979,7 @@ const SAVE_SCHEMA = {
 };
 
 const SPACE_MILESTONES = [
-    { type: 'spaceReset', val: 1, text1: 't18_11', text2: 't18_12' },
+    { type: 'spaceRecord', val: '1e20000', text1: 't18_11', text2: 't18_12' },
     { type: 'spaceRecord', val: '1e40000', text1: 't18_13', text2: 't18_14' },
     { type: 'spaceRecord', val: '1e60000', text1: 't18_15', text2: 't18_16' },
     { type: 'spaceRecord', val: '1e80000', text1: 't18_17', text2: 't18_18' },
@@ -4355,6 +4355,8 @@ export default {
         // 将模块级不可变变量挂载到实例上，供模板访问
         // 不放在 data() 中，避免 Vue 3 Proxy 代理导致性能问题
         this.texts = markRaw(TEXTS);
+        this.spaceMilestones = markRaw(SPACE_MILESTONES);
+        this.spiceMilestones = markRaw(SPICE_MILESTONES);
 
         this._tabSet1a = new Set([0,1,2,4,5,6,10,11]);
         this._tabSet1b = new Set([0,1,2,3,4,5,6,7,8,9,10,11]);
